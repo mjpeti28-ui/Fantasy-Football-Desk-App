@@ -85,6 +85,23 @@ All simulation-based panels come from the same common-random-numbers run as the 
   Classification widens each group's covariance by the n-game sampling noise: at 3 games the label
   matches the full-season call 63-78% of the time and the stated confidence matches that (old
   version claimed ~88% and was right ~67%). Year-to-year same style 65-81%.
+- WR/TE styles with PFF alignment (model v3, 10/16, Max's call): WR and TE add PFF receiving/summary
+  alignment (share of pass snaps in the slot / inline, routes per pass snap), fit on 2021-25 weeks 1-12
+  (`python -m app.engine.roles_fit --pff <roles cache> <pff cache>`). This reverses the earlier "No PFF
+  data" stance for Roles only; Matchups stays free-data. WR is 2 groups (Slot receiver 45% / Outside
+  receiver 55%), TE 2 groups (Inline TE 30% / Move TE 70%); RB and QB unchanged. Same rows, shipped
+  noise-aware classifier, vs the free styles: WR label at 3 games matches weeks 1-12 85% (free 3-group
+  61%), year-to-year same style 78% (67%; kappa .54 vs .41). TE 82% (65%) and 77% (69%; kappa .38 vs .34).
+  Fewer groups make the raw rates easier, so read the kappas. WR at 3 groups (BIC's pick: slot / outside
+  primary / outside vertical) labelled earlier but was no steadier year to year (kappa .41 vs .41), so
+  the vertical split is left to the "Deep aDOT" trait. PFF alignment settles fast (slot rate M ≈ 0.4
+  games, TE inline 0.6, route rate 2).
+  Live: roles_pff.py pulls this season to date (one API call, at most every 12 h, from the Refresh
+  steps; key PFF_API_KEY from .env.local, never logged) into .cache/pff/ (gitignored; PFF rows are never
+  committed: roles_model.json holds only model parameters and aggregates). No key, no network or no PFF
+  match for a player: that player is typed with the free-data styles (model["style_free"]), and the role
+  map switches to the free axes when the season has no PFF data. The role map's PFF axes are season to
+  date only, so the player's point has no weekly path.
 - What styles do not do: at the same points per game, weekly volatility (CV) and TD share barely
   differ by style; game-script sensitivity vs ESPN's projection is small (+0.02-0.08 pts per point
   of spread). So styles describe, they don't forecast.
@@ -289,8 +306,8 @@ All simulation-based panels come from the same common-random-numbers run as the 
   What it has: pass rush and tackle events (pbp), snap share and team EPA allowed with and without
   each defender (last season's participation, ± two standard errors, flagged when he has since left).
 - Data and licences: nflverse play-by-play + FTN charting and participation (CC BY-SA 4.0, credit
-  "FTN Data via nflverse" is printed on the screen). No PFF data (their terms bar feeding it to
-  LLMs) and nothing from Pro Football Reference (their policy bars AI use).
+  "FTN Data via nflverse" is printed on the screen). No PFF data here (their terms bar feeding it to
+  LLMs; Roles WR/TE alignment is the one exception, by Max's choice 10/16) and nothing from Pro Football Reference (their policy bars AI use).
 - Engine: app/engine/matchups_data.py (build + cache per season under cache.nosync/matchups; the
   current season refreshes when older than 6 h, offline falls back to the stale file),
   matchups.py (tables, defense, player, defenders, view), GET /api/matchups, /defense/{abbr},

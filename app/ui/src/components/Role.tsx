@@ -69,8 +69,8 @@ export function RoleSection({ r, board, pos, id, list }: { r?: RoleProfile | nul
   if (pos === "K" || pos === "DST") return null;
   if (!board) return <section className="rl"><h6>Role</h6><p className="ins-note">Loading usage…</p></section>;
   if (!r) return <section className="rl"><h6>Role</h6><p className="ins-note">No snaps this season, so no usage to read.</p></section>;
-  const st = r.style, yoy = board.styles[pos]?.yoy_same;
-  const acc = board.styles[pos]?.early_acc?.[r.games < 6 ? "G3" : "G6"];
+  const st = r.style, sm = (st?.pff === false && board.styles_free?.[pos]) || board.styles[pos], yoy = sm?.yoy_same;
+  const acc = sm?.early_acc?.[r.games < 6 ? "G3" : "G6"];
   const probs = st ? Object.entries(st.probs).sort((a, b) => b[1] - a[1]) : [];
   return (
     <section className="rl">
