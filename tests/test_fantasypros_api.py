@@ -55,6 +55,15 @@ def test_batches_of_ten_and_same_day_cache(tmp_path, fake_http):
     assert _client(tmp_path).calls_used_today() == 3  # ledger persists across instances
 
 
+def test_shifted_player_set_only_fetches_new_players(tmp_path, fake_http):
+    client = _client(tmp_path)
+    client.ros_projections(2026, "WR", range(1, 21))  # 2 calls
+    players = client.ros_projections(2026, "WR", range(3, 24))  # 3..20 cached; 21..23 new
+    assert sorted(p["fpid"] for p in players) == list(range(3, 24))
+    assert len(fake_http) == 3
+    assert fake_http[-1]["players"] == "21:22:23"
+
+
 def test_quota_guard(tmp_path, fake_http):
     client = _client(tmp_path)
     client._ledger_path.write_text('{"calls": %d}' % (fpa.DAILY_LIMIT - fpa.DAILY_SAFETY_MARGIN))

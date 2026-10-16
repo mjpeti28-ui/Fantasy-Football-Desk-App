@@ -103,8 +103,19 @@ class FantasyProsClient:
 
     def ros_projections(self, season: int, position: str, player_ids: Iterable[int]) -> List[Dict[str, Any]]:
         """Rest-of-season projections for specific players, batched 10 per call."""
-        ids = sorted({int(i) for i in player_ids})
-        players: List[Dict[str, Any]] = []
+        want = {int(i) for i in player_ids}
+        # reuse any player already fetched today, whatever batch he came in: a re-run after the
+        # rankings or rosters shift would otherwise re-buy every batch whose membership changed
+        have: Dict[int, Dict[str, Any]] = {}
+        for f in self.cache_dir.glob(f"proj-ros-{season}-{position}-*.json"):
+            try:
+                for p in json.loads(f.read_text()).get("players", []):
+                    if p.get("fpid") is not None:
+                        have[int(p["fpid"])] = p
+            except (OSError, ValueError):
+                continue
+        players: List[Dict[str, Any]] = [have[i] for i in sorted(want & have.keys())]
+        ids = sorted(want - have.keys())
         for start in range(0, len(ids), BATCH_SIZE):
             batch = ids[start:start + BATCH_SIZE]
             payload = self.get(
