@@ -1,0 +1,264 @@
+{
+ "k": {
+  "QB": 10,
+  "RB": 6,
+  "WR": 10,
+  "TE": 10,
+  "K": 50,
+  "DST": 15
+ },
+ "availability": {
+  "QB": {
+   "now": {
+    "active": 0.964,
+    "missed_last": 0.536,
+    "ir": 0.368
+   },
+   "later": {
+    "active": 0.824,
+    "missed_last": 0.593,
+    "ir": 0.556
+   }
+  },
+  "RB": {
+   "now": {
+    "active": 0.951,
+    "missed_last": 0.527,
+    "ir": 0.256
+   },
+   "later": {
+    "active": 0.844,
+    "missed_last": 0.779,
+    "ir": 0.593
+   }
+  },
+  "WR": {
+   "now": {
+    "active": 0.945,
+    "missed_last": 0.548,
+    "ir": 0.253
+   },
+   "later": {
+    "active": 0.847,
+    "missed_last": 0.739,
+    "ir": 0.604
+   }
+  },
+  "TE": {
+   "now": {
+    "active": 0.961,
+    "missed_last": 0.682,
+    "ir": 0.353
+   },
+   "later": {
+    "active": 0.832,
+    "missed_last": 0.762,
+    "ir": 0.652
+   }
+  },
+  "K": {
+   "now": {
+    "active": 0.981,
+    "missed_last": 0.653,
+    "ir": 0.871
+   },
+   "later": {
+    "active": 0.926,
+    "missed_last": 0.71,
+    "ir": 0.65
+   }
+  },
+  "DST": {
+   "now": {
+    "active": 1.0,
+    "missed_last": 1.0,
+    "ir": 1.0
+   },
+   "later": {
+    "active": 0.998,
+    "missed_last": 0.998,
+    "ir": 0.998
+   }
+  }
+ },
+ "prior_scale": {
+  "QB": 1.057,
+  "RB": 1.086,
+  "WR": 1.021,
+  "TE": 1.159,
+  "K": 1.035,
+  "DST": 1.052
+ },
+ "espn_weight": {
+  "QB": 0.4,
+  "RB": 0.4,
+  "WR": 0.4,
+  "TE": 0.3,
+  "K": 0.6,
+  "DST": 0.3
+ },
+ "espn_zero_now": {
+  "QB": 0.038,
+  "RB": 0.011,
+  "WR": 0.02,
+  "TE": 0.01,
+  "K": 0.045,
+  "DST": 0.05
+ },
+ "waiver_scale": {
+  "QB": 1.048,
+  "RB": 0.946,
+  "WR": 0.884,
+  "TE": 1.061,
+  "K": 0.796,
+  "DST": 1.006
+ },
+ "espn_zero_later": {
+  "QB": {
+   "rostered": 0.495,
+   "free_agent": 0.143
+  },
+  "RB": {
+   "rostered": 0.562,
+   "free_agent": 0.288
+  },
+  "WR": {
+   "rostered": 0.584,
+   "free_agent": 0.375
+  },
+  "TE": {
+   "rostered": 0.646,
+   "free_agent": 0.584
+  },
+  "K": {
+   "rostered": 0.537,
+   "free_agent": 0.072
+  },
+  "DST": {
+   "rostered": 0.998,
+   "free_agent": 0.998
+  }
+ },
+ "avail_model": {
+  "features": [
+   "st_missed_last",
+   "st_ir",
+   "streak1",
+   "streak2_3",
+   "streak4p",
+   "frac_played",
+   "no_games_yet",
+   "rostered",
+   "prev_out",
+   "prev_q",
+   "depth1",
+   "depth2",
+   "depth3p",
+   "off_chart",
+   "espn0"
+  ],
+  "pos": [
+   "pos_QB",
+   "pos_RB",
+   "pos_TE"
+  ],
+  "coef": [
+   1.91156,
+   -0.207674,
+   -1.44812,
+   -1.043893,
+   -1.281106,
+   -1.742465,
+   0.237407,
+   0.469561,
+   0.423035,
+   -0.458428,
+   0.072405,
+   0.515886,
+   0.655596,
+   0.350014,
+   -0.603043,
+   -5.078508,
+   0.026775,
+   0.143078,
+   -0.086485,
+   -0.399,
+   -1.392649,
+   -0.651307,
+   -0.51188,
+   -0.755576,
+   0.766381,
+   0.033206,
+   0.567016,
+   0.711598,
+   0.302494,
+   -0.120611,
+   0.087711,
+   -0.168192,
+   -0.717362,
+   -2.766165,
+   -0.577268,
+   -0.167599,
+   0.082962,
+   0.918454,
+   -0.514215,
+   0.503482,
+   1.089691,
+   -0.14925,
+   -0.074617,
+   -0.031338,
+   0.11537,
+   0.046935,
+   -0.179228,
+   -0.018208,
+   -0.058667,
+   -0.106937,
+   -0.18855,
+   -0.192544,
+   -0.026184,
+   0.946381
+  ]
+ },
+ "ecr_weight": {
+  "QB": 0.6,
+  "RB": 0.4,
+  "TE": 0.5,
+  "WR": 0.5
+ },
+ "calibration": {
+  "source": "backtest/currency_validation.py --target espn, tag _ecrespn (availability model + ECR blend), 3,200 sides, 2021-2025 LOSO",
+  "realized_over_predicted": 0.94,
+  "sign_accuracy_by_abs_pred_edge": [
+   [
+    0,
+    5,
+    0.479
+   ],
+   [
+    5,
+    10,
+    0.535
+   ],
+   [
+    10,
+    20,
+    0.612
+   ],
+   [
+    20,
+    40,
+    0.689
+   ],
+   [
+    40,
+    80,
+    0.825
+   ],
+   [
+    80,
+    1000000000.0,
+    0.952
+   ]
+  ]
+ }
+}

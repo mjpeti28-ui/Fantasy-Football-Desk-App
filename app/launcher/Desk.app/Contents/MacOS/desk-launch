@@ -1,0 +1,16 @@
+#!/bin/bash
+# Desk launcher (installed to ~/Applications by app/run.sh). Runs app/run.sh from the repo inside
+# your login shell, so node, npm and cargo are on the PATH the way they are in Terminal.
+# Output goes to ~/Library/Logs/Desk.log.
+HERE="$(cd "$(dirname "$0")/.." && pwd)"
+REPO="$(cat "$HERE/Resources/repo-path" 2>/dev/null)"
+LOG="$HOME/Library/Logs/Desk.log"
+mkdir -p "$HOME/Library/Logs"
+if [ -z "$REPO" ] || [ ! -f "$REPO/app/run.sh" ]; then
+  /usr/bin/osascript -e 'display alert "Desk" message "Desk can'"'"'t find its repo. Run app/run.sh once from Terminal; it reinstalls this launcher with the right path."' >/dev/null 2>&1
+  exit 1
+fi
+{ echo; echo "=== Desk launched $(date) from $REPO ==="; } >>"$LOG"
+SH="${SHELL:-/bin/zsh}"
+case "$SH" in */zsh|*/bash) ;; *) SH=/bin/zsh ;; esac
+exec "$SH" -lic 'cd "$1" && DESK_FROM_LAUNCHER=1 exec bash app/run.sh' desk "$REPO" </dev/null >>"$LOG" 2>&1

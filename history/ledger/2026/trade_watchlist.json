@@ -1,0 +1,13 @@
+[
+ {"with": 9, "give": ["James Cook III", "Quinshon Judkins", "Jalen Coker"], "get": ["Jonathan Taylor"], "note": "wk3 top pick (wide search)"},
+ {"with": 9, "give": ["James Cook III", "Quinshon Judkins", "Jalen Coker"], "get": ["Jonathan Taylor", "Mark Andrews"], "note": "wk3 variant"},
+ {"with": 9, "give": ["James Cook III", "Jadarian Price", "Jalen Coker"], "get": ["Jonathan Taylor"], "note": "wk3 variant"},
+ {"with": 9, "give": ["Jadarian Price", "Mike Evans"], "get": ["Tyler Warren"], "note": "wk3"},
+ {"with": 9, "give": ["Mike Evans", "Jalen Coker"], "get": ["Tyler Warren", "Jordan Love"], "note": "wk3 single-source"},
+ {"with": 6, "give": ["Quinshon Judkins", "Christian Watson"], "get": ["Puka Nacua", "Matthew Stafford"], "note": "wk3"},
+ {"with": 12, "give": ["Garrett Wilson", "Jadarian Price", "Chuba Hubbard"], "get": ["Derrick Henry", "Tony Pollard"], "note": "wk3"},
+ {"with": 1, "give": ["Christian Watson", "Chuba Hubbard"], "get": ["Zay Flowers", "Sam LaPorta"], "note": "wk3 single-source"},
+ {"with": 4, "give": ["Christian Watson", "Jalen Coker"], "get": ["Brock Bowers", "Dak Prescott"], "note": "wk3 single-source"},
+ {"with": 8, "give": ["Quinshon Judkins", "Christian Watson", "Jalen Coker"], "get": ["De'Von Achane", "Matthew Golden"], "note": "wk3 single-source"},
+ {"with": 7, "give": ["Jadarian Price", "Jalen Coker"], "get": ["Justin Herbert", "George Kittle"], "note": "wk3 single-source"}
+]

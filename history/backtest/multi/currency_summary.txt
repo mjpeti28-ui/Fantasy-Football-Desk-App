@@ -1,0 +1,38 @@
+== Team outcomes: rank corr with actual points, checkpoint -> end of regular season (12 teams per season-week)
+        new: expected lineup pts  old: combined z  ppg so far  new + ppg so far
+season                                                                         
+2021                       0.313            0.199      -0.056             0.182
+2022                       0.699            0.594       0.414             0.657
+2023                       0.128            0.222      -0.021             0.066
+2024                       0.365            0.289       0.113             0.269
+2025                       0.404            0.390       0.605             0.607
+all: new: expected lineup pts 0.382, old: combined z 0.339, ppg so far 0.211, new + ppg so far 0.356
+      new: expected lineup pts  old: combined z  ppg so far  new + ppg so far
+week                                                                         
+4                        0.266            0.186       0.043             0.136
+6                        0.379            0.432       0.268             0.401
+8                        0.399            0.375       0.263             0.431
+10                       0.484            0.362       0.270             0.457
+
+== Hypothetical trades: predicted vs realized change in a team's lineup points (weeks W-17, hindsight-optimal lineups)
+n = 3200 team-sides from 1600 trades; old model scored on a subset of 744
+        new rho
+season         
+2021      0.624
+2022      0.588
+2023      0.573
+2024      0.600
+2025      0.695
+same subset -> new rho 0.616 vs old (combined z) rho 0.577
+sign accuracy on subset: new 0.727, old 0.714
+1-for-1: rho 0.551, n=1916
+2-for-1: rho 0.688, n=1284
+calibration: realized change ~= 1.00 x predicted change
+                          n  sign_accuracy  median_pred  median_realized_in_pred_direction
+bin                                                                                       
+(0.0, 5.0]            544.0          0.559        2.218                              4.234
+(5.0, 10.0]           384.0          0.604        7.410                              9.560
+(10.0, 20.0]          594.0          0.672       15.033                             16.514
+(20.0, 40.0]          775.0          0.748       29.522                             27.200
+(40.0, 80.0]          712.0          0.837       53.378                             49.817
+(80.0, 1000000000.0]  191.0          0.953       95.594                            104.065

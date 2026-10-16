@@ -1,0 +1,51 @@
+/* Role section (inspector) and compact role tags. Shared across screens. */
+.rl { display: grid; gap: 8px; }
+.rl-hd { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.rl-hd b { font-size: 14px; font-weight: 650; }
+.rl-hd .tier { font-size: 12px; color: var(--ink-2); white-space: nowrap; }
+.rl-mix { display: flex; height: 5px; border-radius: 3px; overflow: hidden; gap: 2px; background: var(--field); }
+.rl-mix i { display: block; background: var(--ink-3); opacity: .55; }
+.rl-mix i.top { opacity: 1; }
+.rl-traits { display: flex; flex-wrap: wrap; gap: 5px; }
+.rl-traits .chip { font-size: 11.5px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); background: var(--zebra); cursor: help; white-space: nowrap; }
+.rl-traits .chip:hover, .rl-traits .chip:focus-visible { border-color: var(--ink-3); }
+.rl-trends { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.rl-trends li { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 6px; font-size: 12px; line-height: 1.4; }
+.rl-trends .ic { font-size: 10px; padding-top: 2px; }
+.rl-trends li.up .ic { color: var(--above); }
+.rl-trends li.down .ic { color: var(--below); }
+.rl-trends li.spike .ic, .rl-trends li.flat .ic { color: var(--noise); }
+.rl-trends b { font-weight: 600; }
+.rl-trends .hold { display: block; color: var(--ink-2); font-size: 11.5px; }
+.rl-trends .hold.weak { color: var(--noise); font-style: italic; }
+.rl-usage { margin: 2px 0 0; display: grid; gap: 2px; }
+.rl-usage text { font: 9.5px var(--sys); fill: var(--ink-3); font-variant-numeric: tabular-nums; }
+.rl-usage .gl { stroke: var(--line); }
+.rl-usage .bar { opacity: .75; }
+.rl-usage .snapline { fill: none; stroke: var(--ink); stroke-width: 1.6; }
+.rl-usage .snapdot { fill: var(--ink); stroke: var(--win); stroke-width: 1; }
+.rl-usage figcaption { font-size: 10.5px; color: var(--ink-2); display: flex; align-items: center; gap: 4px; }
+.rl-usage figcaption i { display: inline-block; }
+.rl-usage .k-line { width: 12px; height: 2px; background: var(--ink); }
+.rl-usage .k-bar { width: 8px; height: 8px; border-radius: 2px; margin-left: 6px; opacity: .75; }
+
+.rt-glyph { font-style: normal; font-size: 9px; margin-left: 4px; vertical-align: 2px; cursor: help; }
+.rt-glyph.up { color: var(--above); }
+.rt-glyph.down { color: var(--below); }
+.role-tag { display: inline-flex; align-items: center; gap: 2px; font-size: 12px; white-space: nowrap; }
+.role-tag .st { color: var(--ink-2); }
+.rl-shifts { list-style: none; margin: 0; padding: 0; display: grid; }
+.rl-shifts button { all: unset; cursor: pointer; display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; grid-template-rows: auto auto; column-gap: 6px; padding: 5px 4px; border-radius: 6px; width: 100%; box-sizing: border-box; }
+.rl-shifts button:hover, .rl-shifts button:focus-visible { background: var(--hover); }
+.rl-shifts .ic { font-size: 9px; grid-row: 1 / 3; padding-top: 3px; }
+.rl-shifts .ic.up { color: var(--above); } .rl-shifts .ic.down { color: var(--below); } .rl-shifts .ic.spike { color: var(--noise); }
+.rl-shifts .who { font-weight: 600; font-size: 12.5px; }
+.rl-shifts .what { grid-column: 2; font-size: 11.5px; color: var(--ink-2); }
+.rl-shifts .h { grid-column: 3; grid-row: 1 / 3; align-self: center; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.rl-shifts .h.real { color: var(--ink); font-weight: 600; } .rl-shifts .h.weak { color: var(--noise); }
+.rl h6 { display: flex; justify-content: space-between; align-items: center; }
+.rl-open { border: 1px solid var(--line); background: var(--win); border-radius: 6px; padding: 2px 8px; cursor: pointer; font: 500 11.5px var(--sys); color: var(--ink); }
+.rl-open:hover { border-color: var(--you); color: var(--you); }
+.file-btn { border: 0; background: none; padding: 3px; border-radius: 4px; cursor: pointer; color: var(--ink-3); display: inline-grid; place-items: center; opacity: .0; }
+*:hover > .file-btn, .file-btn:focus-visible { opacity: 1; }
+.file-btn:hover { color: var(--you); background: var(--hover); }

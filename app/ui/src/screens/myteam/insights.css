@@ -1,0 +1,48 @@
+/* My Team › board panels (slot duel, what each player carries). Same pegboard tokens as board.css. */
+.board .bd-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+@media (max-width: 1250px) { .board .bd-two { grid-template-columns: minmax(0, 1fr); } }
+.board .ins-panel { background: var(--b-tile); border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 2px rgba(0,0,0,.06); min-width: 0; }
+.board .d-read { margin: 10px 0 0; font: 12px/1.45 var(--sys); color: var(--b-ink2); min-height: 34px; }
+.board .d-read b { color: var(--b-ink); font-weight: 650; }
+
+/* slot duel */
+.duel .d-leg { display: flex; gap: 14px; font: 11.5px var(--sys); color: var(--b-ink2); margin: -2px 0 8px; }
+.duel .d-leg span { display: inline-flex; align-items: center; gap: 5px; }
+.duel .k { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.duel .k.you { background: var(--you); } .duel .k.them { background: var(--them); }
+.duel .d-rows { display: grid; gap: 2px; }
+.duel .d-row { display: grid; grid-template-columns: minmax(0, 1fr) 34px minmax(40px, 1.2fr) 54px minmax(40px, 1.2fr) 34px minmax(0, 1fr); gap: 6px; align-items: center; height: 26px; border-radius: 5px; padding: 0 4px; }
+.duel .d-row.hov { background: var(--b-cell); }
+.duel .nm { font: 700 12px/1 var(--content); font-variation-settings: "wdth" 72; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.duel .nm.l { text-align: right; } .duel .v { font: 600 12px var(--sys); } .duel .v.l { text-align: right; }
+.duel .bar { height: 12px; display: flex; }
+.duel .bar.l { justify-content: flex-end; }
+.duel .bar i { display: block; height: 100%; min-width: 2px; }
+.duel .bar.l i { background: var(--you); border-radius: 4px 0 0 4px; }
+.duel .bar.r i { background: var(--them); border-radius: 0 4px 4px 0; }
+.duel .sl { display: grid; justify-items: center; line-height: 1; gap: 2px; }
+.duel .sl b { font: 700 10.5px/1 var(--content); font-variation-settings: "wdth" 72; letter-spacing: .08em; }
+.duel .sl em { font: 10.5px var(--sys); font-style: normal; color: var(--b-ink2); }
+.duel .sl.up em { color: var(--above); font-weight: 650; } .duel .sl.down em { color: var(--below); font-weight: 650; }
+
+/* what each player carries */
+.carries .c-rows { position: relative; display: grid; gap: 2px; }
+.carries .c-row { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 136px minmax(0, 1fr) 40px; gap: 8px; align-items: center; height: 22px; padding: 0 4px; border-radius: 5px; cursor: pointer; position: relative; z-index: 1; }
+.carries .c-row:hover, .carries .c-row:focus-visible { background: var(--b-cell); }
+.carries .nm { font: 700 12px/1 var(--content); font-variation-settings: "wdth" 72; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; gap: 6px; align-items: center; }
+.carries .nm em { font: 500 10.5px var(--sys); font-style: normal; text-transform: none; letter-spacing: 0; color: var(--b-ink2); }
+.carries .pchip { font: 700 9px/1 var(--content); font-style: normal; padding: 2px 3px; border-radius: 3px; width: 22px; text-align: center; flex: none; }
+.carries .trk { height: 10px; position: relative; }
+.carries .trk i { display: block; height: 100%; border-radius: 0 4px 4px 0; }
+.carries .v { font: 600 12px var(--sys); text-align: right; }
+/* the noise band sits behind the tracks: 136px name column + 8px gap + 4px padding = 148px in */
+.carries .c-band { position: absolute; top: 0; bottom: 0; left: 148px; background: repeating-linear-gradient(135deg, transparent 0 5px, color-mix(in srgb, var(--noise) 22%, transparent) 5px 7px); border-radius: 3px; }
+
+/* lineup check strip */
+.board .lu-check { display: grid; gap: 6px; }
+.board .lu-row { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; gap: 12px; align-items: center; background: var(--b-tile); border-radius: 8px; padding: 8px 12px; box-shadow: inset 3px 0 0 var(--you); }
+.board .lu-k { font: 700 11px/1.1 var(--content); font-variation-settings: "wdth" 72; letter-spacing: .1em; text-transform: uppercase; color: var(--b-ink2); }
+.board .lu-t { font: 13px/1.4 var(--sys); }
+.board .lu-t b { font-weight: 650; }
+.board .lu-t .mv { display: inline-flex; gap: 4px; align-items: baseline; margin-right: 14px; white-space: nowrap; }
+.board .lu-t .mv em { font: 700 10.5px var(--content); font-style: normal; letter-spacing: .06em; color: var(--you); }

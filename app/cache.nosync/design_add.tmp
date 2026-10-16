@@ -1,0 +1,25 @@
+
+## Driving the real window, and the 10/9 polish pass
+- `tauri dev` runs a bare binary that computer use (and Spotlight) can't list. `app/build-app.sh`
+  builds a real bundle (`com.maxpetite.desk`, `tauri build --debug --bundles app`, target under
+  ~/.local/share/desk/target) and installs it as `~/Applications/Desk (built).app`. The built app
+  embeds the UI at build time (`frontendDist ../dist`), so after a UI change the built app shows
+  nothing new until `app/build-app.sh` runs again; `app/run.sh` (dev) always shows the source.
+- Found by using the real window: League's Playoffs column, the Trades call sheet and the Waivers
+  and Shifts tables clipped at the default width. They now reflow (the call sheet drops its last
+  two columns under 1560 px) and tables scroll sideways inside their panel, never the page. The
+  window's minimum width is 1280. The Chromium audit (`winfit`) finds no overflow at 1440x889 and
+  1280x800, but WebKit text is wider than Chromium's, so leave slack when sizing columns.
+- One scroll container serves every screen, so each screen opened wherever the last was scrolled.
+  Scroll position is now remembered per screen (My Team board and Game day separately).
+- Palette: a query matches initials, or letters that start at a word boundary, from 3 characters.
+  Scattered-letter hits ("stin" listing Austin Hooper) are gone.
+- Live: Copy for Claude lives in the header like every other screen. The win-chance chart's y axis
+  zooms to the range the line occupies (the caption says so), because a close game drew a flat
+  line on 0-100%.
+- Game day: each kickoff window is tagged Live or Final; once a player's game has started the
+  number is his actual points and the projection moves to the subline. Started and finished state
+  comes from the Live feed (same week only), so it follows `/api/live` polling.
+- Inspector: the weekly sparkline has per-week tooltips; the team inspector prints the numbers.
+- Process: check that a deploy landed (md5 on the Mac vs the container copy, or `git show --stat`)
+  before committing. adb9b67 was an empty commit for want of that check.

@@ -1,0 +1,51 @@
+/* My Team › Game day — kickoff timetable (job: timing). Archivo regular width, mono clocks. */
+.gameday { --g-bg: #ffffff; --g-ink: #121512; --g-ink2: #687068; --g-line: #e1e4e1; --g-first: #eef1ee;
+  background: var(--g-bg); color: var(--g-ink); min-height: 100%; padding: 22px 26px 30px; display: grid; gap: 16px; align-content: start; grid-template-columns: minmax(0, 1fr); font-family: var(--content); }
+@media (prefers-color-scheme: dark) { .gameday { --g-bg: #18191a; --g-ink: #eef0ee; --g-ink2: #9aa29b; --g-line: #303331; --g-first: #222524; } }
+.gameday .gd-hd h2 { margin: 0; font: 800 28px/1 var(--content); font-variation-settings: "wdth" 100; letter-spacing: -.01em; }
+.gameday .gd-hd p { margin: 6px 0 0; color: var(--g-ink2); max-width: 90ch; }
+.gameday .tt { display: grid; border-top: 4px solid var(--g-ink); overflow-x: auto; }
+.gameday .win { border-right: 1px solid var(--g-line); padding: 0 10px 10px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.gameday .win:last-child { border-right: none; }
+.gameday .win.first { background: linear-gradient(var(--g-first), var(--g-first)) top / 100% 6px no-repeat; }
+.gameday .when { display: grid; padding: 10px 0 8px; border-bottom: 1px solid var(--g-ink); margin-bottom: 4px; }
+.gameday .when .d { font: 800 12.5px/1 var(--content); letter-spacing: .06em; text-transform: uppercase; }
+.gameday .when .t { font: 600 24px/1.15 var(--mono); }
+.gameday .lane { font: 600 10.5px/1.2 var(--content); letter-spacing: .1em; text-transform: uppercase; color: var(--g-ink2); margin-top: 4px; }
+.gameday .gl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 6px; text-align: left; border: 0; background: none; padding: 3px 4px; margin: 0 -4px; border-radius: 4px; cursor: pointer; }
+.gameday .gl:hover:not(:disabled) { background: var(--hover); }
+.gameday .gl:disabled { cursor: default; }
+.gameday .gl.sel { background: var(--you-soft); }
+.gameday .gl .nm { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gameday .gl .pt { font: 600 13px/1.3 var(--mono); }
+.gameday .gl .gm { grid-column: 1 / -1; color: var(--g-ink2); font-size: 11.5px; }
+.gameday .gl.me .nm, .gameday .gl.me .pt, .gameday .gl.res .nm, .gameday .gl.res .pt { color: var(--you); }
+.gameday .gl.them .nm, .gameday .gl.them .pt { color: var(--them); font-weight: 500; }
+.gameday .swapbox { border: 1px dashed var(--you); border-radius: 5px; padding: 2px 6px; }
+.gameday .cum { margin: 0; display: grid; gap: 6px; }
+.gameday .cum text { font: 600 11px var(--mono); fill: var(--g-ink2); }
+.gameday .cum .grid { stroke: var(--g-line); }
+.gameday .cum .me-line { fill: none; stroke: var(--you); stroke-width: 2.5; }
+.gameday .cum .them-line { fill: none; stroke: var(--them); stroke-width: 2; }
+.gameday .cum .me-dot { fill: var(--you); stroke: var(--g-bg); stroke-width: 2; }
+.gameday .cum .me-t { fill: var(--you); } .cum .them-t { fill: var(--them); }
+.gameday .cum figcaption { display: flex; gap: 8px; align-items: center; color: var(--g-ink2); font-size: 12.5px; flex-wrap: wrap; }
+.gameday .cum .k { display: inline-block; width: 18px; height: 3px; margin-left: 10px; } .cum .k.me { background: var(--you); margin-left: 0; } .cum .k.them { background: var(--them); }
+.gameday .swapbox .gl { width: calc(100% + 8px); }
+
+.gameday .when .gs { display: flex; flex-wrap: wrap; gap: 2px 8px; margin-top: 4px; font: 11px var(--sys); color: var(--g-ink2); }
+.gameday .when .gs em { font-style: normal; font-family: var(--mono); font-size: 10.5px; opacity: .8; }
+.gameday .gl .vegas { font-family: var(--mono); font-size: 10.5px; }
+.gameday .gd-notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; }
+.gameday .gd-note { display: grid; gap: 3px; border-left: 3px solid var(--g-ink); padding: 4px 0 4px 10px; font-size: 12.5px; }
+.gameday .gd-note b { font: 800 13px/1.2 var(--content); letter-spacing: .02em; }
+.gameday .gd-note .who { display: flex; gap: 10px; }
+.gameday .gd-note .who i { font: 600 12.5px var(--mono); font-style: normal; }
+.gameday .gd-note .who .me { color: var(--you); } .gameday .gd-note .who .them { color: var(--them); }
+
+/* started / finished games: actual points replace the projection, projection stays in the subline */
+.gameday .when .d .wst { display: inline-block; font: 700 9.5px/1 var(--content); font-style: normal; letter-spacing: .08em; text-transform: uppercase; margin-left: 8px; padding: 2px 5px; border-radius: 3px; vertical-align: 1px; }
+.gameday .when .d .wst.live { background: var(--alert); color: #fff; }
+.gameday .when .d .wst.final { border: 1px solid var(--g-ink2); color: var(--g-ink2); }
+.gameday .gl .pj { font-family: var(--mono); font-size: 10.5px; }
+.gameday .gl.post .pt, .gameday .gl.in .pt { font-weight: 800; }

@@ -1,0 +1,27 @@
+/* ⌘K launcher: a system-font list in the macOS Spotlight idiom, so it reads as "the app's own
+   tool", not one more screen. Selection wears the you-cobalt tint. */
+.pal-scrim { position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, .28); display: grid; justify-items: center; align-items: start; padding-top: 14vh; animation: pal-in .12s ease-out; }
+@keyframes pal-in { from { opacity: 0; } }
+.pal { width: min(640px, calc(100vw - 32px)); background: var(--win); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 24px 60px rgba(0, 0, 0, .35); overflow: hidden; font-family: var(--sys); }
+.pal input { width: 100%; box-sizing: border-box; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink); font: 17px var(--sys); padding: 14px 16px; outline: none; }
+.pal ul { list-style: none; margin: 0; padding: 6px; max-height: 50vh; overflow-y: auto; }
+.pal li.g { font: 600 10.5px var(--sys); text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); padding: 8px 10px 4px; }
+.pal li[role="option"] { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 7px; cursor: pointer; font-size: 13.5px; min-height: 22px; }
+.pal li.on { background: var(--you-soft); box-shadow: inset 3px 0 0 var(--you); }
+.pal li b { font-weight: 600; white-space: nowrap; }
+.pal .meta { color: var(--ink-2); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
+.pal .meta .mine { color: var(--you); font-weight: 600; }
+.pal .meta .fa { color: var(--ink); font-weight: 600; }
+.pal .pchip { font: 700 9.5px/1 var(--content); font-style: normal; padding: 3px 4px; border-radius: 3px; flex: none; width: 24px; text-align: center; }
+.pal kbd { font: 11px var(--sys); color: var(--ink-3); white-space: nowrap; margin-left: auto; }
+.pal li.none { padding: 14px 10px; color: var(--ink-2); }
+.pal-foot { margin: 0; padding: 8px 14px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--ink-3); display: flex; gap: 6px; align-items: center; }
+.pal-foot kbd { margin: 0 2px 0 8px; color: var(--ink-2); }
+.pal-foot kbd:first-child { margin-left: 0; }
+.pal.keys { padding: 14px 18px 16px; }
+.pal.keys h2 { margin: 0 0 10px; font: 600 15px var(--sys); }
+.pal.keys dl { margin: 0; display: grid; gap: 2px; }
+.pal.keys dl > div { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 12px; padding: 5px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.pal.keys dl > div:last-child { border-bottom: 0; }
+.pal.keys dt kbd { font: 600 12px var(--sys); color: var(--ink); background: var(--field); border-radius: 5px; padding: 2px 7px; margin: 0; }
+.pal.keys dd { margin: 0; color: var(--ink-2); }

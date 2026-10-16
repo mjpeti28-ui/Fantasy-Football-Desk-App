@@ -1,0 +1,124 @@
+/* Waivers — J scouting ladder: per-position depth strips on one ppg scale, then the pickups ranked
+   by what they add with their best drop. Archivo at width 92. */
+.waivers { font-family: var(--content); font-variation-settings: "wdth" 92; padding: 22px 28px 40px; display: grid; gap: 18px; align-content: start; grid-template-columns: minmax(0, 1fr); }
+.waivers .wv-hd { display: grid; gap: 4px; max-width: 900px; }
+.waivers .eyebrow { font: 600 11px/1 var(--sys); color: var(--ink-2); letter-spacing: .02em; }
+.waivers .wv-hd h2 { margin: 0; font: 700 23px/1.2 var(--content); font-variation-settings: "wdth" 92; }
+.waivers .wv-sub { margin: 0; color: var(--ink-2); max-width: 760px; }
+.waivers .wv-off { color: var(--alert); }
+
+.waivers .ladders { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.waivers .ladder { margin: 0; padding: 10px 6px 8px; display: grid; gap: 6px; border-left: 1px solid var(--line); min-width: 0; }
+.waivers .ladder:first-child { border-left: 0; }
+.waivers .ladder figcaption { display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px; }
+.waivers .ladder figcaption b { font-weight: 800; font-size: 13px; color: var(--pc); filter: saturate(1.1); }
+.waivers .ladder figcaption span { font-size: 11px; color: var(--ink-2); }
+.waivers .lane { position: relative; }
+.waivers .spine { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--pc); opacity: .35; border-radius: 1px; }
+.waivers .repl { position: absolute; left: 8%; right: 8%; border-top: 1.5px dashed var(--ink-3); }
+.waivers .lane .dot { position: absolute; left: 50%; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border-radius: 50%; }
+.waivers .lane .lab { position: absolute; transform: translateY(-50%); font-size: 11.5px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(50% - 9px); }
+.waivers .lab em { font-style: normal; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.waivers .mine .dot { background: var(--you); box-shadow: 0 0 0 2px var(--win); z-index: 2; }
+.waivers .mine .lab { left: calc(50% + 10px); color: var(--ink); }
+.waivers .mine.shaky .dot { background: repeating-linear-gradient(135deg, var(--you) 0 2px, transparent 2px 4px); border: 1.5px solid var(--you); }
+.waivers .mine.shaky .lab { color: var(--ink-2); }
+.waivers .fa { all: unset; cursor: pointer; }
+.waivers .fa .dot { background: var(--win); border: 2px solid var(--pc); z-index: 1; }
+.waivers .fa .lab { right: calc(50% + 10px); text-align: right; color: var(--ink-2); }
+.waivers .fa:hover .lab, .waivers .fa:focus-visible .lab { color: var(--ink); }
+.waivers .fa.on .dot { background: var(--pc); box-shadow: 0 0 0 3px var(--win), 0 0 0 4.5px var(--pc); }
+.waivers .fa.on .lab { color: var(--ink); font-weight: 600; }
+.waivers .ladder .foot { font-size: 11px; color: var(--ink-2); padding: 0 4px; min-height: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.waivers .wv-key { margin: -8px 0 0; font-size: 11.5px; color: var(--ink-2); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.waivers .wv-key span { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-left: 6px; }
+.waivers .wv-key span:first-child { margin-left: 0; }
+.waivers .k-mine { background: var(--you); }
+.waivers .k-fa { border: 2px solid var(--ink-2); }
+.waivers .k-repl { width: 16px !important; height: 0 !important; border-radius: 0 !important; border-top: 1.5px dashed var(--ink-3); }
+
+.waivers .wv-list { display: grid; gap: 10px; }
+.waivers .wv-tools { display: flex; align-items: center; gap: 14px; }
+.waivers .wv-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.waivers .wv-table th { font: 600 11px/1 var(--sys); color: var(--ink-2); text-align: left; padding: 6px 5px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.waivers .wv-table td { padding: 5px 5px; border-bottom: 1px solid var(--line); vertical-align: middle; white-space: nowrap; }
+.waivers .wv-table .r { text-align: right; }
+.waivers .wv-table tbody tr { cursor: pointer; }
+.waivers .wv-table tbody tr:hover { background: var(--hover); }
+.waivers .wv-table tbody tr.on { background: var(--you-soft); box-shadow: inset 3px 0 0 var(--you); }
+.waivers .who { display: flex; align-items: center; gap: 8px; }
+.waivers .who .face { width: 34px; height: 26px; }
+.waivers .who b { font-weight: 600; display: block; }
+.waivers .who small { color: var(--ink-2); font-size: 11.5px; }
+.waivers .who .tag { font-style: normal; color: #c98a0c; }
+.waivers .pchip { font: 700 10px/1 var(--content); font-style: normal; padding: 3px 0; width: 30px; text-align: center; border-radius: 3px; flex: none; }
+.waivers .use { display: inline-flex; align-items: flex-end; gap: 8px; }
+.waivers .use small { color: var(--ink-2); font-size: 11px; }
+.waivers .wv-spark { display: inline-flex; align-items: flex-end; gap: 2px; height: 16px; }
+.waivers .wv-spark i { width: 5px; border-radius: 1px; display: block; }
+.waivers .wv-spark i.none { background: var(--ink-3); opacity: .5; }
+.waivers .gcol { width: 230px; }
+.waivers .gbar { display: grid; grid-template-columns: minmax(0, 1fr) 44px; align-items: center; gap: 8px; }
+.waivers .gbar .track { position: relative; height: 12px; }
+.waivers .gbar .track::after { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--ink-3); }
+.waivers .gbar .band { position: absolute; top: 0; bottom: 0; background: var(--field); border-radius: 2px; }
+.waivers .gbar .fill { position: absolute; top: 3px; bottom: 3px; border-radius: 2px; }
+.waivers .gbar.up .fill { background: var(--above); }
+.waivers .gbar.down .fill { background: var(--below); }
+.waivers .gbar.nz .fill { background: var(--noise); }
+.waivers .gbar b { text-align: right; font-weight: 600; }
+.waivers .gbar.nz b { color: var(--noise); font-weight: 500; }
+.waivers .gbar.up b { color: var(--above); }
+.waivers .drop { color: var(--ink-2); }
+.waivers .wv-list > p { margin: 0; font-size: 12px; max-width: 760px; }
+
+/* inspector */
+.wv-ins .wv-verdict { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: center; padding: 10px 12px; border-radius: 8px; background: var(--field); }
+.wv-ins .wv-verdict b { font: 700 24px/1 var(--content); }
+.wv-ins .wv-verdict.up { background: color-mix(in srgb, var(--above) 12%, transparent); }
+.wv-ins .wv-verdict.up b { color: var(--above); }
+.wv-ins .wv-verdict.down b { color: var(--below); }
+.wv-ins .wv-verdict.nz b { color: var(--noise); }
+.wv-ins .wv-verdict span { font-size: 12px; }
+.wv-ins .kv.cmp { grid-template-columns: minmax(0, 1fr) auto auto; }
+.wv-ins .kv.cmp dd:nth-of-type(odd) { font-weight: 600; }
+.wv-ins .kv.cmp dd { min-width: 54px; }
+.wv-ins .wv-use { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 12px; }
+.wv-ins .wv-use th, .wv-ins .wv-use td { padding: 3px 4px; text-align: right; border-bottom: 1px solid var(--line); }
+.wv-ins .wv-use tbody th { text-align: left; font-weight: 500; color: var(--ink-2); }
+.wv-ins .wv-use thead th { color: var(--ink-2); font-weight: 600; font-size: 11px; }
+.wv-ins .wv-why { margin: 0; font-size: 12px; color: var(--ink-2); }
+.waivers .tick { position: absolute; left: 0; right: 0; border-top: 1px solid var(--line); opacity: .7; }
+.waivers .tick em { position: absolute; left: 0; top: -14px; font: 10px var(--sys); font-style: normal; color: var(--ink-3); }
+.waivers .lane .lab { background: var(--win); padding: 0 3px; z-index: 3; border-radius: 3px; }
+
+/* usage jumps on the wire */
+.waivers .risers { display: grid; gap: 8px; }
+.waivers .risers h3 { margin: 0; font: 700 14px/1.2 var(--content); font-variation-settings: "wdth" 92; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.waivers .risers h3 span { font: 500 12px var(--sys); color: var(--ink-2); }
+.waivers .rs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
+.waivers .rs { all: unset; box-sizing: border-box; display: grid; gap: 3px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); border-left: 3px solid var(--above); cursor: pointer; font: 12px var(--sys); }
+.waivers .rs:hover, .waivers .rs:focus-visible { background: var(--hover); }
+.waivers .rs-top { display: flex; gap: 6px; align-items: center; min-width: 0; }
+.waivers .rs-top b { font: 650 13px var(--sys); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.waivers .rs-top small { color: var(--ink-2); }
+.waivers .rs .pchip { font: 700 9.5px/1 var(--content); font-style: normal; padding: 2px 4px; border-radius: 3px; }
+.waivers .rs-mid { color: var(--ink); }
+.waivers .rs-bot { display: flex; gap: 8px; flex-wrap: wrap; color: var(--ink-2); }
+.waivers .rs-bot em { font-style: normal; color: var(--above); font-weight: 600; }
+.waivers .drop small { margin-left: 6px; font-size: 11px; }
+
+.waivers .wv-list { min-width: 0; overflow-x: auto; }
+
+/* who you'd let go */
+.waivers .wv-keep { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; }
+.waivers .wv-keep .lbl { font: 600 11px/1 var(--sys); color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; }
+.waivers .wv-keep .chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border: 1px solid var(--you); border-radius: 999px; background: var(--you-soft); color: var(--ink); font: inherit; cursor: pointer; }
+.waivers .wv-keep .chip i { font-style: normal; color: var(--ink-2); }
+.waivers .wv-keep .chip:hover i { color: var(--ink); }
+.waivers .wv-pick { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 8px; background: var(--surface, transparent); }
+.waivers .wv-pick p { margin: 0; }
+.waivers .pk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 4px 18px; }
+.waivers .pk-grid label { display: grid; grid-template-columns: auto 1fr; column-gap: 8px; align-items: baseline; padding: 3px 0; cursor: pointer; }
+.waivers .pk-grid label small { grid-column: 2; color: var(--ink-2); }
+.waivers .pk-grid label.off b { color: var(--ink-2); text-decoration: line-through; text-decoration-thickness: 1px; }

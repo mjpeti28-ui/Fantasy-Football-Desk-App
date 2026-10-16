@@ -1,0 +1,8 @@
+node_modules/
+dist/
+src-tauri/target/
+src-tauri/gen/
+public/sample-snapshot.json
+# node_modules is a link to node_modules.nosync (see app/run.sh)
+node_modules
+node_modules.icloud-old*

@@ -1,0 +1,30 @@
+== Next week's points (all rostered players with a game that week; DNP = 0)
+ weight_on_ours   rho   mae
+           0.00 0.540 5.183
+           0.25 0.540 5.365
+           0.50 0.529 5.586
+           0.75 0.486 5.846
+           1.00 0.409 6.158
+
+== Rest-of-season points per game when playing (future_ppg)
+ weight_on_ours   rho   mae
+           0.00 0.528 3.203
+           0.25 0.553 3.095
+           0.50 0.562 3.044
+           0.75 0.561 3.062
+           1.00 0.556 3.146
+
+== by position (rest-of-season ppg rank corr): ours vs ESPN vs 50/50
+pos  ours  espn  blend    n
+ QB 0.455 0.395  0.447  767
+ RB 0.644 0.619  0.657 1642
+ TE 0.516 0.492  0.521  775
+ WR 0.610 0.606  0.623 2140
+
+== by season (ROS ppg rank corr, skill positions)
+ season  ours  espn  blend
+   2021 0.625 0.588  0.632
+   2022 0.542 0.528  0.564
+   2023 0.520 0.529  0.527
+   2024 0.591 0.523  0.585
+   2025 0.504 0.474  0.504

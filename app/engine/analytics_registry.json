@@ -1,0 +1,3903 @@
+{
+ "built": "2026-10-14",
+ "edge": {
+  "features": [
+   "snap_tr",
+   "dud",
+   "est_tr",
+   "xfp_tr",
+   "opp_tr",
+   "resid"
+  ],
+  "coef": [
+   0.2421,
+   -0.2803,
+   0.1285,
+   0.0014,
+   -0.0508,
+   0.0299
+  ],
+  "intercept": 0.8823,
+  "est_coef": 0.8745,
+  "rmse_model": 3.504,
+  "rmse_with_edge": 3.496,
+  "mse_gain": {
+   "v": 0.058,
+   "lo": -0.017,
+   "hi": 0.127
+  },
+  "mse_gain_by_season": {
+   "2021": -0.058,
+   "2022": -0.117,
+   "2023": 0.178,
+   "2024": 0.168,
+   "2025": 0.117
+  },
+  "rank_model": 0.767,
+  "rank_with_edge": 0.7705,
+  "edge_sd": 0.398,
+  "edge_p95": 0.774,
+  "n": 14426,
+  "single": {
+   "snap_tr": {
+    "mse_gain": {
+     "v": 0.055,
+     "lo": 0.013,
+     "hi": 0.098
+    },
+    "mse_gain_by_season": {
+     "2021": 0.02,
+     "2022": -0.008,
+     "2023": 0.041,
+     "2024": 0.094,
+     "2025": 0.13
+    },
+    "rank_model": 0.767,
+    "rank_with_edge": 0.7685
+   },
+   "dud": {
+    "mse_gain": {
+     "v": 0.005,
+     "lo": -0.053,
+     "hi": 0.055
+    },
+    "mse_gain_by_season": {
+     "2021": -0.067,
+     "2022": -0.037,
+     "2023": 0.099,
+     "2024": 0.066,
+     "2025": -0.038
+    },
+    "rank_model": 0.767,
+    "rank_with_edge": 0.7689
+   },
+   "est_tr": {
+    "mse_gain": {
+     "v": 0.03,
+     "lo": 0.006,
+     "hi": 0.06
+    },
+    "mse_gain_by_season": {
+     "2021": 0.015,
+     "2022": -0.034,
+     "2023": 0.061,
+     "2024": 0.04,
+     "2025": 0.068
+    },
+    "rank_model": 0.767,
+    "rank_with_edge": 0.7676
+   },
+   "xfp_tr": {
+    "mse_gain": {
+     "v": 0.009,
+     "lo": -0.009,
+     "hi": 0.026
+    },
+    "mse_gain_by_season": {
+     "2021": 0.029,
+     "2022": -0.015,
+     "2023": 0.005,
+     "2024": 0.021,
+     "2025": 0.003
+    },
+    "rank_model": 0.767,
+    "rank_with_edge": 0.767
+   },
+   "opp_tr": {
+    "mse_gain": {
+     "v": 0.011,
+     "lo": -0.01,
+     "hi": 0.033
+    },
+    "mse_gain_by_season": {
+     "2021": 0.018,
+     "2022": -0.036,
+     "2023": 0.015,
+     "2024": 0.031,
+     "2025": 0.028
+    },
+    "rank_model": 0.767,
+    "rank_with_edge": 0.7673
+   },
+   "resid": {
+    "mse_gain": {
+     "v": 0.011,
+     "lo": -0.028,
+     "hi": 0.048
+    },
+    "mse_gain_by_season": {
+     "2021": 0.02,
+     "2022": -0.129,
+     "2023": 0.066,
+     "2024": 0.063,
+     "2025": 0.035
+    },
+    "rank_model": 0.767,
+    "rank_with_edge": 0.768
+   }
+  }
+ },
+ "sd": {
+  "ppg": {
+   "QB": 5.4325,
+   "RB": 5.9554,
+   "TE": 3.9875,
+   "WR": 5.4487
+  },
+  "xfp": {
+   "QB": 4.7403,
+   "RB": 5.1151,
+   "TE": 3.3882,
+   "WR": 4.6609
+  },
+  "fpoe": {
+   "QB": 2.3071,
+   "RB": 2.0048,
+   "TE": 1.5809,
+   "WR": 2.0027
+  },
+  "opp": {
+   "QB": 2.3263,
+   "RB": 6.7142,
+   "TE": 2.1,
+   "WR": 2.7852
+  },
+  "snap": {
+   "QB": 0.1505,
+   "RB": 0.2136,
+   "TE": 0.194,
+   "WR": 0.2368
+  },
+  "tsh": {
+   "QB": 0.0018,
+   "RB": 0.0479,
+   "TE": 0.0585,
+   "WR": 0.0813
+  },
+  "ays": {
+   "QB": 0.0014,
+   "RB": 0.0202,
+   "TE": 0.0653,
+   "WR": 0.1216
+  },
+  "wopr": {
+   "QB": 0.0025,
+   "RB": 0.0713,
+   "TE": 0.1284,
+   "WR": 0.1992
+  },
+  "csh": {
+   "QB": 0.0783,
+   "RB": 0.2083,
+   "TE": 0.0179,
+   "WR": 0.0135
+  },
+  "cv": {
+   "QB": 0.2875,
+   "RB": 0.3855,
+   "TE": 0.3766,
+   "WR": 0.3977
+  },
+  "spread": {
+   "QB": 0.3747,
+   "RB": 0.4665,
+   "TE": 0.4851,
+   "WR": 0.4945
+  },
+  "smash": {
+   "QB": 0.1332,
+   "RB": 0.1776,
+   "TE": 0.1248,
+   "WR": 0.1326
+  },
+  "start": {
+   "QB": 0.2712,
+   "RB": 0.326,
+   "TE": 0.239,
+   "WR": 0.2616
+  },
+  "dud": {
+   "QB": 0.2632,
+   "RB": 0.28,
+   "TE": 0.2934,
+   "WR": 0.3183
+  },
+  "resid": {
+   "QB": 2.5454,
+   "RB": 2.5029,
+   "TE": 1.941,
+   "WR": 2.3749
+  },
+  "beat": {
+   "QB": 0.2012,
+   "RB": 0.1912,
+   "TE": 0.1892,
+   "WR": 0.203
+  },
+  "xfp_tr": {
+   "QB": 2.1656,
+   "RB": 2.0655,
+   "TE": 1.5818,
+   "WR": 1.949
+  },
+  "snap_tr": {
+   "QB": 0.0561,
+   "RB": 0.0738,
+   "TE": 0.0653,
+   "WR": 0.0817
+  },
+  "tsh_tr": {
+   "QB": 0.0019,
+   "RB": 0.0226,
+   "TE": 0.0259,
+   "WR": 0.0301
+  },
+  "opp_tr": {
+   "QB": 0.9032,
+   "RB": 2.3899,
+   "TE": 0.8824,
+   "WR": 1.1329
+  },
+  "est_tr": {
+   "QB": 1.5962,
+   "RB": 1.5529,
+   "TE": 0.969,
+   "WR": 1.1457
+  }
+ },
+ "seasons": [
+  2021,
+  2022,
+  2023,
+  2024,
+  2025
+ ],
+ "checks": [
+  4,
+  13
+ ],
+ "labels": {
+  "adds": "Adds to the model",
+  "edge": "Small edge beyond the model",
+  "tilt": "Tilt in past seasons that didn't hold out of sample",
+  "priced": "Predicts, already in the model",
+  "trait": "Repeats, but doesn't predict points",
+  "noise": "Mostly noise",
+  "weak": "Weak signal",
+  "descriptive": "Descriptive only"
+ },
+ "players": {
+  "ppg": {
+   "name": "Points per game",
+   "by_pos": {
+    "ALL": {
+     "repeat": {
+      "v": 0.716,
+      "lo": 0.698,
+      "hi": 0.732,
+      "n": 14426
+     },
+     "predict": {
+      "v": 0.716,
+      "lo": 0.698,
+      "hi": 0.732,
+      "n": 14426
+     },
+     "beyond": {
+      "v": 0.18,
+      "lo": -0.031,
+      "hi": 0.392,
+      "n": 14426,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.182,
+      "lo": 0.01,
+      "hi": 0.337,
+      "n": 11864,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "QB": {
+     "repeat": {
+      "v": 0.558,
+      "lo": 0.473,
+      "hi": 0.63,
+      "n": 1596
+     },
+     "predict": {
+      "v": 0.558,
+      "lo": 0.473,
+      "hi": 0.63,
+      "n": 1596
+     },
+     "beyond": {
+      "v": 1.389,
+      "lo": 0.514,
+      "hi": 2.354,
+      "n": 1596,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.486,
+      "lo": -0.059,
+      "hi": 1.048,
+      "n": 1311,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "RB": {
+     "repeat": {
+      "v": 0.746,
+      "lo": 0.716,
+      "hi": 0.775,
+      "n": 3840
+     },
+     "predict": {
+      "v": 0.746,
+      "lo": 0.716,
+      "hi": 0.775,
+      "n": 3840
+     },
+     "beyond": {
+      "v": -0.442,
+      "lo": -1.027,
+      "hi": 0.133,
+      "n": 3840,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.35,
+      "lo": -0.086,
+      "hi": 0.764,
+      "n": 3164,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "WR": {
+     "repeat": {
+      "v": 0.74,
+      "lo": 0.713,
+      "hi": 0.764,
+      "n": 6185
+     },
+     "predict": {
+      "v": 0.74,
+      "lo": 0.713,
+      "hi": 0.764,
+      "n": 6185
+     },
+     "beyond": {
+      "v": 0.572,
+      "lo": 0.117,
+      "hi": 1.015,
+      "n": 6185,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.517,
+      "lo": 0.164,
+      "hi": 0.807,
+      "n": 5065,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "TE": {
+     "repeat": {
+      "v": 0.713,
+      "lo": 0.674,
+      "hi": 0.748,
+      "n": 2805
+     },
+     "predict": {
+      "v": 0.713,
+      "lo": 0.674,
+      "hi": 0.748,
+      "n": 2805
+     },
+     "beyond": {
+      "v": 0.23,
+      "lo": -0.189,
+      "hi": 0.702,
+      "n": 2805,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.188,
+      "lo": -0.199,
+      "hi": 0.534,
+      "n": 2324,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "priced"
+    }
+   },
+   "label": "priced"
+  },
+  "xfp": {
+   "name": "Expected points per game (usage)",
+   "by_pos": {
+    "ALL": {
+     "repeat": {
+      "v": 0.743,
+      "lo": 0.724,
+      "hi": 0.759,
+      "n": 14302
+     },
+     "predict": {
+      "v": 0.698,
+      "lo": 0.679,
+      "hi": 0.716,
+      "n": 14374
+     },
+     "beyond": {
+      "v": 0.077,
+      "lo": -0.17,
+      "hi": 0.299,
+      "n": 14374,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.206,
+      "lo": 0.048,
+      "hi": 0.376,
+      "n": 11826,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "QB": {
+     "repeat": {
+      "v": 0.643,
+      "lo": 0.586,
+      "hi": 0.699,
+      "n": 1596
+     },
+     "predict": {
+      "v": 0.544,
+      "lo": 0.47,
+      "hi": 0.621,
+      "n": 1596
+     },
+     "beyond": {
+      "v": 1.458,
+      "lo": 0.603,
+      "hi": 2.284,
+      "n": 1596,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.948,
+      "lo": 0.427,
+      "hi": 1.437,
+      "n": 1311,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "RB": {
+     "repeat": {
+      "v": 0.753,
+      "lo": 0.724,
+      "hi": 0.784,
+      "n": 3793
+     },
+     "predict": {
+      "v": 0.729,
+      "lo": 0.698,
+      "hi": 0.757,
+      "n": 3824
+     },
+     "beyond": {
+      "v": -0.813,
+      "lo": -1.484,
+      "hi": -0.249,
+      "n": 3824,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.04,
+      "lo": -0.473,
+      "hi": 0.469,
+      "n": 3152,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "WR": {
+     "repeat": {
+      "v": 0.77,
+      "lo": 0.747,
+      "hi": 0.792,
+      "n": 6138
+     },
+     "predict": {
+      "v": 0.725,
+      "lo": 0.698,
+      "hi": 0.751,
+      "n": 6157
+     },
+     "beyond": {
+      "v": 0.19,
+      "lo": -0.37,
+      "hi": 0.725,
+      "n": 6157,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.478,
+      "lo": 0.136,
+      "hi": 0.795,
+      "n": 5047,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "TE": {
+     "repeat": {
+      "v": 0.729,
+      "lo": 0.691,
+      "hi": 0.762,
+      "n": 2775
+     },
+     "predict": {
+      "v": 0.682,
+      "lo": 0.638,
+      "hi": 0.723,
+      "n": 2797
+     },
+     "beyond": {
+      "v": -0.189,
+      "lo": -0.639,
+      "hi": 0.316,
+      "n": 2797,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.161,
+      "lo": -0.17,
+      "hi": 0.56,
+      "n": 2316,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    }
+   },
+   "label": "priced"
+  },
+  "fpoe": {
+   "name": "Points over expected (efficiency/luck)",
+   "by_pos": {
+    "ALL": {
+     "repeat": {
+      "v": 0.074,
+      "lo": 0.037,
+      "hi": 0.11,
+      "n": 14302
+     },
+     "sticks": {
+      "v": 0.09,
+      "lo": 0.054,
+      "hi": 0.124,
+      "n": 14302
+     },
+     "predict": {
+      "v": 0.149,
+      "lo": 0.112,
+      "hi": 0.185,
+      "n": 14374
+     },
+     "beyond": {
+      "v": 0.086,
+      "lo": -0.033,
+      "hi": 0.206,
+      "n": 14374,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.004,
+      "lo": -0.097,
+      "hi": 0.09,
+      "n": 11826,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "QB": {
+     "repeat": {
+      "v": 0.009,
+      "lo": -0.106,
+      "hi": 0.12,
+      "n": 1596
+     },
+     "sticks": {
+      "v": 0.043,
+      "lo": -0.063,
+      "hi": 0.165,
+      "n": 1596
+     },
+     "predict": {
+      "v": 0.119,
+      "lo": 0.028,
+      "hi": 0.228,
+      "n": 1596
+     },
+     "beyond": {
+      "v": -0.065,
+      "lo": -0.483,
+      "hi": 0.418,
+      "n": 1596,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.387,
+      "lo": -0.757,
+      "hi": -0.002,
+      "n": 1311,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "RB": {
+     "repeat": {
+      "v": 0.059,
+      "lo": -0.021,
+      "hi": 0.129,
+      "n": 3793
+     },
+     "sticks": {
+      "v": 0.068,
+      "lo": 0.009,
+      "hi": 0.126,
+      "n": 3793
+     },
+     "predict": {
+      "v": 0.175,
+      "lo": 0.111,
+      "hi": 0.247,
+      "n": 3824
+     },
+     "beyond": {
+      "v": 0.01,
+      "lo": -0.229,
+      "hi": 0.271,
+      "n": 3824,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.125,
+      "lo": -0.071,
+      "hi": 0.351,
+      "n": 3152,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "WR": {
+     "repeat": {
+      "v": 0.086,
+      "lo": 0.029,
+      "hi": 0.134,
+      "n": 6138
+     },
+     "sticks": {
+      "v": 0.093,
+      "lo": 0.035,
+      "hi": 0.142,
+      "n": 6138
+     },
+     "predict": {
+      "v": 0.163,
+      "lo": 0.105,
+      "hi": 0.206,
+      "n": 6157
+     },
+     "beyond": {
+      "v": 0.16,
+      "lo": -0.054,
+      "hi": 0.311,
+      "n": 6157,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.075,
+      "lo": -0.083,
+      "hi": 0.238,
+      "n": 5047,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "TE": {
+     "repeat": {
+      "v": 0.106,
+      "lo": 0.024,
+      "hi": 0.18,
+      "n": 2775
+     },
+     "sticks": {
+      "v": 0.113,
+      "lo": 0.024,
+      "hi": 0.204,
+      "n": 2775
+     },
+     "predict": {
+      "v": 0.1,
+      "lo": 0.014,
+      "hi": 0.185,
+      "n": 2797
+     },
+     "beyond": {
+      "v": 0.16,
+      "lo": -0.041,
+      "hi": 0.357,
+      "n": 2797,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.061,
+      "lo": -0.267,
+      "hi": 0.13,
+      "n": 2316,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "noise"
+    }
+   },
+   "label": "noise"
+  },
+  "opp": {
+   "name": "Opportunities per game",
+   "by_pos": {
+    "ALL": {
+     "repeat": {
+      "v": 0.781,
+      "lo": 0.765,
+      "hi": 0.796,
+      "n": 14426
+     },
+     "predict": {
+      "v": 0.692,
+      "lo": 0.671,
+      "hi": 0.71,
+      "n": 14426
+     },
+     "beyond": {
+      "v": 0.175,
+      "lo": -0.026,
+      "hi": 0.383,
+      "n": 14426,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.255,
+      "lo": 0.071,
+      "hi": 0.402,
+      "n": 11864,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "QB": {
+     "repeat": {
+      "v": 0.709,
+      "lo": 0.658,
+      "hi": 0.757,
+      "n": 1596
+     },
+     "predict": {
+      "v": 0.334,
+      "lo": 0.228,
+      "hi": 0.431,
+      "n": 1596
+     },
+     "beyond": {
+      "v": 0.536,
+      "lo": 0.005,
+      "hi": 1.137,
+      "n": 1596,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.562,
+      "lo": 0.115,
+      "hi": 0.977,
+      "n": 1311,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "RB": {
+     "repeat": {
+      "v": 0.804,
+      "lo": 0.778,
+      "hi": 0.827,
+      "n": 3840
+     },
+     "predict": {
+      "v": 0.745,
+      "lo": 0.712,
+      "hi": 0.771,
+      "n": 3840
+     },
+     "beyond": {
+      "v": -0.346,
+      "lo": -0.913,
+      "hi": 0.224,
+      "n": 3840,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.32,
+      "lo": -0.059,
+      "hi": 0.745,
+      "n": 3164,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "WR": {
+     "repeat": {
+      "v": 0.785,
+      "lo": 0.766,
+      "hi": 0.807,
+      "n": 6185
+     },
+     "predict": {
+      "v": 0.736,
+      "lo": 0.71,
+      "hi": 0.762,
+      "n": 6185
+     },
+     "beyond": {
+      "v": 0.256,
+      "lo": -0.203,
+      "hi": 0.749,
+      "n": 6185,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.353,
+      "lo": -0.01,
+      "hi": 0.651,
+      "n": 5065,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "TE": {
+     "repeat": {
+      "v": 0.78,
+      "lo": 0.747,
+      "hi": 0.813,
+      "n": 2805
+     },
+     "predict": {
+      "v": 0.726,
+      "lo": 0.693,
+      "hi": 0.766,
+      "n": 2805
+     },
+     "beyond": {
+      "v": 0.35,
+      "lo": -0.232,
+      "hi": 0.957,
+      "n": 2805,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.542,
+      "lo": 0.147,
+      "hi": 0.949,
+      "n": 2324,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "label": "priced"
+    }
+   },
+   "label": "priced"
+  },
+  "snap": {
+   "name": "Snap share",
+   "by_pos": {
+    "ALL": {
+     "repeat": {
+      "v": 0.719,
+      "lo": 0.7,
+      "hi": 0.74,
+      "n": 14426
+     },
+     "predict": {
+      "v": 0.607,
+      "lo": 0.581,
+      "hi": 0.631,
+      "n": 14426
+     },
+     "beyond": {
+      "v": 0.055,
+      "lo": -0.139,
+      "hi": 0.24,
+      "n": 14426,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.253,
+      "lo": 0.11,
+      "hi": 0.385,
+      "n": 11864,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "QB": {
+     "repeat": {
+      "v": 0.25,
+      "lo": 0.145,
+      "hi": 0.35,
+      "n": 1596
+     },
+     "predict": {
+      "v": 0.233,
+      "lo": 0.139,
+      "hi": 0.314,
+      "n": 1596
+     },
+     "beyond": {
+      "v": 0.233,
+      "lo": -0.498,
+      "hi": 0.922,
+      "n": 1596,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.264,
+      "lo": -0.119,
+      "hi": 0.724,
+      "n": 1311,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "RB": {
+     "repeat": {
+      "v": 0.794,
+      "lo": 0.76,
+      "hi": 0.823,
+      "n": 3840
+     },
+     "predict": {
+      "v": 0.707,
+      "lo": 0.67,
+      "hi": 0.739,
+      "n": 3840
+     },
+     "beyond": {
+      "v": -0.055,
+      "lo": -0.568,
+      "hi": 0.375,
+      "n": 3840,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.181,
+      "lo": -0.147,
+      "hi": 0.546,
+      "n": 3164,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "WR": {
+     "repeat": {
+      "v": 0.767,
+      "lo": 0.742,
+      "hi": 0.79,
+      "n": 6185
+     },
+     "predict": {
+      "v": 0.631,
+      "lo": 0.599,
+      "hi": 0.666,
+      "n": 6185
+     },
+     "beyond": {
+      "v": -0.05,
+      "lo": -0.303,
+      "hi": 0.23,
+      "n": 6185,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.314,
+      "lo": 0.097,
+      "hi": 0.523,
+      "n": 5065,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "TE": {
+     "repeat": {
+      "v": 0.772,
+      "lo": 0.732,
+      "hi": 0.805,
+      "n": 2805
+     },
+     "predict": {
+      "v": 0.625,
+      "lo": 0.574,
+      "hi": 0.675,
+      "n": 2805
+     },
+     "beyond": {
+      "v": 0.324,
+      "lo": 0.032,
+      "hi": 0.601,
+      "n": 2805,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.475,
+      "lo": 0.232,
+      "hi": 0.714,
+      "n": 2324,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "label": "tilt"
+    }
+   },
+   "label": "priced"
+  },
+  "tsh": {
+   "name": "Target share",
+   "by_pos": {
+    "ALL": {
+     "repeat": {
+      "v": 0.747,
+      "lo": 0.73,
+      "hi": 0.762,
+      "n": 14384
+     },
+     "predict": {
+      "v": 0.637,
+      "lo": 0.616,
+      "hi": 0.659,
+      "n": 14416
+     },
+     "beyond": {
+      "v": 0.183,
+      "lo": -0.005,
+      "hi": 0.372,
+      "n": 14387,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.086,
+      "lo": -0.055,
+      "hi": 0.215,
+      "n": 11830,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "QB": {
+     "repeat": {
+      "v": 0.023,
+      "lo": -0.061,
+      "hi": 0.133,
+      "n": 1596
+     },
+     "predict": {
+      "v": 0.09,
+      "lo": -0.02,
+      "hi": 0.19,
+      "n": 1596
+     },
+     "beyond": {
+      "v": 0.355,
+      "lo": -0.187,
+      "hi": 0.793,
+      "n": 1567,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.066,
+      "lo": -0.314,
+      "hi": 0.213,
+      "n": 1283,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "RB": {
+     "repeat": {
+      "v": 0.72,
+      "lo": 0.682,
+      "hi": 0.751,
+      "n": 3824
+     },
+     "predict": {
+      "v": 0.587,
+      "lo": 0.537,
+      "hi": 0.63,
+      "n": 3840
+     },
+     "beyond": {
+      "v": -0.278,
+      "lo": -0.627,
+      "hi": 0.101,
+      "n": 3840,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.236,
+      "lo": -0.539,
+      "hi": 0.037,
+      "n": 3164,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "WR": {
+     "repeat": {
+      "v": 0.797,
+      "lo": 0.777,
+      "hi": 0.816,
+      "n": 6171
+     },
+     "predict": {
+      "v": 0.727,
+      "lo": 0.699,
+      "hi": 0.755,
+      "n": 6176
+     },
+     "beyond": {
+      "v": 0.402,
+      "lo": -0.066,
+      "hi": 0.847,
+      "n": 6176,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.32,
+      "lo": -0.046,
+      "hi": 0.603,
+      "n": 5060,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "TE": {
+     "repeat": {
+      "v": 0.767,
+      "lo": 0.728,
+      "hi": 0.803,
+      "n": 2793
+     },
+     "predict": {
+      "v": 0.706,
+      "lo": 0.666,
+      "hi": 0.748,
+      "n": 2804
+     },
+     "beyond": {
+      "v": 0.328,
+      "lo": -0.233,
+      "hi": 0.859,
+      "n": 2804,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.391,
+      "lo": 0.053,
+      "hi": 0.841,
+      "n": 2323,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    }
+   },
+   "label": "priced"
+  },
+  "ays": {
+   "name": "Air-yards share",
+   "by_pos": {
+    "ALL": {
+     "repeat": {
+      "v": 0.579,
+      "lo": 0.547,
+      "hi": 0.603,
+      "n": 14384
+     },
+     "predict": {
+      "v": 0.372,
+      "lo": 0.329,
+      "hi": 0.4,
+      "n": 14416
+     },
+     "beyond": {
+      "v": 0.123,
+      "lo": -0.02,
+      "hi": 0.244,
+      "n": 14387,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.038,
+      "lo": -0.092,
+      "hi": 0.143,
+      "n": 11830,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "QB": {
+     "repeat": {
+      "v": 0.057,
+      "lo": -0.006,
+      "hi": 0.135,
+      "n": 1596
+     },
+     "predict": {
+      "v": -0.053,
+      "lo": -0.167,
+      "hi": 0.056,
+      "n": 1596
+     },
+     "beyond": {
+      "v": 0.141,
+      "lo": -0.583,
+      "hi": 0.567,
+      "n": 1567,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.091,
+      "lo": -0.143,
+      "hi": 0.276,
+      "n": 1283,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "RB": {
+     "repeat": {
+      "v": 0.244,
+      "lo": 0.176,
+      "hi": 0.315,
+      "n": 3824
+     },
+     "predict": {
+      "v": -0.15,
+      "lo": -0.22,
+      "hi": -0.075,
+      "n": 3840
+     },
+     "beyond": {
+      "v": 0.005,
+      "lo": -0.219,
+      "hi": 0.206,
+      "n": 3840,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.177,
+      "lo": -0.416,
+      "hi": 0.038,
+      "n": 3164,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "WR": {
+     "repeat": {
+      "v": 0.759,
+      "lo": 0.734,
+      "hi": 0.783,
+      "n": 6171
+     },
+     "predict": {
+      "v": 0.635,
+      "lo": 0.604,
+      "hi": 0.672,
+      "n": 6176
+     },
+     "beyond": {
+      "v": 0.044,
+      "lo": -0.245,
+      "hi": 0.379,
+      "n": 6176,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.157,
+      "lo": -0.057,
+      "hi": 0.367,
+      "n": 5060,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "TE": {
+     "repeat": {
+      "v": 0.707,
+      "lo": 0.663,
+      "hi": 0.742,
+      "n": 2793
+     },
+     "predict": {
+      "v": 0.65,
+      "lo": 0.601,
+      "hi": 0.697,
+      "n": 2804
+     },
+     "beyond": {
+      "v": 0.227,
+      "lo": -0.205,
+      "hi": 0.605,
+      "n": 2804,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.271,
+      "lo": -0.003,
+      "hi": 0.6,
+      "n": 2323,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    }
+   },
+   "label": "priced"
+  },
+  "wopr": {
+   "name": "WOPR",
+   "by_pos": {
+    "ALL": {
+     "repeat": {
+      "v": 0.743,
+      "lo": 0.727,
+      "hi": 0.759,
+      "n": 14384
+     },
+     "predict": {
+      "v": 0.625,
+      "lo": 0.602,
+      "hi": 0.647,
+      "n": 14416
+     },
+     "beyond": {
+      "v": 0.174,
+      "lo": -0.028,
+      "hi": 0.352,
+      "n": 14387,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.086,
+      "lo": -0.048,
+      "hi": 0.214,
+      "n": 11830,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "QB": {
+     "repeat": {
+      "v": 0.02,
+      "lo": -0.061,
+      "hi": 0.133,
+      "n": 1596
+     },
+     "predict": {
+      "v": 0.093,
+      "lo": -0.015,
+      "hi": 0.189,
+      "n": 1596
+     },
+     "beyond": {
+      "v": 0.397,
+      "lo": -0.134,
+      "hi": 0.8,
+      "n": 1567,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.034,
+      "lo": -0.271,
+      "hi": 0.331,
+      "n": 1283,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "RB": {
+     "repeat": {
+      "v": 0.704,
+      "lo": 0.662,
+      "hi": 0.735,
+      "n": 3824
+     },
+     "predict": {
+      "v": 0.554,
+      "lo": 0.497,
+      "hi": 0.6,
+      "n": 3840
+     },
+     "beyond": {
+      "v": -0.225,
+      "lo": -0.547,
+      "hi": 0.122,
+      "n": 3840,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.265,
+      "lo": -0.545,
+      "hi": 0.018,
+      "n": 3164,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "WR": {
+     "repeat": {
+      "v": 0.797,
+      "lo": 0.775,
+      "hi": 0.816,
+      "n": 6171
+     },
+     "predict": {
+      "v": 0.716,
+      "lo": 0.686,
+      "hi": 0.744,
+      "n": 6176
+     },
+     "beyond": {
+      "v": 0.256,
+      "lo": -0.197,
+      "hi": 0.694,
+      "n": 6176,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.276,
+      "lo": -0.06,
+      "hi": 0.55,
+      "n": 5060,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "TE": {
+     "repeat": {
+      "v": 0.772,
+      "lo": 0.737,
+      "hi": 0.804,
+      "n": 2793
+     },
+     "predict": {
+      "v": 0.717,
+      "lo": 0.676,
+      "hi": 0.757,
+      "n": 2804
+     },
+     "beyond": {
+      "v": 0.341,
+      "lo": -0.266,
+      "hi": 0.847,
+      "n": 2804,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.4,
+      "lo": 0.029,
+      "hi": 0.844,
+      "n": 2323,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    }
+   },
+   "label": "priced"
+  },
+  "csh": {
+   "name": "Team carry share",
+   "by_pos": {
+    "ALL": {
+     "repeat": {
+      "v": 0.674,
+      "lo": 0.652,
+      "hi": 0.697,
+      "n": 14384
+     },
+     "predict": {
+      "v": 0.339,
+      "lo": 0.31,
+      "hi": 0.374,
+      "n": 14416
+     },
+     "beyond": {
+      "v": 0.05,
+      "lo": -0.09,
+      "hi": 0.184,
+      "n": 14416,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.067,
+      "lo": -0.043,
+      "hi": 0.19,
+      "n": 11858,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "QB": {
+     "repeat": {
+      "v": 0.692,
+      "lo": 0.631,
+      "hi": 0.747,
+      "n": 1596
+     },
+     "predict": {
+      "v": 0.301,
+      "lo": 0.191,
+      "hi": 0.405,
+      "n": 1596
+     },
+     "beyond": {
+      "v": 0.404,
+      "lo": -0.14,
+      "hi": 0.981,
+      "n": 1596,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.46,
+      "lo": -0.015,
+      "hi": 0.862,
+      "n": 1311,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "RB": {
+     "repeat": {
+      "v": 0.819,
+      "lo": 0.794,
+      "hi": 0.841,
+      "n": 3824
+     },
+     "predict": {
+      "v": 0.715,
+      "lo": 0.681,
+      "hi": 0.746,
+      "n": 3840
+     },
+     "beyond": {
+      "v": 0.076,
+      "lo": -0.419,
+      "hi": 0.592,
+      "n": 3840,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.345,
+      "lo": -0.028,
+      "hi": 0.736,
+      "n": 3164,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "WR": {
+     "repeat": {
+      "v": 0.607,
+      "lo": 0.568,
+      "hi": 0.646,
+      "n": 6171
+     },
+     "predict": {
+      "v": 0.138,
+      "lo": 0.085,
+      "hi": 0.194,
+      "n": 6176
+     },
+     "beyond": {
+      "v": 0.023,
+      "lo": -0.187,
+      "hi": 0.234,
+      "n": 6176,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.089,
+      "lo": -0.23,
+      "hi": 0.096,
+      "n": 5060,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "trait"
+    },
+    "TE": {
+     "repeat": {
+      "v": 0.442,
+      "lo": 0.335,
+      "hi": 0.533,
+      "n": 2793
+     },
+     "predict": {
+      "v": 0.206,
+      "lo": 0.125,
+      "hi": 0.283,
+      "n": 2804
+     },
+     "beyond": {
+      "v": 0.227,
+      "lo": -0.079,
+      "hi": 0.537,
+      "n": 2804,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.295,
+      "lo": 0.02,
+      "hi": 0.566,
+      "n": 2323,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "trait"
+    }
+   },
+   "label": "priced"
+  },
+  "cv": {
+   "name": "Week-to-week volatility (CV)",
+   "by_pos": {
+    "ALL": {
+     "repeat": {
+      "v": 0.343,
+      "lo": 0.315,
+      "hi": 0.374,
+      "n": 14426
+     },
+     "predict": {
+      "v": -0.478,
+      "lo": -0.503,
+      "hi": -0.454,
+      "n": 14426
+     },
+     "beyond": {
+      "v": -0.037,
+      "lo": -0.153,
+      "hi": 0.073,
+      "n": 14426,
+      "seasons_same_sign": 1,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.089,
+      "lo": -0.198,
+      "hi": 0.008,
+      "n": 11864,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "QB": {
+     "repeat": {
+      "v": 0.15,
+      "lo": 0.064,
+      "hi": 0.257,
+      "n": 1596
+     },
+     "predict": {
+      "v": -0.246,
+      "lo": -0.334,
+      "hi": -0.155,
+      "n": 1596
+     },
+     "beyond": {
+      "v": 0.136,
+      "lo": -0.455,
+      "hi": 0.647,
+      "n": 1596,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.044,
+      "lo": -0.392,
+      "hi": 0.293,
+      "n": 1311,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "RB": {
+     "repeat": {
+      "v": 0.402,
+      "lo": 0.349,
+      "hi": 0.457,
+      "n": 3840
+     },
+     "predict": {
+      "v": -0.549,
+      "lo": -0.588,
+      "hi": -0.501,
+      "n": 3840
+     },
+     "beyond": {
+      "v": -0.129,
+      "lo": -0.349,
+      "hi": 0.144,
+      "n": 3840,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.138,
+      "lo": -0.333,
+      "hi": 0.044,
+      "n": 3164,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "WR": {
+     "repeat": {
+      "v": 0.387,
+      "lo": 0.343,
+      "hi": 0.43,
+      "n": 6185
+     },
+     "predict": {
+      "v": -0.493,
+      "lo": -0.536,
+      "hi": -0.457,
+      "n": 6185
+     },
+     "beyond": {
+      "v": -0.039,
+      "lo": -0.213,
+      "hi": 0.112,
+      "n": 6185,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.025,
+      "lo": -0.159,
+      "hi": 0.122,
+      "n": 5065,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "TE": {
+     "repeat": {
+      "v": 0.272,
+      "lo": 0.199,
+      "hi": 0.337,
+      "n": 2805
+     },
+     "predict": {
+      "v": -0.482,
+      "lo": -0.538,
+      "hi": -0.426,
+      "n": 2805
+     },
+     "beyond": {
+      "v": -0.115,
+      "lo": -0.362,
+      "hi": 0.114,
+      "n": 2805,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.267,
+      "lo": -0.436,
+      "hi": -0.108,
+      "n": 2324,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "label": "priced"
+    }
+   },
+   "label": "priced"
+  },
+  "spread": {
+   "name": "Floor-to-ceiling spread",
+   "by_pos": {
+    "ALL": {
+     "repeat": {
+      "v": 0.216,
+      "lo": 0.187,
+      "hi": 0.246,
+      "n": 14426
+     },
+     "predict": {
+      "v": -0.376,
+      "lo": -0.406,
+      "hi": -0.348,
+      "n": 14426
+     },
+     "beyond": {
+      "v": -0.02,
+      "lo": -0.139,
+      "hi": 0.093,
+      "n": 14426,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.079,
+      "lo": -0.173,
+      "hi": 0.022,
+      "n": 11864,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "QB": {
+     "repeat": {
+      "v": 0.108,
+      "lo": 0.026,
+      "hi": 0.197,
+      "n": 1596
+     },
+     "predict": {
+      "v": -0.219,
+      "lo": -0.307,
+      "hi": -0.127,
+      "n": 1596
+     },
+     "beyond": {
+      "v": 0.009,
+      "lo": -0.544,
+      "hi": 0.557,
+      "n": 1596,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.21,
+      "lo": -0.617,
+      "hi": 0.196,
+      "n": 1311,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "RB": {
+     "repeat": {
+      "v": 0.256,
+      "lo": 0.198,
+      "hi": 0.305,
+      "n": 3840
+     },
+     "predict": {
+      "v": -0.426,
+      "lo": -0.476,
+      "hi": -0.374,
+      "n": 3840
+     },
+     "beyond": {
+      "v": -0.087,
+      "lo": -0.321,
+      "hi": 0.147,
+      "n": 3840,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.008,
+      "lo": -0.176,
+      "hi": 0.193,
+      "n": 3164,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "WR": {
+     "repeat": {
+      "v": 0.232,
+      "lo": 0.177,
+      "hi": 0.274,
+      "n": 6185
+     },
+     "predict": {
+      "v": -0.375,
+      "lo": -0.416,
+      "hi": -0.332,
+      "n": 6185
+     },
+     "beyond": {
+      "v": 0.014,
+      "lo": -0.142,
+      "hi": 0.168,
+      "n": 6185,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.088,
+      "lo": -0.213,
+      "hi": 0.045,
+      "n": 5065,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "TE": {
+     "repeat": {
+      "v": 0.184,
+      "lo": 0.116,
+      "hi": 0.248,
+      "n": 2805
+     },
+     "predict": {
+      "v": -0.399,
+      "lo": -0.461,
+      "hi": -0.338,
+      "n": 2805
+     },
+     "beyond": {
+      "v": -0.1,
+      "lo": -0.327,
+      "hi": 0.07,
+      "n": 2805,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.149,
+      "lo": -0.315,
+      "hi": 0.028,
+      "n": 2324,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    }
+   },
+   "label": "priced"
+  },
+  "smash": {
+   "name": "Smash-week rate",
+   "by_pos": {
+    "ALL": {
+     "repeat": {
+      "v": 0.439,
+      "lo": 0.405,
+      "hi": 0.472,
+      "n": 14426
+     },
+     "predict": {
+      "v": 0.527,
+      "lo": 0.5,
+      "hi": 0.551,
+      "n": 14426
+     },
+     "beyond": {
+      "v": 0.045,
+      "lo": -0.144,
+      "hi": 0.193,
+      "n": 14426,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.086,
+      "lo": -0.06,
+      "hi": 0.202,
+      "n": 11864,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "QB": {
+     "repeat": {
+      "v": 0.336,
+      "lo": 0.23,
+      "hi": 0.44,
+      "n": 1596
+     },
+     "predict": {
+      "v": 0.407,
+      "lo": 0.306,
+      "hi": 0.498,
+      "n": 1596
+     },
+     "beyond": {
+      "v": 0.406,
+      "lo": -0.182,
+      "hi": 0.91,
+      "n": 1596,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.066,
+      "lo": -0.489,
+      "hi": 0.374,
+      "n": 1311,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "RB": {
+     "repeat": {
+      "v": 0.518,
+      "lo": 0.463,
+      "hi": 0.572,
+      "n": 3840
+     },
+     "predict": {
+      "v": 0.588,
+      "lo": 0.545,
+      "hi": 0.633,
+      "n": 3840
+     },
+     "beyond": {
+      "v": 0.069,
+      "lo": -0.279,
+      "hi": 0.396,
+      "n": 3840,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.276,
+      "lo": -0.028,
+      "hi": 0.576,
+      "n": 3164,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "WR": {
+     "repeat": {
+      "v": 0.481,
+      "lo": 0.426,
+      "hi": 0.542,
+      "n": 6185
+     },
+     "predict": {
+      "v": 0.545,
+      "lo": 0.503,
+      "hi": 0.585,
+      "n": 6185
+     },
+     "beyond": {
+      "v": 0.152,
+      "lo": -0.142,
+      "hi": 0.39,
+      "n": 6185,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.161,
+      "lo": -0.046,
+      "hi": 0.38,
+      "n": 5065,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "TE": {
+     "repeat": {
+      "v": 0.274,
+      "lo": 0.182,
+      "hi": 0.361,
+      "n": 2805
+     },
+     "predict": {
+      "v": 0.473,
+      "lo": 0.408,
+      "hi": 0.539,
+      "n": 2805
+     },
+     "beyond": {
+      "v": -0.3,
+      "lo": -0.642,
+      "hi": 0.032,
+      "n": 2805,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.042,
+      "lo": -0.312,
+      "hi": 0.324,
+      "n": 2324,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "priced"
+    }
+   },
+   "label": "priced"
+  },
+  "start": {
+   "name": "Startable-week rate",
+   "by_pos": {
+    "ALL": {
+     "repeat": {
+      "v": 0.609,
+      "lo": 0.586,
+      "hi": 0.628,
+      "n": 14426
+     },
+     "predict": {
+      "v": 0.652,
+      "lo": 0.631,
+      "hi": 0.67,
+      "n": 14426
+     },
+     "beyond": {
+      "v": 0.168,
+      "lo": -0.014,
+      "hi": 0.344,
+      "n": 14426,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.129,
+      "lo": -0.02,
+      "hi": 0.264,
+      "n": 11864,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "QB": {
+     "repeat": {
+      "v": 0.477,
+      "lo": 0.409,
+      "hi": 0.553,
+      "n": 1596
+     },
+     "predict": {
+      "v": 0.507,
+      "lo": 0.433,
+      "hi": 0.579,
+      "n": 1596
+     },
+     "beyond": {
+      "v": 1.039,
+      "lo": 0.513,
+      "hi": 1.655,
+      "n": 1596,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.524,
+      "lo": 0.076,
+      "hi": 0.944,
+      "n": 1311,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "RB": {
+     "repeat": {
+      "v": 0.672,
+      "lo": 0.634,
+      "hi": 0.705,
+      "n": 3840
+     },
+     "predict": {
+      "v": 0.71,
+      "lo": 0.677,
+      "hi": 0.741,
+      "n": 3840
+     },
+     "beyond": {
+      "v": -0.107,
+      "lo": -0.505,
+      "hi": 0.365,
+      "n": 3840,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.203,
+      "lo": -0.13,
+      "hi": 0.55,
+      "n": 3164,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "WR": {
+     "repeat": {
+      "v": 0.609,
+      "lo": 0.573,
+      "hi": 0.645,
+      "n": 6185
+     },
+     "predict": {
+      "v": 0.66,
+      "lo": 0.623,
+      "hi": 0.694,
+      "n": 6185
+     },
+     "beyond": {
+      "v": 0.156,
+      "lo": -0.22,
+      "hi": 0.492,
+      "n": 6185,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.224,
+      "lo": -0.014,
+      "hi": 0.467,
+      "n": 5065,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "TE": {
+     "repeat": {
+      "v": 0.596,
+      "lo": 0.548,
+      "hi": 0.642,
+      "n": 2805
+     },
+     "predict": {
+      "v": 0.636,
+      "lo": 0.592,
+      "hi": 0.679,
+      "n": 2805
+     },
+     "beyond": {
+      "v": 0.291,
+      "lo": -0.006,
+      "hi": 0.65,
+      "n": 2805,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.035,
+      "lo": -0.26,
+      "hi": 0.335,
+      "n": 2324,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    }
+   },
+   "label": "priced"
+  },
+  "dud": {
+   "name": "Dud-week rate",
+   "by_pos": {
+    "ALL": {
+     "repeat": {
+      "v": 0.621,
+      "lo": 0.597,
+      "hi": 0.641,
+      "n": 14426
+     },
+     "predict": {
+      "v": -0.67,
+      "lo": -0.689,
+      "hi": -0.65,
+      "n": 14426
+     },
+     "beyond": {
+      "v": -0.286,
+      "lo": -0.48,
+      "hi": -0.106,
+      "n": 14426,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.235,
+      "lo": -0.36,
+      "hi": -0.1,
+      "n": 11864,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "QB": {
+     "repeat": {
+      "v": 0.365,
+      "lo": 0.274,
+      "hi": 0.461,
+      "n": 1596
+     },
+     "predict": {
+      "v": -0.493,
+      "lo": -0.572,
+      "hi": -0.418,
+      "n": 1596
+     },
+     "beyond": {
+      "v": -0.694,
+      "lo": -1.417,
+      "hi": -0.026,
+      "n": 1596,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.641,
+      "lo": -1.124,
+      "hi": -0.166,
+      "n": 1311,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "RB": {
+     "repeat": {
+      "v": 0.628,
+      "lo": 0.585,
+      "hi": 0.671,
+      "n": 3840
+     },
+     "predict": {
+      "v": -0.677,
+      "lo": -0.714,
+      "hi": -0.635,
+      "n": 3840
+     },
+     "beyond": {
+      "v": -0.239,
+      "lo": -0.561,
+      "hi": 0.055,
+      "n": 3840,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.226,
+      "lo": -0.477,
+      "hi": -0.023,
+      "n": 3164,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "priced"
+    },
+    "WR": {
+     "repeat": {
+      "v": 0.672,
+      "lo": 0.643,
+      "hi": 0.702,
+      "n": 6185
+     },
+     "predict": {
+      "v": -0.707,
+      "lo": -0.733,
+      "hi": -0.681,
+      "n": 6185
+     },
+     "beyond": {
+      "v": -0.451,
+      "lo": -0.755,
+      "hi": -0.143,
+      "n": 6185,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.342,
+      "lo": -0.571,
+      "hi": -0.127,
+      "n": 5065,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "TE": {
+     "repeat": {
+      "v": 0.644,
+      "lo": 0.602,
+      "hi": 0.684,
+      "n": 2805
+     },
+     "predict": {
+      "v": -0.683,
+      "lo": -0.724,
+      "hi": -0.647,
+      "n": 2805
+     },
+     "beyond": {
+      "v": -0.476,
+      "lo": -0.874,
+      "hi": -0.123,
+      "n": 2805,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.39,
+      "lo": -0.722,
+      "hi": -0.083,
+      "n": 2324,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "tilt"
+    }
+   },
+   "label": "tilt"
+  },
+  "resid": {
+   "name": "Average vs ESPN's projection",
+   "by_pos": {
+    "ALL": {
+     "repeat": {
+      "v": -0.025,
+      "lo": -0.061,
+      "hi": 0.009,
+      "n": 14423
+     },
+     "sticks": {
+      "v": -0.049,
+      "lo": -0.081,
+      "hi": -0.016,
+      "n": 14423
+     },
+     "predict": {
+      "v": 0.172,
+      "lo": 0.139,
+      "hi": 0.202,
+      "n": 14423
+     },
+     "beyond": {
+      "v": 0.169,
+      "lo": 0.052,
+      "hi": 0.287,
+      "n": 14423,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.132,
+      "lo": -0.232,
+      "hi": -0.037,
+      "n": 11861,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "QB": {
+     "repeat": {
+      "v": -0.049,
+      "lo": -0.153,
+      "hi": 0.047,
+      "n": 1595
+     },
+     "sticks": {
+      "v": -0.111,
+      "lo": -0.196,
+      "hi": -0.03,
+      "n": 1595
+     },
+     "predict": {
+      "v": 0.285,
+      "lo": 0.204,
+      "hi": 0.367,
+      "n": 1595
+     },
+     "beyond": {
+      "v": 0.534,
+      "lo": 0.126,
+      "hi": 1.017,
+      "n": 1595,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.18,
+      "lo": -0.609,
+      "hi": 0.17,
+      "n": 1310,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "RB": {
+     "repeat": {
+      "v": -0.054,
+      "lo": -0.117,
+      "hi": 0.016,
+      "n": 3839
+     },
+     "sticks": {
+      "v": -0.076,
+      "lo": -0.135,
+      "hi": -0.014,
+      "n": 3839
+     },
+     "predict": {
+      "v": 0.133,
+      "lo": 0.063,
+      "hi": 0.206,
+      "n": 3839
+     },
+     "beyond": {
+      "v": -0.051,
+      "lo": -0.275,
+      "hi": 0.204,
+      "n": 3839,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.057,
+      "lo": -0.264,
+      "hi": 0.102,
+      "n": 3163,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "WR": {
+     "repeat": {
+      "v": 0.019,
+      "lo": -0.036,
+      "hi": 0.077,
+      "n": 6184
+     },
+     "sticks": {
+      "v": -0.007,
+      "lo": -0.052,
+      "hi": 0.045,
+      "n": 6184
+     },
+     "predict": {
+      "v": 0.189,
+      "lo": 0.135,
+      "hi": 0.238,
+      "n": 6184
+     },
+     "beyond": {
+      "v": 0.277,
+      "lo": 0.078,
+      "hi": 0.457,
+      "n": 6184,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.066,
+      "lo": -0.22,
+      "hi": 0.084,
+      "n": 5064,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "TE": {
+     "repeat": {
+      "v": -0.073,
+      "lo": -0.153,
+      "hi": 0.007,
+      "n": 2805
+     },
+     "sticks": {
+      "v": -0.095,
+      "lo": -0.171,
+      "hi": -0.021,
+      "n": 2805
+     },
+     "predict": {
+      "v": 0.123,
+      "lo": 0.048,
+      "hi": 0.195,
+      "n": 2805
+     },
+     "beyond": {
+      "v": 0.111,
+      "lo": -0.096,
+      "hi": 0.325,
+      "n": 2805,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.244,
+      "lo": -0.465,
+      "hi": -0.043,
+      "n": 2324,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "noise"
+    }
+   },
+   "label": "tilt"
+  },
+  "beat": {
+   "name": "Beat-ESPN rate",
+   "by_pos": {
+    "ALL": {
+     "repeat": {
+      "v": 0.024,
+      "lo": -0.012,
+      "hi": 0.054,
+      "n": 14423
+     },
+     "predict": {
+      "v": 0.239,
+      "lo": 0.206,
+      "hi": 0.269,
+      "n": 14423
+     },
+     "beyond": {
+      "v": 0.156,
+      "lo": 0.038,
+      "hi": 0.265,
+      "n": 14423,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.11,
+      "lo": -0.205,
+      "hi": -0.014,
+      "n": 11861,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "QB": {
+     "repeat": {
+      "v": -0.01,
+      "lo": -0.107,
+      "hi": 0.089,
+      "n": 1595
+     },
+     "predict": {
+      "v": 0.262,
+      "lo": 0.186,
+      "hi": 0.346,
+      "n": 1595
+     },
+     "beyond": {
+      "v": 0.697,
+      "lo": 0.269,
+      "hi": 1.209,
+      "n": 1595,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.119,
+      "lo": -0.45,
+      "hi": 0.22,
+      "n": 1310,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "RB": {
+     "repeat": {
+      "v": -0.004,
+      "lo": -0.075,
+      "hi": 0.06,
+      "n": 3839
+     },
+     "predict": {
+      "v": 0.23,
+      "lo": 0.156,
+      "hi": 0.303,
+      "n": 3839
+     },
+     "beyond": {
+      "v": -0.12,
+      "lo": -0.359,
+      "hi": 0.13,
+      "n": 3839,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.08,
+      "lo": -0.306,
+      "hi": 0.105,
+      "n": 3163,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "WR": {
+     "repeat": {
+      "v": 0.071,
+      "lo": 0.015,
+      "hi": 0.122,
+      "n": 6184
+     },
+     "predict": {
+      "v": 0.27,
+      "lo": 0.215,
+      "hi": 0.316,
+      "n": 6184
+     },
+     "beyond": {
+      "v": 0.259,
+      "lo": 0.088,
+      "hi": 0.426,
+      "n": 6184,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.09,
+      "lo": -0.235,
+      "hi": 0.046,
+      "n": 5064,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "TE": {
+     "repeat": {
+      "v": -0.022,
+      "lo": -0.096,
+      "hi": 0.057,
+      "n": 2805
+     },
+     "predict": {
+      "v": 0.17,
+      "lo": 0.09,
+      "hi": 0.254,
+      "n": 2805
+     },
+     "beyond": {
+      "v": 0.069,
+      "lo": -0.114,
+      "hi": 0.265,
+      "n": 2805,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.098,
+      "lo": -0.258,
+      "hi": 0.068,
+      "n": 2324,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "noise"
+    }
+   },
+   "label": "tilt"
+  },
+  "xfp_tr": {
+   "name": "Usage trend (last 3 vs season, xFP)",
+   "by_pos": {
+    "ALL": {
+     "sticks": {
+      "v": 0.135,
+      "lo": 0.096,
+      "hi": 0.178,
+      "n": 14221
+     },
+     "predict": {
+      "v": 0.044,
+      "lo": 0.019,
+      "hi": 0.065,
+      "n": 14286
+     },
+     "beyond": {
+      "v": 0.108,
+      "lo": 0.021,
+      "hi": 0.19,
+      "n": 14247,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.051,
+      "lo": -0.158,
+      "hi": 0.043,
+      "n": 11718,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "QB": {
+     "sticks": {
+      "v": 0.14,
+      "lo": -0.013,
+      "hi": 0.26,
+      "n": 1596
+     },
+     "predict": {
+      "v": -0.042,
+      "lo": -0.107,
+      "hi": 0.034,
+      "n": 1596
+     },
+     "beyond": {
+      "v": -0.058,
+      "lo": -0.336,
+      "hi": 0.253,
+      "n": 1596,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.313,
+      "lo": 0.04,
+      "hi": 0.652,
+      "n": 1311,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "RB": {
+     "sticks": {
+      "v": 0.169,
+      "lo": 0.088,
+      "hi": 0.252,
+      "n": 3770
+     },
+     "predict": {
+      "v": 0.091,
+      "lo": 0.05,
+      "hi": 0.131,
+      "n": 3795
+     },
+     "beyond": {
+      "v": 0.237,
+      "lo": 0.054,
+      "hi": 0.401,
+      "n": 3795,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.101,
+      "lo": -0.329,
+      "hi": 0.103,
+      "n": 3131,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "WR": {
+     "sticks": {
+      "v": 0.103,
+      "lo": 0.026,
+      "hi": 0.171,
+      "n": 6109
+     },
+     "predict": {
+      "v": 0.009,
+      "lo": -0.03,
+      "hi": 0.046,
+      "n": 6127
+     },
+     "beyond": {
+      "v": 0.045,
+      "lo": -0.092,
+      "hi": 0.184,
+      "n": 6127,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.213,
+      "lo": -0.395,
+      "hi": -0.071,
+      "n": 5022,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "TE": {
+     "sticks": {
+      "v": 0.109,
+      "lo": 0.001,
+      "hi": 0.198,
+      "n": 2746
+     },
+     "predict": {
+      "v": 0.104,
+      "lo": 0.054,
+      "hi": 0.152,
+      "n": 2768
+     },
+     "beyond": {
+      "v": 0.13,
+      "lo": -0.048,
+      "hi": 0.286,
+      "n": 2729,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.096,
+      "lo": -0.134,
+      "hi": 0.314,
+      "n": 2254,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "noise"
+    }
+   },
+   "label": "tilt"
+  },
+  "snap_tr": {
+   "name": "Snap trend (last 3 vs season)",
+   "by_pos": {
+    "ALL": {
+     "sticks": {
+      "v": 0.492,
+      "lo": 0.431,
+      "hi": 0.562,
+      "n": 14426
+     },
+     "predict": {
+      "v": 0.009,
+      "lo": -0.014,
+      "hi": 0.037,
+      "n": 14426
+     },
+     "beyond": {
+      "v": 0.249,
+      "lo": 0.161,
+      "hi": 0.326,
+      "n": 14172,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.053,
+      "lo": -0.045,
+      "hi": 0.144,
+      "n": 11623,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "edge"
+    },
+    "QB": {
+     "sticks": {
+      "v": 0.526,
+      "lo": 0.189,
+      "hi": 0.798,
+      "n": 1596
+     },
+     "predict": {
+      "v": -0.049,
+      "lo": -0.115,
+      "hi": 0.034,
+      "n": 1596
+     },
+     "beyond": {
+      "v": 0.177,
+      "lo": -0.129,
+      "hi": 0.474,
+      "n": 1478,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.063,
+      "lo": -0.344,
+      "hi": 0.434,
+      "n": 1196,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "RB": {
+     "sticks": {
+      "v": 0.413,
+      "lo": 0.322,
+      "hi": 0.522,
+      "n": 3840
+     },
+     "predict": {
+      "v": 0.032,
+      "lo": -0.007,
+      "hi": 0.08,
+      "n": 3840
+     },
+     "beyond": {
+      "v": 0.247,
+      "lo": 0.107,
+      "hi": 0.439,
+      "n": 3840,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.023,
+      "lo": -0.16,
+      "hi": 0.193,
+      "n": 3164,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "edge"
+    },
+    "WR": {
+     "sticks": {
+      "v": 0.529,
+      "lo": 0.445,
+      "hi": 0.602,
+      "n": 6185
+     },
+     "predict": {
+      "v": 0.008,
+      "lo": -0.032,
+      "hi": 0.042,
+      "n": 6185
+     },
+     "beyond": {
+      "v": 0.289,
+      "lo": 0.175,
+      "hi": 0.443,
+      "n": 6094,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.002,
+      "lo": -0.127,
+      "hi": 0.137,
+      "n": 4983,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "edge"
+    },
+    "TE": {
+     "sticks": {
+      "v": 0.464,
+      "lo": 0.338,
+      "hi": 0.603,
+      "n": 2805
+     },
+     "predict": {
+      "v": 0.011,
+      "lo": -0.043,
+      "hi": 0.066,
+      "n": 2805
+     },
+     "beyond": {
+      "v": 0.169,
+      "lo": -0.004,
+      "hi": 0.328,
+      "n": 2760,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": 0.156,
+      "lo": -0.016,
+      "hi": 0.341,
+      "n": 2280,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "noise"
+    }
+   },
+   "label": "edge"
+  },
+  "tsh_tr": {
+   "name": "Target-share trend (last 3 vs season)",
+   "by_pos": {
+    "ALL": {
+     "sticks": {
+      "v": 0.123,
+      "lo": 0.074,
+      "hi": 0.173,
+      "n": 14354
+     },
+     "predict": {
+      "v": 0.031,
+      "lo": 0.007,
+      "hi": 0.053,
+      "n": 14381
+     },
+     "beyond": {
+      "v": 0.105,
+      "lo": -0.001,
+      "hi": 0.196,
+      "n": 14128,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.156,
+      "lo": -0.26,
+      "hi": -0.06,
+      "n": 11587,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "QB": {
+     "sticks": {
+      "v": -0.333,
+      "lo": -0.722,
+      "hi": 0.297,
+      "n": 1596
+     },
+     "predict": {
+      "v": -0.062,
+      "lo": -0.134,
+      "hi": 0.025,
+      "n": 1596
+     },
+     "beyond": {
+      "v": 0.041,
+      "lo": -0.461,
+      "hi": 0.423,
+      "n": 1448,
+      "seasons_same_sign": 1,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.132,
+      "lo": -0.386,
+      "hi": 0.12,
+      "n": 1167,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "RB": {
+     "sticks": {
+      "v": 0.063,
+      "lo": -0.004,
+      "hi": 0.138,
+      "n": 3821
+     },
+     "predict": {
+      "v": 0.035,
+      "lo": -0.017,
+      "hi": 0.078,
+      "n": 3832
+     },
+     "beyond": {
+      "v": 0.234,
+      "lo": 0.059,
+      "hi": 0.413,
+      "n": 3772,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.115,
+      "lo": -0.309,
+      "hi": 0.103,
+      "n": 3102,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "WR": {
+     "sticks": {
+      "v": 0.159,
+      "lo": 0.09,
+      "hi": 0.218,
+      "n": 6155
+     },
+     "predict": {
+      "v": 0.017,
+      "lo": -0.026,
+      "hi": 0.05,
+      "n": 6160
+     },
+     "beyond": {
+      "v": 0.037,
+      "lo": -0.101,
+      "hi": 0.171,
+      "n": 6160,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.21,
+      "lo": -0.37,
+      "hi": -0.045,
+      "n": 5048,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "TE": {
+     "sticks": {
+      "v": 0.04,
+      "lo": -0.061,
+      "hi": 0.128,
+      "n": 2782
+     },
+     "predict": {
+      "v": 0.085,
+      "lo": 0.033,
+      "hi": 0.137,
+      "n": 2793
+     },
+     "beyond": {
+      "v": 0.08,
+      "lo": -0.084,
+      "hi": 0.245,
+      "n": 2748,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.144,
+      "lo": -0.35,
+      "hi": 0.044,
+      "n": 2270,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "noise"
+    }
+   },
+   "label": "noise"
+  },
+  "opp_tr": {
+   "name": "Opportunity trend (last 3 vs season)",
+   "by_pos": {
+    "ALL": {
+     "sticks": {
+      "v": 0.238,
+      "lo": 0.173,
+      "hi": 0.301,
+      "n": 14426
+     },
+     "predict": {
+      "v": 0.037,
+      "lo": 0.017,
+      "hi": 0.062,
+      "n": 14426
+     },
+     "beyond": {
+      "v": 0.127,
+      "lo": 0.034,
+      "hi": 0.221,
+      "n": 13180,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.181,
+      "lo": -0.278,
+      "hi": -0.07,
+      "n": 10685,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "QB": {
+     "sticks": {
+      "v": 0.047,
+      "lo": -0.07,
+      "hi": 0.182,
+      "n": 1596
+     },
+     "predict": {
+      "v": -0.031,
+      "lo": -0.102,
+      "hi": 0.04,
+      "n": 1596
+     },
+     "beyond": {
+      "v": -0.09,
+      "lo": -0.414,
+      "hi": 0.253,
+      "n": 1448,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.444,
+      "lo": -0.807,
+      "hi": -0.024,
+      "n": 1167,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "RB": {
+     "sticks": {
+      "v": 0.268,
+      "lo": 0.19,
+      "hi": 0.357,
+      "n": 3840
+     },
+     "predict": {
+      "v": 0.074,
+      "lo": 0.033,
+      "hi": 0.119,
+      "n": 3840
+     },
+     "beyond": {
+      "v": 0.213,
+      "lo": 0.032,
+      "hi": 0.393,
+      "n": 3508,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.145,
+      "lo": -0.358,
+      "hi": 0.093,
+      "n": 2846,
+      "seasons_same_sign": 2,
+      "seasons": 5
+     },
+     "label": "tilt"
+    },
+    "WR": {
+     "sticks": {
+      "v": 0.195,
+      "lo": 0.121,
+      "hi": 0.251,
+      "n": 6185
+     },
+     "predict": {
+      "v": 0.009,
+      "lo": -0.028,
+      "hi": 0.043,
+      "n": 6185
+     },
+     "beyond": {
+      "v": 0.114,
+      "lo": -0.029,
+      "hi": 0.248,
+      "n": 5654,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.194,
+      "lo": -0.349,
+      "hi": -0.054,
+      "n": 4571,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "noise"
+    },
+    "TE": {
+     "sticks": {
+      "v": 0.125,
+      "lo": 0.03,
+      "hi": 0.216,
+      "n": 2805
+     },
+     "predict": {
+      "v": 0.082,
+      "lo": 0.031,
+      "hi": 0.132,
+      "n": 2805
+     },
+     "beyond": {
+      "v": 0.142,
+      "lo": -0.057,
+      "hi": 0.301,
+      "n": 2570,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.129,
+      "lo": -0.341,
+      "hi": 0.062,
+      "n": 2101,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "noise"
+    }
+   },
+   "label": "tilt"
+  },
+  "est_tr": {
+   "name": "Model value trend (last 3 weeks)",
+   "by_pos": {
+    "ALL": {
+     "predict": {
+      "v": 0.156,
+      "lo": 0.134,
+      "hi": 0.174,
+      "n": 11094
+     },
+     "beyond": {
+      "v": 0.21,
+      "lo": 0.13,
+      "hi": 0.298,
+      "n": 11094,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.211,
+      "lo": -0.339,
+      "hi": -0.087,
+      "n": 8940,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "label": "edge"
+    },
+    "QB": {
+     "predict": {
+      "v": 0.142,
+      "lo": 0.083,
+      "hi": 0.204,
+      "n": 1269
+     },
+     "beyond": {
+      "v": 0.449,
+      "lo": 0.094,
+      "hi": 0.779,
+      "n": 1269,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.101,
+      "lo": -0.565,
+      "hi": 0.336,
+      "n": 1015,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "edge"
+    },
+    "RB": {
+     "predict": {
+      "v": 0.174,
+      "lo": 0.134,
+      "hi": 0.214,
+      "n": 2960
+     },
+     "beyond": {
+      "v": 0.264,
+      "lo": 0.096,
+      "hi": 0.437,
+      "n": 2960,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.09,
+      "lo": -0.346,
+      "hi": 0.154,
+      "n": 2383,
+      "seasons_same_sign": 3,
+      "seasons": 5
+     },
+     "label": "edge"
+    },
+    "WR": {
+     "predict": {
+      "v": 0.146,
+      "lo": 0.114,
+      "hi": 0.184,
+      "n": 4748
+     },
+     "beyond": {
+      "v": 0.161,
+      "lo": 0.048,
+      "hi": 0.293,
+      "n": 4748,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.242,
+      "lo": -0.443,
+      "hi": -0.066,
+      "n": 3819,
+      "seasons_same_sign": 5,
+      "seasons": 5
+     },
+     "label": "edge"
+    },
+    "TE": {
+     "predict": {
+      "v": 0.16,
+      "lo": 0.114,
+      "hi": 0.206,
+      "n": 2117
+     },
+     "beyond": {
+      "v": 0.11,
+      "lo": -0.052,
+      "hi": 0.268,
+      "n": 2117,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "weekly": {
+      "v": -0.355,
+      "lo": -0.631,
+      "hi": -0.131,
+      "n": 1723,
+      "seasons_same_sign": 4,
+      "seasons": 5
+     },
+     "label": "noise"
+    }
+   },
+   "label": "edge"
+  }
+ },
+ "teams": {
+  "ppg": {
+   "name": "Points per week",
+   "label": "weak",
+   "all": {
+    "repeat": {
+     "v": 0.233,
+     "lo": 0.065,
+     "hi": 0.389,
+     "n": 540
+    },
+    "predict": {
+     "v": 0.233,
+     "lo": 0.065,
+     "hi": 0.389,
+     "n": 540
+    },
+    "label": "weak"
+   }
+  },
+  "eff": {
+   "name": "Lineup efficiency (actual / best possible)",
+   "label": "noise",
+   "all": {
+    "repeat": {
+     "v": 0.107,
+     "lo": -0.098,
+     "hi": 0.315,
+     "n": 540
+    },
+    "predict": {
+     "v": -0.129,
+     "lo": -0.31,
+     "hi": 0.054,
+     "n": 540
+    },
+    "label": "noise"
+   }
+  },
+  "luck": {
+   "name": "Starters vs ESPN's projection (luck)",
+   "label": "noise",
+   "all": {
+    "repeat": {
+     "v": -0.128,
+     "lo": -0.317,
+     "hi": 0.052,
+     "n": 540
+    },
+    "predict": {
+     "v": 0.082,
+     "lo": -0.091,
+     "hi": 0.252,
+     "n": 540
+    },
+    "label": "noise"
+   }
+  },
+  "sd": {
+   "name": "Week-to-week swing",
+   "label": "noise",
+   "all": {
+    "repeat": {
+     "v": -0.046,
+     "lo": -0.208,
+     "hi": 0.136,
+     "n": 540
+    },
+    "predict": {
+     "v": -0.016,
+     "lo": -0.156,
+     "hi": 0.118,
+     "n": 540
+    },
+    "label": "noise"
+   }
+  }
+ },
+ "schedule": {
+  "fpa": {
+   "name": "Fantasy points allowed by position (through week W)",
+   "by_pos": {
+    "ALL": {
+     "next4": {
+      "v": 0.153,
+      "lo": 0.098,
+      "hi": 0.209,
+      "n": 3840
+     },
+     "playoffs": {
+      "v": 0.069,
+      "lo": 0.011,
+      "hi": 0.126,
+      "n": 3840
+     }
+    },
+    "QB": {
+     "next4": {
+      "v": 0.158,
+      "lo": 0.071,
+      "hi": 0.251,
+      "n": 960
+     },
+     "playoffs": {
+      "v": 0.112,
+      "lo": -0.006,
+      "hi": 0.231,
+      "n": 960
+     }
+    },
+    "RB": {
+     "next4": {
+      "v": 0.166,
+      "lo": 0.068,
+      "hi": 0.256,
+      "n": 960
+     },
+     "playoffs": {
+      "v": 0.053,
+      "lo": -0.066,
+      "hi": 0.183,
+      "n": 960
+     }
+    },
+    "WR": {
+     "next4": {
+      "v": 0.145,
+      "lo": 0.049,
+      "hi": 0.222,
+      "n": 960
+     },
+     "playoffs": {
+      "v": 0.001,
+      "lo": -0.128,
+      "hi": 0.131,
+      "n": 960
+     }
+    },
+    "TE": {
+     "next4": {
+      "v": 0.143,
+      "lo": 0.056,
+      "hi": 0.25,
+      "n": 960
+     },
+     "playoffs": {
+      "v": 0.109,
+      "lo": -0.013,
+      "hi": 0.225,
+      "n": 960
+     }
+    }
+   },
+   "label": "weak"
+  },
+  "epa": {
+   "name": "Matchups defense rating (EPA allowed) before week W",
+   "by_side": {
+    "pass": {
+     "next4": {
+      "v": 0.12,
+      "lo": -0.014,
+      "hi": 0.229,
+      "n": 576
+     },
+     "playoffs": {
+      "v": 0.217,
+      "lo": 0.083,
+      "hi": 0.356,
+      "n": 576
+     }
+    },
+    "run": {
+     "next4": {
+      "v": 0.122,
+      "lo": -0.012,
+      "hi": 0.246,
+      "n": 576
+     },
+     "playoffs": {
+      "v": 0.064,
+      "lo": -0.092,
+      "hi": 0.224,
+      "n": 576
+     }
+    }
+   },
+   "seasons": [
+    2023,
+    2024,
+    2025
+   ],
+   "label": "weak"
+  }
+ },
+ "descriptive": {
+  "swing_plays": "Plays that moved win chance most (what happened)",
+  "draft_vs_now": "Draft slot vs current value (what happened)",
+  "percentiles": "League percentiles inherit the label of the stat they rank"
+ },
+ "tiers_note": "start = top N_teams at QB/TE, top 2.5*N_teams at RB/WR; smash = top 3 QB/TE, top quarter of the startable RB/WR pool; dud = outside twice the startable pool"
+}

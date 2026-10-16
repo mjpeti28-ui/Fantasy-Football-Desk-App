@@ -1,0 +1,1157 @@
+{
+  "label": "rank_objective",
+  "league_total_starter_proj": 17297.34,
+  "league_total_starter_vor": 5234.54,
+  "teams": {
+    "Avoid_the_Noid": {
+      "starter_proj": 1776.22,
+      "starter_vor": 558.52,
+      "bench_total": 684.79,
+      "starters": [
+        {
+          "slot": "QB",
+          "name": "Jayden Daniels",
+          "pos": "QB",
+          "proj": 297.72,
+          "rank": 60
+        },
+        {
+          "slot": "RB",
+          "name": "Omarion Hampton",
+          "pos": "RB",
+          "proj": 246.63,
+          "rank": 16
+        },
+        {
+          "slot": "RB/WR",
+          "name": "Zay Flowers",
+          "pos": "WR",
+          "proj": 236.09,
+          "rank": 36
+        },
+        {
+          "slot": "TE",
+          "name": "Sam LaPorta",
+          "pos": "TE",
+          "proj": 203.43,
+          "rank": 69
+        },
+        {
+          "slot": "WR",
+          "name": "Ja'Marr Chase",
+          "pos": "WR",
+          "proj": 322.63,
+          "rank": 4
+        },
+        {
+          "slot": "WR/RB/TE",
+          "name": "Emeka Egbuka",
+          "pos": "WR",
+          "proj": 222.05,
+          "rank": 47
+        },
+        {
+          "slot": "WR/TE",
+          "name": "Nico Collins",
+          "pos": "WR",
+          "proj": 247.67,
+          "rank": 20
+        }
+      ],
+      "top_bench": [
+        {
+          "name": "TreVeyon Henderson",
+          "pos": "RB",
+          "proj": 184.19,
+          "rank": 79,
+          "vor": 27.27,
+          "oVAR": 434,
+          "BenchScore": 135.77
+        },
+        {
+          "name": "Isaiah Likely",
+          "pos": "TE",
+          "proj": 174.44,
+          "rank": 110,
+          "vor": 26.85,
+          "oVAR": 403,
+          "BenchScore": 127.6
+        },
+        {
+          "name": "Bo Nix",
+          "pos": "QB",
+          "proj": 263.96,
+          "rank": 98,
+          "vor": 10.72,
+          "oVAR": 415,
+          "BenchScore": 114.47
+        },
+        {
+          "name": "Makai Lemon",
+          "pos": "WR",
+          "proj": 171.32,
+          "rank": 105,
+          "vor": 6.33,
+          "oVAR": 408,
+          "BenchScore": 108.33
+        },
+        {
+          "name": "Xavier Worthy",
+          "pos": "WR",
+          "proj": 169.11,
+          "rank": 101,
+          "vor": 4.12,
+          "oVAR": 412,
+          "BenchScore": 107.12
+        },
+        {
+          "name": "Kyle Monangai",
+          "pos": "RB",
+          "proj": 129.05,
+          "rank": 147,
+          "vor": 0.0,
+          "oVAR": 366,
+          "BenchScore": 91.5
+        }
+      ]
+    },
+    "Kirkwood_Kittens": {
+      "starter_proj": 1642.02,
+      "starter_vor": 432.39,
+      "bench_total": 596.39,
+      "starters": [
+        {
+          "slot": "QB",
+          "name": "Lamar Jackson",
+          "pos": "QB",
+          "proj": 297.67,
+          "rank": 57
+        },
+        {
+          "slot": "RB",
+          "name": "Javonte Williams",
+          "pos": "RB",
+          "proj": 230.86,
+          "rank": 30
+        },
+        {
+          "slot": "RB/WR",
+          "name": "Jaylen Waddle",
+          "pos": "WR",
+          "proj": 221.35,
+          "rank": 39
+        },
+        {
+          "slot": "TE",
+          "name": "Kyle Pitts Sr.",
+          "pos": "TE",
+          "proj": 193.56,
+          "rank": 72
+        },
+        {
+          "slot": "WR",
+          "name": "Justin Jefferson",
+          "pos": "WR",
+          "proj": 290.54,
+          "rank": 7
+        },
+        {
+          "slot": "WR/RB/TE",
+          "name": "Jaylen Warren",
+          "pos": "RB",
+          "proj": 175.79,
+          "rank": 81
+        },
+        {
+          "slot": "WR/TE",
+          "name": "Rashee Rice",
+          "pos": "WR",
+          "proj": 232.25,
+          "rank": 38
+        }
+      ],
+      "top_bench": [
+        {
+          "name": "Caleb Williams",
+          "pos": "QB",
+          "proj": 267.96,
+          "rank": 85,
+          "vor": 14.72,
+          "oVAR": 428,
+          "BenchScore": 121.72
+        },
+        {
+          "name": "J.K. Dobbins",
+          "pos": "RB",
+          "proj": 164.58,
+          "rank": 121,
+          "vor": 7.66,
+          "oVAR": 392,
+          "BenchScore": 105.66
+        },
+        {
+          "name": "Stefon Diggs",
+          "pos": "WR",
+          "proj": 165.0,
+          "rank": 117,
+          "vor": 0.01,
+          "oVAR": 396,
+          "BenchScore": 99.01
+        },
+        {
+          "name": "Aaron Jones Sr.",
+          "pos": "RB",
+          "proj": 135.76,
+          "rank": 126,
+          "vor": 0.0,
+          "oVAR": 387,
+          "BenchScore": 96.75
+        },
+        {
+          "name": "T.J. Hockenson",
+          "pos": "TE",
+          "proj": 132.97,
+          "rank": 154,
+          "vor": 0.0,
+          "oVAR": 359,
+          "BenchScore": 89.75
+        },
+        {
+          "name": "Jerry Jeudy",
+          "pos": "WR",
+          "proj": 112.76,
+          "rank": 179,
+          "vor": 0.0,
+          "oVAR": 334,
+          "BenchScore": 83.5
+        }
+      ]
+    },
+    "The_Little_Stinkers": {
+      "starter_proj": 1761.83,
+      "starter_vor": 552.2,
+      "bench_total": 763.48,
+      "starters": [
+        {
+          "slot": "QB",
+          "name": "Josh Allen",
+          "pos": "QB",
+          "proj": 311.35,
+          "rank": 32
+        },
+        {
+          "slot": "RB",
+          "name": "James Cook III",
+          "pos": "RB",
+          "proj": 285.98,
+          "rank": 12
+        },
+        {
+          "slot": "RB/WR",
+          "name": "Quinshon Judkins",
+          "pos": "RB",
+          "proj": 220.18,
+          "rank": 35
+        },
+        {
+          "slot": "TE",
+          "name": "Colston Loveland",
+          "pos": "TE",
+          "proj": 209.45,
+          "rank": 42
+        },
+        {
+          "slot": "WR",
+          "name": "CeeDee Lamb",
+          "pos": "WR",
+          "proj": 283.75,
+          "rank": 11
+        },
+        {
+          "slot": "WR/RB/TE",
+          "name": "Christian Watson",
+          "pos": "WR",
+          "proj": 212.87,
+          "rank": 49
+        },
+        {
+          "slot": "WR/TE",
+          "name": "Garrett Wilson",
+          "pos": "WR",
+          "proj": 238.25,
+          "rank": 33
+        }
+      ],
+      "top_bench": [
+        {
+          "name": "Mike Evans",
+          "pos": "WR",
+          "proj": 205.46,
+          "rank": 62,
+          "vor": 40.47,
+          "oVAR": 451,
+          "BenchScore": 153.22
+        },
+        {
+          "name": "Jadarian Price",
+          "pos": "RB",
+          "proj": 176.15,
+          "rank": 82,
+          "vor": 19.23,
+          "oVAR": 431,
+          "BenchScore": 126.98
+        },
+        {
+          "name": "Brian Thomas Jr.",
+          "pos": "WR",
+          "proj": 176.27,
+          "rank": 70,
+          "vor": 11.28,
+          "oVAR": 443,
+          "BenchScore": 122.03
+        },
+        {
+          "name": "Chuba Hubbard",
+          "pos": "RB",
+          "proj": 149.73,
+          "rank": 116,
+          "vor": 0.0,
+          "oVAR": 397,
+          "BenchScore": 99.25
+        },
+        {
+          "name": "Keaton Mitchell",
+          "pos": "RB",
+          "proj": 109.37,
+          "rank": 138,
+          "vor": 0.0,
+          "oVAR": 375,
+          "BenchScore": 93.75
+        },
+        {
+          "name": "Jordan Addison",
+          "pos": "WR",
+          "proj": 142.77,
+          "rank": 141,
+          "vor": 0.0,
+          "oVAR": 372,
+          "BenchScore": 93.0
+        },
+        {
+          "name": "Josh Jacobs",
+          "pos": "RB",
+          "proj": 72.83,
+          "rank": 212,
+          "vor": 0.0,
+          "oVAR": 301,
+          "BenchScore": 75.25
+        }
+      ]
+    },
+    "Righteous_Gemstones": {
+      "starter_proj": 1733.59,
+      "starter_vor": 549.42,
+      "bench_total": 745.5,
+      "starters": [
+        {
+          "slot": "QB",
+          "name": "Brock Purdy",
+          "pos": "QB",
+          "proj": 269.55,
+          "rank": 83
+        },
+        {
+          "slot": "RB",
+          "name": "Bijan Robinson",
+          "pos": "RB",
+          "proj": 335.93,
+          "rank": 2
+        },
+        {
+          "slot": "RB/WR",
+          "name": "Kenneth Walker III",
+          "pos": "RB",
+          "proj": 261.96,
+          "rank": 14
+        },
+        {
+          "slot": "TE",
+          "name": "Brock Bowers",
+          "pos": "TE",
+          "proj": 232.85,
+          "rank": 25
+        },
+        {
+          "slot": "WR",
+          "name": "Luther Burden III",
+          "pos": "WR",
+          "proj": 223.68,
+          "rank": 37
+        },
+        {
+          "slot": "WR/RB/TE",
+          "name": "Travis Etienne Jr.",
+          "pos": "RB",
+          "proj": 200.25,
+          "rank": 48
+        },
+        {
+          "slot": "WR/TE",
+          "name": "Tucker Kraft",
+          "pos": "TE",
+          "proj": 209.37,
+          "rank": 53
+        }
+      ],
+      "top_bench": [
+        {
+          "name": "Carnell Tate",
+          "pos": "WR",
+          "proj": 217.43,
+          "rank": 76,
+          "vor": 52.44,
+          "oVAR": 437,
+          "BenchScore": 161.69
+        },
+        {
+          "name": "Davante Adams",
+          "pos": "WR",
+          "proj": 212.17,
+          "rank": 58,
+          "vor": 47.18,
+          "oVAR": 455,
+          "BenchScore": 160.93
+        },
+        {
+          "name": "Michael Pittman Jr.",
+          "pos": "WR",
+          "proj": 175.48,
+          "rank": 86,
+          "vor": 10.49,
+          "oVAR": 427,
+          "BenchScore": 117.24
+        },
+        {
+          "name": "Dak Prescott",
+          "pos": "QB",
+          "proj": 264.05,
+          "rank": 92,
+          "vor": 10.81,
+          "oVAR": 421,
+          "BenchScore": 116.06
+        },
+        {
+          "name": "Jacory Croskey-Merritt",
+          "pos": "RB",
+          "proj": 157.0,
+          "rank": 107,
+          "vor": 0.08,
+          "oVAR": 406,
+          "BenchScore": 101.58
+        },
+        {
+          "name": "Rachaad White",
+          "pos": "RB",
+          "proj": 109.22,
+          "rank": 161,
+          "vor": 0.0,
+          "oVAR": 352,
+          "BenchScore": 88.0
+        }
+      ]
+    },
+    "K_Wood_Super_Marios": {
+      "starter_proj": 1706.92,
+      "starter_vor": 489.22,
+      "bench_total": 583.82,
+      "starters": [
+        {
+          "slot": "QB",
+          "name": "Jared Goff",
+          "pos": "QB",
+          "proj": 253.4,
+          "rank": 113
+        },
+        {
+          "slot": "RB",
+          "name": "Rhamondre Stevenson",
+          "pos": "RB",
+          "proj": 198.39,
+          "rank": 54
+        },
+        {
+          "slot": "RB/WR",
+          "name": "Tetairoa McMillan",
+          "pos": "WR",
+          "proj": 236.19,
+          "rank": 40
+        },
+        {
+          "slot": "TE",
+          "name": "Trey McBride",
+          "pos": "TE",
+          "proj": 245.78,
+          "rank": 27
+        },
+        {
+          "slot": "WR",
+          "name": "Puka Nacua",
+          "pos": "WR",
+          "proj": 322.89,
+          "rank": 3
+        },
+        {
+          "slot": "WR/RB/TE",
+          "name": "Jameson Williams",
+          "pos": "WR",
+          "proj": 217.81,
+          "rank": 52
+        },
+        {
+          "slot": "WR/TE",
+          "name": "Malik Nabers",
+          "pos": "WR",
+          "proj": 232.46,
+          "rank": 28
+        }
+      ],
+      "top_bench": [
+        {
+          "name": "David Montgomery",
+          "pos": "RB",
+          "proj": 200.31,
+          "rank": 66,
+          "vor": 43.39,
+          "oVAR": 447,
+          "BenchScore": 155.14
+        },
+        {
+          "name": "Jake Ferguson",
+          "pos": "TE",
+          "proj": 173.44,
+          "rank": 125,
+          "vor": 25.85,
+          "oVAR": 388,
+          "BenchScore": 122.85
+        },
+        {
+          "name": "Kenny Gainwell",
+          "pos": "RB",
+          "proj": 161.0,
+          "rank": 108,
+          "vor": 4.08,
+          "oVAR": 405,
+          "BenchScore": 105.33
+        },
+        {
+          "name": "Blake Corum",
+          "pos": "RB",
+          "proj": 146.88,
+          "rank": 104,
+          "vor": 0.0,
+          "oVAR": 409,
+          "BenchScore": 102.25
+        },
+        {
+          "name": "Matthew Stafford",
+          "pos": "QB",
+          "proj": 252.81,
+          "rank": 120,
+          "vor": 0.0,
+          "oVAR": 393,
+          "BenchScore": 98.25
+        }
+      ]
+    },
+    "Braeside_Bangers": {
+      "starter_proj": 1665.3,
+      "starter_vor": 463.73,
+      "bench_total": 560.28,
+      "starters": [
+        {
+          "slot": "QB",
+          "name": "Justin Herbert",
+          "pos": "QB",
+          "proj": 276.29,
+          "rank": 74
+        },
+        {
+          "slot": "RB",
+          "name": "Saquon Barkley",
+          "pos": "RB",
+          "proj": 245.47,
+          "rank": 18
+        },
+        {
+          "slot": "RB/WR",
+          "name": "Kyren Williams",
+          "pos": "RB",
+          "proj": 238.53,
+          "rank": 21
+        },
+        {
+          "slot": "TE",
+          "name": "George Kittle",
+          "pos": "TE",
+          "proj": 190.27,
+          "rank": 67
+        },
+        {
+          "slot": "WR",
+          "name": "Amon-Ra St. Brown",
+          "pos": "WR",
+          "proj": 288.87,
+          "rank": 9
+        },
+        {
+          "slot": "WR/RB/TE",
+          "name": "Cam Skattebo",
+          "pos": "RB",
+          "proj": 185.17,
+          "rank": 75
+        },
+        {
+          "slot": "WR/TE",
+          "name": "Chris Olave",
+          "pos": "WR",
+          "proj": 240.7,
+          "rank": 29
+        }
+      ],
+      "top_bench": [
+        {
+          "name": "Travis Kelce",
+          "pos": "TE",
+          "proj": 188.12,
+          "rank": 91,
+          "vor": 40.53,
+          "oVAR": 422,
+          "BenchScore": 146.03
+        },
+        {
+          "name": "Jaxson Dart",
+          "pos": "QB",
+          "proj": 262.35,
+          "rank": 102,
+          "vor": 9.11,
+          "oVAR": 411,
+          "BenchScore": 111.86
+        },
+        {
+          "name": "Courtland Sutton",
+          "pos": "WR",
+          "proj": 170.88,
+          "rank": 118,
+          "vor": 5.89,
+          "oVAR": 395,
+          "BenchScore": 104.64
+        },
+        {
+          "name": "Rashid Shaheed",
+          "pos": "WR",
+          "proj": 158.68,
+          "rank": 112,
+          "vor": 0.0,
+          "oVAR": 401,
+          "BenchScore": 100.25
+        },
+        {
+          "name": "Romeo Doubs",
+          "pos": "WR",
+          "proj": 156.49,
+          "rank": 123,
+          "vor": 0.0,
+          "oVAR": 390,
+          "BenchScore": 97.5
+        }
+      ]
+    },
+    "3rd_and_41": {
+      "starter_proj": 1807.74,
+      "starter_vor": 606.17,
+      "bench_total": 627.15,
+      "starters": [
+        {
+          "slot": "QB",
+          "name": "Jalen Hurts",
+          "pos": "QB",
+          "proj": 301.41,
+          "rank": 55
+        },
+        {
+          "slot": "RB",
+          "name": "Christian McCaffrey",
+          "pos": "RB",
+          "proj": 323.18,
+          "rank": 6
+        },
+        {
+          "slot": "RB/WR",
+          "name": "De'Von Achane",
+          "pos": "RB",
+          "proj": 294.31,
+          "rank": 8
+        },
+        {
+          "slot": "TE",
+          "name": "Harold Fannin Jr.",
+          "pos": "TE",
+          "proj": 204.66,
+          "rank": 59
+        },
+        {
+          "slot": "WR",
+          "name": "George Pickens",
+          "pos": "WR",
+          "proj": 238.95,
+          "rank": 31
+        },
+        {
+          "slot": "WR/RB/TE",
+          "name": "Jeremiyah Love",
+          "pos": "RB",
+          "proj": 236.95,
+          "rank": 23
+        },
+        {
+          "slot": "WR/TE",
+          "name": "Rome Odunze",
+          "pos": "WR",
+          "proj": 208.28,
+          "rank": 56
+        }
+      ],
+      "top_bench": [
+        {
+          "name": "Bhayshul Tuten",
+          "pos": "RB",
+          "proj": 184.34,
+          "rank": 71,
+          "vor": 27.42,
+          "oVAR": 442,
+          "BenchScore": 137.92
+        },
+        {
+          "name": "Wan'Dale Robinson",
+          "pos": "WR",
+          "proj": 175.35,
+          "rank": 129,
+          "vor": 10.36,
+          "oVAR": 384,
+          "BenchScore": 106.36
+        },
+        {
+          "name": "Alec Pierce",
+          "pos": "WR",
+          "proj": 170.61,
+          "rank": 114,
+          "vor": 5.62,
+          "oVAR": 399,
+          "BenchScore": 105.37
+        },
+        {
+          "name": "Matthew Golden",
+          "pos": "WR",
+          "proj": 156.87,
+          "rank": 94,
+          "vor": 0.0,
+          "oVAR": 419,
+          "BenchScore": 104.75
+        },
+        {
+          "name": "Jakobi Meyers",
+          "pos": "WR",
+          "proj": 154.84,
+          "rank": 130,
+          "vor": 0.0,
+          "oVAR": 383,
+          "BenchScore": 95.75
+        },
+        {
+          "name": "Travis Hunter",
+          "pos": "WR",
+          "proj": 106.97,
+          "rank": 205,
+          "vor": 0.0,
+          "oVAR": 308,
+          "BenchScore": 77.0
+        }
+      ]
+    },
+    "Kansas_City_Carnevores": {
+      "starter_proj": 1759.33,
+      "starter_vor": 549.7,
+      "bench_total": 608.84,
+      "starters": [
+        {
+          "slot": "QB",
+          "name": "Drake Maye",
+          "pos": "QB",
+          "proj": 304.18,
+          "rank": 46
+        },
+        {
+          "slot": "RB",
+          "name": "Jonathan Taylor",
+          "pos": "RB",
+          "proj": 298.36,
+          "rank": 10
+        },
+        {
+          "slot": "RB/WR",
+          "name": "D'Andre Swift",
+          "pos": "RB",
+          "proj": 202.52,
+          "rank": 43
+        },
+        {
+          "slot": "TE",
+          "name": "Tyler Warren",
+          "pos": "TE",
+          "proj": 196.47,
+          "rank": 65
+        },
+        {
+          "slot": "WR",
+          "name": "Drake London",
+          "pos": "WR",
+          "proj": 284.62,
+          "rank": 15
+        },
+        {
+          "slot": "WR/RB/TE",
+          "name": "Terry McLaurin",
+          "pos": "WR",
+          "proj": 220.49,
+          "rank": 51
+        },
+        {
+          "slot": "WR/TE",
+          "name": "A.J. Brown",
+          "pos": "WR",
+          "proj": 252.69,
+          "rank": 17
+        }
+      ],
+      "top_bench": [
+        {
+          "name": "DK Metcalf",
+          "pos": "WR",
+          "proj": 191.04,
+          "rank": 68,
+          "vor": 26.05,
+          "oVAR": 445,
+          "BenchScore": 137.3
+        },
+        {
+          "name": "Rico Dowdle",
+          "pos": "RB",
+          "proj": 181.37,
+          "rank": 73,
+          "vor": 24.45,
+          "oVAR": 440,
+          "BenchScore": 134.45
+        },
+        {
+          "name": "Mark Andrews",
+          "pos": "TE",
+          "proj": 174.7,
+          "rank": 88,
+          "vor": 27.11,
+          "oVAR": 425,
+          "BenchScore": 133.36
+        },
+        {
+          "name": "Patrick Mahomes",
+          "pos": "QB",
+          "proj": 264.47,
+          "rank": 106,
+          "vor": 11.23,
+          "oVAR": 407,
+          "BenchScore": 112.98
+        },
+        {
+          "name": "Khalil Shakir",
+          "pos": "WR",
+          "proj": 150.08,
+          "rank": 150,
+          "vor": 0.0,
+          "oVAR": 363,
+          "BenchScore": 90.75
+        }
+      ]
+    },
+    "Dobis_P_R": {
+      "starter_proj": 1762.46,
+      "starter_vor": 560.89,
+      "bench_total": 884.53,
+      "starters": [
+        {
+          "slot": "QB",
+          "name": "Trevor Lawrence",
+          "pos": "QB",
+          "proj": 268.38,
+          "rank": 77
+        },
+        {
+          "slot": "RB",
+          "name": "Chase Brown",
+          "pos": "RB",
+          "proj": 274.31,
+          "rank": 13
+        },
+        {
+          "slot": "RB/WR",
+          "name": "Ashton Jeanty",
+          "pos": "RB",
+          "proj": 257.85,
+          "rank": 19
+        },
+        {
+          "slot": "TE",
+          "name": "Dalton Kincaid",
+          "pos": "TE",
+          "proj": 176.41,
+          "rank": 80
+        },
+        {
+          "slot": "WR",
+          "name": "Jaxon Smith-Njigba",
+          "pos": "WR",
+          "proj": 316.84,
+          "rank": 5
+        },
+        {
+          "slot": "WR/RB/TE",
+          "name": "Breece Hall",
+          "pos": "RB",
+          "proj": 237.37,
+          "rank": 26
+        },
+        {
+          "slot": "WR/TE",
+          "name": "Ladd McConkey",
+          "pos": "WR",
+          "proj": 231.3,
+          "rank": 34
+        }
+      ],
+      "top_bench": [
+        {
+          "name": "Bucky Irving",
+          "pos": "RB",
+          "proj": 217.17,
+          "rank": 45,
+          "vor": 60.25,
+          "oVAR": 468,
+          "BenchScore": 177.25
+        },
+        {
+          "name": "DJ Moore",
+          "pos": "WR",
+          "proj": 215.33,
+          "rank": 50,
+          "vor": 50.34,
+          "oVAR": 463,
+          "BenchScore": 166.09
+        },
+        {
+          "name": "Parker Washington",
+          "pos": "WR",
+          "proj": 208.51,
+          "rank": 44,
+          "vor": 43.52,
+          "oVAR": 469,
+          "BenchScore": 160.77
+        },
+        {
+          "name": "Jonathon Brooks",
+          "pos": "RB",
+          "proj": 185.84,
+          "rank": 61,
+          "vor": 28.92,
+          "oVAR": 452,
+          "BenchScore": 141.92
+        },
+        {
+          "name": "Michael Wilson",
+          "pos": "WR",
+          "proj": 183.96,
+          "rank": 78,
+          "vor": 18.97,
+          "oVAR": 435,
+          "BenchScore": 127.72
+        },
+        {
+          "name": "Jayden Reed",
+          "pos": "WR",
+          "proj": 170.77,
+          "rank": 93,
+          "vor": 5.78,
+          "oVAR": 420,
+          "BenchScore": 110.78
+        }
+      ]
+    },
+    "Blue_Streak_Bombers": {
+      "starter_proj": 1681.93,
+      "starter_vor": 472.3,
+      "bench_total": 625.79,
+      "starters": [
+        {
+          "slot": "QB",
+          "name": "Joe Burrow",
+          "pos": "QB",
+          "proj": 287.08,
+          "rank": 64
+        },
+        {
+          "slot": "RB",
+          "name": "Jahmyr Gibbs",
+          "pos": "RB",
+          "proj": 342.76,
+          "rank": 1
+        },
+        {
+          "slot": "RB/WR",
+          "name": "Derrick Henry",
+          "pos": "RB",
+          "proj": 238.08,
+          "rank": 22
+        },
+        {
+          "slot": "TE",
+          "name": "Dallas Goedert",
+          "pos": "TE",
+          "proj": 163.73,
+          "rank": 119
+        },
+        {
+          "slot": "WR",
+          "name": "DeVonta Smith",
+          "pos": "WR",
+          "proj": 247.02,
+          "rank": 24
+        },
+        {
+          "slot": "WR/RB/TE",
+          "name": "Marvin Harrison Jr.",
+          "pos": "WR",
+          "proj": 181.1,
+          "rank": 84
+        },
+        {
+          "slot": "WR/TE",
+          "name": "Tee Higgins",
+          "pos": "WR",
+          "proj": 222.16,
+          "rank": 41
+        }
+      ],
+      "top_bench": [
+        {
+          "name": "Tony Pollard",
+          "pos": "RB",
+          "proj": 174.87,
+          "rank": 96,
+          "vor": 17.95,
+          "oVAR": 417,
+          "BenchScore": 122.2
+        },
+        {
+          "name": "Chris Godwin Jr.",
+          "pos": "WR",
+          "proj": 174.22,
+          "rank": 90,
+          "vor": 9.23,
+          "oVAR": 423,
+          "BenchScore": 114.98
+        },
+        {
+          "name": "RJ Harvey",
+          "pos": "RB",
+          "proj": 160.48,
+          "rank": 111,
+          "vor": 3.56,
+          "oVAR": 402,
+          "BenchScore": 104.06
+        },
+        {
+          "name": "Baker Mayfield",
+          "pos": "QB",
+          "proj": 253.85,
+          "rank": 122,
+          "vor": 0.61,
+          "oVAR": 391,
+          "BenchScore": 98.36
+        },
+        {
+          "name": "Hunter Henry",
+          "pos": "TE",
+          "proj": 147.78,
+          "rank": 137,
+          "vor": 0.19,
+          "oVAR": 376,
+          "BenchScore": 94.19
+        },
+        {
+          "name": "Deebo Samuel Sr.",
+          "pos": "WR",
+          "proj": 156.86,
+          "rank": 145,
+          "vor": 0.0,
+          "oVAR": 368,
+          "BenchScore": 92.0
+        }
+      ]
+    }
+  },
+  "combined_board": [
+    [
+      "3rd_and_41",
+      1.181
+    ],
+    [
+      "Dobis_P_R",
+      1.022
+    ],
+    [
+      "The_Little_Stinkers",
+      0.638
+    ],
+    [
+      "Avoid_the_Noid",
+      0.571
+    ],
+    [
+      "Righteous_Gemstones",
+      0.558
+    ],
+    [
+      "Kansas_City_Carnevores",
+      0.279
+    ],
+    [
+      "K_Wood_Super_Marios",
+      -0.699
+    ],
+    [
+      "Blue_Streak_Bombers",
+      -0.871
+    ],
+    [
+      "Braeside_Bangers",
+      -1.138
+    ],
+    [
+      "Kirkwood_Kittens",
+      -1.543
+    ]
+  ],
+  "replacement_points": {
+    "QB": 253.2437572255085,
+    "TE": 147.58500030655895,
+    "RB": 156.9226806827712,
+    "WR": 164.9862824405729
+  }
+}

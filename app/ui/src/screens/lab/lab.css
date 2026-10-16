@@ -1,0 +1,58 @@
+/* P — Lab (job: explore). An instrument bench: hairline grid, Overpass Mono readouts, Archivo at 100.
+   You = cobalt, this week's opponent = plum, other rosters grey, free agents hollow rings. */
+.lab { --lab-other: color-mix(in srgb, var(--ink-2) 55%, transparent); background: var(--win); color: var(--ink); min-height: 100%;
+  padding: 20px 24px 28px; display: grid; gap: 12px; align-content: start; grid-template-columns: minmax(0, 1fr); font-family: var(--content); font-variation-settings: "wdth" 100; }
+.lab-empty { margin: 40px auto; color: var(--ink-2); }
+.lab-hd { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+.lab-hd h2 { margin: 0; font: 800 26px/1 var(--content); font-variation-settings: "wdth" 100; letter-spacing: -.01em; }
+.lab-hd p { margin: 0; font: 12.5px/1.4 var(--sys); color: var(--ink-2); }
+.lab-presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.lab-presets button { font: 600 12px var(--sys); padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--win); color: var(--ink); cursor: pointer; }
+.lab-presets button[aria-pressed="true"] { background: var(--ink); color: var(--win); border-color: var(--ink); }
+.lab-ctl { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; font: 12px var(--sys); }
+.lab-ctl label { display: inline-flex; gap: 6px; align-items: center; font: 600 11px var(--mono); color: var(--ink-2); }
+.lab-ctl select { font: 12.5px var(--sys); padding: 4px 6px; border-radius: 6px; border: 1px solid var(--line); background: var(--field); color: var(--ink); max-width: 260px; }
+.lab-ctl .swap { border: 1px solid var(--line); background: var(--win); color: var(--ink); border-radius: 6px; padding: 3px 7px; cursor: pointer; }
+.lab-ctl input[type=search] { font: 12.5px var(--sys); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--field); color: var(--ink); width: 130px; }
+.lab-main { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 18px; align-items: start; }
+@media (max-width: 1250px) { .lab-main { grid-template-columns: minmax(0, 1fr); } }
+.lab-plot { position: relative; min-width: 0; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px 10px; }
+.lab-plot svg { display: block; }
+.lab-read { font: 600 11.5px var(--mono); color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; padding: 2px 4px 6px; }
+.lab-read b { color: var(--ink); }
+.lab-read .why { font: 12px/1.4 var(--sys); color: var(--ink-2); }
+.lab-plot .gl { stroke: var(--line); stroke-width: 1; }
+.lab-plot .tk { fill: var(--ink-2); font: 500 10.5px var(--mono); }
+.lab-plot .axl { fill: var(--ink-2); font: 600 11.5px var(--sys); }
+.lab-plot .medl { stroke: var(--ink-3); stroke-width: 1; opacity: .7; }
+.lab-plot .fit { stroke: var(--ink); stroke-width: 1.5; opacity: .55; }
+.lab-plot .pt { stroke: var(--win); stroke-width: 2; cursor: pointer; }
+.lab-plot .pt.fa { fill: var(--win); stroke: var(--ink-2); stroke-width: 1.5; }
+.lab-plot .pt.sel { stroke: var(--ink); stroke-width: 2.5; }
+.lab-plot .pt.hit { stroke: var(--ink); stroke-width: 2.5; }
+.lab-plot .nm { fill: var(--ink); font: 600 11px var(--sys); paint-order: stroke; stroke: var(--win); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+.lab-tip { position: absolute; z-index: 2; display: grid; gap: 2px; width: 220px; padding: 8px 10px; border-radius: 8px; background: var(--win); border: 1px solid var(--line);
+  box-shadow: 0 6px 18px rgba(0,0,0,.12); font: 12px/1.35 var(--sys); pointer-events: none; }
+.lab-tip .dim, .lab .dim { color: var(--ink-2); }
+.lab-axes { display: flex; flex-wrap: wrap; gap: 4px 18px; padding: 4px 4px 0; font: 12px var(--sys); color: var(--ink-2); }
+.lab-axes .ev { margin-left: 4px; }
+.lab-axes .leg { flex-basis: 100%; font-size: 11.5px; }
+.lab-axes .k { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin: 0 4px 0 8px; vertical-align: -1px; }
+.lab-axes .k.you { background: var(--you); } .lab-axes .k.them { background: var(--them); } .lab-axes .k.oth { background: var(--lab-other); }
+.lab-axes .k.fa { border: 1.5px solid var(--ink-2); width: 7px; height: 7px; }
+.lab-side { display: grid; gap: 8px; align-content: start; font: 12.5px var(--sys); }
+.lab-side h5 { margin: 6px 0 0; font: 700 11px/1 var(--content); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.lab-sel { display: grid; gap: 4px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); }
+.lab-sel > b { font: 700 15px/1.2 var(--content); }
+.lab-sel dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 10px; margin: 4px 0; font-variant-numeric: tabular-nums; }
+.lab-sel dt { color: var(--ink-2); } .lab-sel dd { margin: 0; text-align: right; font-weight: 600; }
+.lab-sel .fl { margin: 0; font-size: 12px; color: var(--ink-2); }
+.lab-sel .tbtn { justify-self: start; }
+.lab-out { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.lab-out li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 4px 6px; border-radius: 6px; cursor: pointer; }
+.lab-out li:hover, .lab-out li.on { background: var(--hover); }
+.lab-out li.me { box-shadow: inset 3px 0 0 var(--you); } .lab-out li.opp { box-shadow: inset 3px 0 0 var(--them); }
+.lab-out .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.lab-out .nm small { font-weight: 400; color: var(--ink-2); margin-left: 6px; }
+.lab-out .num { font: 600 12px var(--mono); color: var(--ink-2); }
+.lab-side .note { margin: 0; font-size: 11.5px; line-height: 1.45; }

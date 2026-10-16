@@ -1,0 +1,1989 @@
+openapi: 3.1.0
+info:
+  title: PFF Fantasy League API
+  version: "1.0.0"
+  description: |
+    REST interface for the PFF Fantasy League toolkit. All requests must include
+    the header `X-API-Key` matching the `PFF_API_KEY` environment variable.
+servers:
+  - url: https://pff-fantasy-analyzer.onrender.com
+    description: Production
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  schemas:
+    ConfigKnobs:
+      type: object
+      description: Scoring knobs currently in effect. Values are floats between 0 and 1 unless noted.
+      additionalProperties: false
+      properties:
+        fuzzy_cutoff:
+          type: number
+          format: float
+          description: Minimum similarity required when matching roster names.
+        bench_ovar_beta:
+          type: number
+          format: float
+          description: Weight applied to overall rank advantage when scoring bench players.
+        combined_starters_weight:
+          type: number
+          format: float
+          description: Share of the combined score attributed to starter strength.
+        combined_bench_weight:
+          type: number
+          format: float
+          description: Share of the combined score attributed to bench depth.
+        projection_scale_beta:
+          type: number
+          format: float
+          description: Influence of projection z-scores when rescaling rankings.
+        bench_z_fallback_threshold:
+          type: number
+          format: float
+          description: Threshold that swaps to percentile-based bench scoring when variance is low.
+        bench_percentile_clamp:
+          type: number
+          format: float
+          description: Clamp applied to percentile-based z-scores to limit outlier influence.
+      required:
+        - fuzzy_cutoff
+        - bench_ovar_beta
+        - combined_starters_weight
+        - combined_bench_weight
+        - projection_scale_beta
+        - bench_z_fallback_threshold
+        - bench_percentile_clamp
+    ConfigResponse:
+      type: object
+      properties:
+        knobs:
+          $ref: '#/components/schemas/ConfigKnobs'
+    ConfigUpdateRequest:
+      type: object
+      properties:
+        updates:
+          type: object
+          description: Partial set of knobs to update.
+          additionalProperties: false
+          properties:
+            fuzzy_cutoff: {type: number, format: float}
+            bench_ovar_beta: {type: number, format: float}
+            combined_starters_weight: {type: number, format: float}
+            combined_bench_weight: {type: number, format: float}
+            projection_scale_beta: {type: number, format: float}
+            bench_z_fallback_threshold: {type: number, format: float}
+            bench_percentile_clamp: {type: number, format: float}
+      required: [updates]
+    ConfigHelp:
+      type: object
+      description: Human-readable descriptions for each scoring knob.
+      additionalProperties: false
+      properties:
+        fuzzy_cutoff: {type: string}
+        bench_ovar_beta: {type: string}
+        combined_starters_weight: {type: string}
+        combined_bench_weight: {type: string}
+        projection_scale_beta: {type: string}
+        bench_z_fallback_threshold: {type: string}
+        bench_percentile_clamp: {type: string}
+      required:
+        - fuzzy_cutoff
+        - bench_ovar_beta
+        - combined_starters_weight
+        - combined_bench_weight
+        - projection_scale_beta
+        - bench_z_fallback_threshold
+        - bench_percentile_clamp
+    LeagueMetadata:
+      type: object
+      properties:
+        team_count: {type: integer}
+        player_count: {type: integer}
+        last_reload: {type: string, format: date-time}
+        rankings_path: {type: string}
+        projections_path: {type: string, nullable: true}
+        supplemental_path: {type: string, nullable: true}
+        settings:
+          $ref: '#/components/schemas/ConfigKnobs'
+        schedule_source: {type: string, nullable: true}
+    LeagueActivityMessage:
+      type: object
+      properties:
+        action: {type: string}
+        playerId: {type: integer, nullable: true}
+        playerName: {type: string, nullable: true}
+        fromTeam: {type: string, nullable: true}
+        toTeam: {type: string, nullable: true}
+        raw: {type: object}
+      required: [action, raw]
+    LeagueActivity:
+      type: object
+      properties:
+        id: {type: string}
+        type: {type: string}
+        timestamp: {type: string, nullable: true}
+        teamId: {type: integer, nullable: true}
+        team: {type: string, nullable: true}
+        summary: {type: string, nullable: true}
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/LeagueActivityMessage'}
+      required: [id, type, items]
+    LeagueActivityResponse:
+      type: object
+      properties:
+        activities:
+          type: array
+          items: {$ref: '#/components/schemas/LeagueActivity'}
+      required: [activities]
+    LeagueHistoryWindow:
+      type: string
+      enum: [explicit, range, to-date, full-season]
+    HistoryWeekRange:
+      type: object
+      properties:
+        start: {type: integer}
+        end: {type: integer}
+      required: [start, end]
+    LeagueHistoryRequest:
+      type: object
+      description: Configure which weeks and data slices to include in the league history response.
+      properties:
+        window:
+          $ref: '#/components/schemas/LeagueHistoryWindow'
+        weeks:
+          type: array
+          description: Explicit list of week numbers to include. Ignored unless window is explicit.
+          items: {type: integer}
+        weekRange:
+          $ref: '#/components/schemas/HistoryWeekRange'
+        teams:
+          type: array
+          description: Optional list of team slugs, names, or IDs to include. Use "all" to include every team.
+          items: {type: string}
+        includeRosters:
+          type: boolean
+          default: true
+          description: Include weekly roster snapshots for each team.
+        includeMatchups:
+          type: boolean
+          default: true
+          description: Include matchup summaries for the requested weeks.
+        includePlayerStats:
+          type: boolean
+          default: false
+          description: Attach projected/actual stat snapshots for each rostered player.
+        includePowerRankings:
+          type: boolean
+          default: true
+          description: Re-run the evaluator for each week to capture power ranking metrics.
+    HistoryStatSnapshot:
+      type: object
+      properties:
+        statSourceId: {type: integer, nullable: true, description: 1 = actual results, 0 = projections.}
+        statSplitTypeId: {type: integer, nullable: true}
+        fantasyPoints: {type: number, format: float, nullable: true}
+        appliedStats:
+          type: object
+          additionalProperties: {type: number, format: float}
+        rawStats:
+          type: object
+          additionalProperties: {type: number, format: float}
+    HistoryPlayerStats:
+      type: object
+      properties:
+        projected: {$ref: '#/components/schemas/HistoryStatSnapshot'}
+        actual: {$ref: '#/components/schemas/HistoryStatSnapshot'}
+    HistoryEligibleSlot:
+      type: object
+      properties:
+        slotId: {type: integer, nullable: true}
+        slotName: {type: string, nullable: true}
+    HistoryPlayerSummary:
+      type: object
+      properties:
+        playerId: {type: integer, nullable: true}
+        name: {type: string, nullable: true}
+        positionId: {type: integer, nullable: true}
+        position: {type: string, nullable: true}
+        proTeamId: {type: integer, nullable: true}
+        eligibleSlots:
+          type: array
+          items: {$ref: '#/components/schemas/HistoryEligibleSlot'}
+        lineupSlotId: {type: integer, nullable: true}
+        lineupSlot: {type: string, nullable: true}
+        injuryStatus: {type: string, nullable: true}
+        isInjured: {type: boolean}
+        onIR: {type: boolean}
+        stats: {$ref: '#/components/schemas/HistoryPlayerStats'}
+    HistoryPowerMetrics:
+      type: object
+      properties:
+        teamSlug: {type: string, nullable: true}
+        rank: {type: integer, nullable: true}
+        combinedScore: {type: number, format: float, nullable: true}
+        starterVOR: {type: number, format: float, nullable: true}
+        benchScore: {type: number, format: float, nullable: true}
+        starterProjection: {type: number, format: float, nullable: true}
+    HistoryTeamSnapshot:
+      type: object
+      properties:
+        teamId: {type: integer}
+        teamSlug: {type: string}
+        teamName: {type: string}
+        managers:
+          type: array
+          items: {type: string}
+        record: {type: object}
+        roster:
+          type: array
+          items: {$ref: '#/components/schemas/HistoryPlayerSummary'}
+        powerMetrics:
+          $ref: '#/components/schemas/HistoryPowerMetrics'
+      required: [teamId, teamSlug, teamName]
+    HistoryMatchupSide:
+      type: object
+      properties:
+        teamId: {type: integer, nullable: true}
+        teamSlug: {type: string, nullable: true}
+        teamName: {type: string, nullable: true}
+        points: {type: number, format: float, nullable: true}
+    HistoryMatchupSummary:
+      type: object
+      properties:
+        matchupId: {type: integer, nullable: true}
+        week: {type: integer, nullable: true}
+        winner: {type: string, nullable: true}
+        isPlayoff: {type: boolean, nullable: true}
+        home: {$ref: '#/components/schemas/HistoryMatchupSide'}
+        away: {$ref: '#/components/schemas/HistoryMatchupSide'}
+      required: [home, away]
+    HistoryPowerRankingEntry:
+      type: object
+      properties:
+        teamSlug: {type: string}
+        team: {type: string}
+        rank: {type: integer}
+        combinedScore: {type: number, format: float, nullable: true}
+        starterVOR: {type: number, format: float, nullable: true}
+        benchScore: {type: number, format: float, nullable: true}
+        starterProjection: {type: number, format: float, nullable: true}
+      required: [teamSlug, team, rank]
+    HistoryWeekSnapshot:
+      type: object
+      properties:
+        week: {type: integer}
+        label: {type: string, nullable: true}
+        teams:
+          type: array
+          items: {$ref: '#/components/schemas/HistoryTeamSnapshot'}
+        matchups:
+          type: array
+          items: {$ref: '#/components/schemas/HistoryMatchupSummary'}
+        powerRankings:
+          type: array
+          items: {$ref: '#/components/schemas/HistoryPowerRankingEntry'}
+      required: [week, teams]
+    HistoryLeagueInfo:
+      type: object
+      properties:
+        leagueId: {type: string, nullable: true}
+        season: {type: integer, nullable: true}
+        latestScoringPeriod: {type: integer, nullable: true}
+        currentMatchupPeriod: {type: integer, nullable: true}
+    HistoryRequestEcho:
+      type: object
+      properties:
+        window:
+          $ref: '#/components/schemas/LeagueHistoryWindow'
+        weeks:
+          type: array
+          items: {type: integer}
+        teams:
+          type: array
+          items: {type: string}
+        includeRosters: {type: boolean}
+        includeMatchups: {type: boolean}
+        includePlayerStats: {type: boolean}
+        includePowerRankings: {type: boolean}
+      required:
+        - window
+        - weeks
+        - teams
+        - includeRosters
+        - includeMatchups
+        - includePlayerStats
+        - includePowerRankings
+    LeagueHistoryResponse:
+      type: object
+      properties:
+        generatedAt: {type: string, format: date-time}
+        league: {$ref: '#/components/schemas/HistoryLeagueInfo'}
+        request: {$ref: '#/components/schemas/HistoryRequestEcho'}
+        weeks:
+          type: array
+          items: {$ref: '#/components/schemas/HistoryWeekSnapshot'}
+      required: [generatedAt, weeks]
+    PowerSnapshotTeam:
+      type: object
+      properties:
+        team: {type: string, nullable: true}
+        rank: {type: integer, nullable: true}
+        combinedScore: {type: number, format: float, nullable: true}
+        starterVOR: {type: number, format: float, nullable: true}
+        benchScore: {type: number, format: float, nullable: true}
+        starterProjection: {type: number, format: float, nullable: true}
+    PowerSnapshotRecord:
+      type: object
+      properties:
+        snapshotId: {type: string}
+        createdAt: {type: string, format: date-time, nullable: true}
+        source: {type: string, nullable: true}
+        week: {type: integer, nullable: true}
+        tags:
+          type: array
+          items: {type: string}
+        rankingsPath: {type: string, nullable: true}
+        projectionsPath: {type: string, nullable: true}
+        supplementalPath: {type: string, nullable: true}
+        file: {type: string, nullable: true}
+        path: {type: string, nullable: true}
+        settings:
+          type: object
+          additionalProperties: {}
+        meta:
+          type: object
+          additionalProperties: {}
+        teams:
+          type: array
+          nullable: true
+          items: {$ref: '#/components/schemas/PowerSnapshotTeam'}
+      required: [snapshotId, tags, settings, meta]
+    PowerSnapshotResponse:
+      type: object
+      properties:
+        total: {type: integer}
+        limit: {type: integer}
+        offset: {type: integer}
+        snapshots:
+          type: array
+          items: {$ref: '#/components/schemas/PowerSnapshotRecord'}
+      required: [total, limit, offset, snapshots]
+    PlayerSummary:
+      type: object
+      properties:
+        id: {type: string}
+        name: {type: string}
+        position: {type: string}
+        team: {type: string, nullable: true}
+        rank: {type: integer, nullable: true}
+        posRank: {type: integer, nullable: true}
+        projPoints: {type: number, nullable: true}
+        projZ: {type: number, nullable: true}
+    PlayerDetail:
+      allOf:
+        - $ref: '#/components/schemas/PlayerSummary'
+        - type: object
+          properties:
+            rankOriginal: {type: integer, nullable: true}
+            byeWeek: {type: integer, nullable: true}
+            adp: {type: number, nullable: true}
+            auctionValue: {type: number, nullable: true}
+            projPointsCsv: {type: number, nullable: true}
+            extras:
+              type: object
+              additionalProperties: {}
+    PlayerListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/PlayerSummary'}
+        total: {type: integer}
+        limit: {type: integer}
+        offset: {type: integer}
+        metric: {type: string}
+    PlayerOwnership:
+      type: object
+      properties:
+        team: {type: string, nullable: true}
+        rosterSlot: {type: string, nullable: true}
+        rawName: {type: string, nullable: true}
+        isIR: {type: boolean}
+        isFreeAgent: {type: boolean}
+      required: [isIR, isFreeAgent]
+    PlayerComparison:
+      type: object
+      properties:
+        query: {type: string}
+        canonical: {type: string, nullable: true}
+        matches:
+          type: array
+          items: {type: string}
+        position: {type: string, nullable: true}
+        team: {type: string, nullable: true}
+        rank: {type: integer, nullable: true}
+        posRank: {type: integer, nullable: true}
+        projPoints: {type: number, nullable: true}
+        projZ: {type: number, nullable: true}
+        vor: {type: number, nullable: true}
+        ownership:
+          $ref: '#/components/schemas/PlayerOwnership'
+        rankings: {type: object}
+        projections: {type: object}
+        stats:
+          type: object
+          additionalProperties: {type: object}
+        aliases:
+          type: array
+          items: {type: string}
+        notes: {type: object}
+      required: [query, matches, rankings, projections, stats, aliases, notes]
+    PlayerComparisonRequest:
+      type: object
+      properties:
+        players:
+          type: array
+          items: {type: string}
+          description: Case-insensitive player names or aliases to compare.
+        includeStats: {type: boolean, default: true}
+        includeProjections: {type: boolean, default: true}
+        includeAliases: {type: boolean, default: false}
+      required: [players]
+    PlayerComparisonResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/PlayerComparison'}
+          description: Normalised comparison objects returned in the same order as requested.
+        unresolved:
+          type: array
+          items: {type: string}
+          description: Names the service could not resolve; see the corresponding item.matches list for suggestions.
+    PlayerNewsItem:
+      type: object
+      properties:
+        headline: {type: string, nullable: true}
+        story: {type: string, nullable: true}
+        source: {type: string, nullable: true}
+        link: {type: string, nullable: true}
+        published: {type: string, nullable: true, description: ISO timestamp when available.}
+    ESPNPlayerSnapshot:
+      type: object
+      properties:
+        playerId: {type: integer, nullable: true}
+        fullName: {type: string, nullable: true}
+        defaultPosition: {type: string, nullable: true}
+        lineupSlot: {type: string, nullable: true}
+        injuryStatus: {type: string, nullable: true}
+        isInjured: {type: boolean, nullable: true}
+        isOnIR: {type: boolean, nullable: true}
+        lastNewsDate: {type: integer, nullable: true, description: Milliseconds since epoch.}
+        seasonOutlook: {type: string, nullable: true}
+        weeklyOutlooks:
+          type: object
+          additionalProperties: {type: string}
+        raw: {type: object}
+    PlayerInfo:
+      type: object
+      properties:
+        query: {type: string}
+        canonical: {type: string, nullable: true}
+        position: {type: string, nullable: true}
+        team: {type: string, nullable: true}
+        rank: {type: integer, nullable: true}
+        posRank: {type: integer, nullable: true}
+        projPoints: {type: number, nullable: true}
+        projZ: {type: number, nullable: true}
+        ownership: {$ref: '#/components/schemas/PlayerOwnership'}
+        rankings: {type: object}
+        projections: {type: object}
+        stats:
+          type: object
+          additionalProperties: {type: object}
+        aliases:
+          type: array
+          items: {type: string}
+        espn:
+          $ref: '#/components/schemas/ESPNPlayerSnapshot'
+        news:
+          type: array
+          items: {$ref: '#/components/schemas/PlayerNewsItem'}
+        notes: {type: object}
+      required: [query, ownership, rankings, projections, stats, aliases, news, notes]
+    PlayerInfoRequest:
+      type: object
+      properties:
+        players:
+          type: array
+          items: {type: string}
+          description: Player names or aliases to hydrate.
+        includeStats: {type: boolean, default: true}
+        includeProjections: {type: boolean, default: true}
+        includeAliases: {type: boolean, default: false}
+        includeEspn: {type: boolean, default: true}
+        includeNews: {type: boolean, default: true}
+      required: [players]
+    PlayerInfoResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/PlayerInfo'}
+        unresolved:
+          type: array
+          items: {type: string}
+    PlayoffStanding:
+      type: object
+      properties:
+        teamId: {type: string}
+        team: {type: string}
+        managers: {type: string, nullable: true}
+        wins: {type: integer}
+        losses: {type: integer}
+        ties: {type: integer}
+        gamesPlayed: {type: integer}
+        gamesRemaining: {type: integer}
+        pointsFor: {type: number}
+        pointsAgainst: {type: number}
+        winPct: {type: number}
+        rank: {type: integer}
+      required:
+        - teamId
+        - team
+        - wins
+        - losses
+        - ties
+        - gamesPlayed
+        - gamesRemaining
+        - pointsFor
+        - pointsAgainst
+        - winPct
+        - rank
+    PlayoffTeamProjection:
+      type: object
+      properties:
+        teamId: {type: string}
+        team: {type: string}
+        managers: {type: string, nullable: true}
+        wins: {type: integer}
+        losses: {type: integer}
+        ties: {type: integer}
+        gamesPlayed: {type: integer}
+        gamesRemaining: {type: integer}
+        pointsFor: {type: number}
+        pointsAgainst: {type: number}
+        winPct: {type: number}
+        meanScore: {type: number, nullable: true}
+        stdDev: {type: number, nullable: true}
+        rating: {type: number, nullable: true}
+        ratingZ: {type: number, nullable: true}
+        sosRemaining: {type: number, nullable: true}
+        benchVolatility: {type: number, nullable: true}
+        playoffProbability: {type: number}
+        averageSeed: {type: number, nullable: true}
+        medianSeed: {type: number, nullable: true}
+        bestSeed: {type: integer, nullable: true}
+        worstSeed: {type: integer, nullable: true}
+      required:
+        - teamId
+        - team
+        - wins
+        - losses
+        - ties
+        - gamesPlayed
+        - gamesRemaining
+        - pointsFor
+        - pointsAgainst
+        - winPct
+        - playoffProbability
+    PlayoffSimulationMeta:
+      type: object
+      properties:
+        runs: {type: integer}
+        playoffSpots: {type: integer}
+        seed: {type: integer, nullable: true}
+        pendingWeeks:
+          type: array
+          items: {type: integer}
+        schedulePath: {type: string}
+      required:
+        - runs
+        - playoffSpots
+        - pendingWeeks
+        - schedulePath
+    PlayoffOddsResponse:
+      type: object
+      properties:
+        standings:
+          type: array
+          items: {$ref: '#/components/schemas/PlayoffStanding'}
+        teams:
+          type: array
+          items: {$ref: '#/components/schemas/PlayoffTeamProjection'}
+        simulation:
+          $ref: '#/components/schemas/PlayoffSimulationMeta'
+      required:
+        - standings
+        - teams
+        - simulation
+    PlayoffTeamDelta:
+      type: object
+      properties:
+        teamId: {type: string}
+        team: {type: string}
+        playoffProbabilityDelta: {type: number}
+        averageSeedDelta: {type: number, nullable: true}
+        medianSeedDelta: {type: number, nullable: true}
+        bestSeedDelta: {type: number, nullable: true}
+        worstSeedDelta: {type: number, nullable: true}
+        meanScoreDelta: {type: number, nullable: true}
+        stdDevDelta: {type: number, nullable: true}
+        ratingDelta: {type: number, nullable: true}
+        ratingZDelta: {type: number, nullable: true}
+        sosRemainingDelta: {type: number, nullable: true}
+        benchVolatilityDelta: {type: number, nullable: true}
+      required:
+        - teamId
+        - team
+        - playoffProbabilityDelta
+    PlayoffTradeRequest:
+      type: object
+      properties:
+        teamA: {type: string}
+        teamB: {type: string}
+        sendA:
+          type: array
+          items: {$ref: '#/components/schemas/TradePiece'}
+        sendB:
+          type: array
+          items: {$ref: '#/components/schemas/TradePiece'}
+        simulations:
+          type: integer
+          minimum: 500
+          maximum: 50000
+          default: 5000
+        playoffTeams:
+          type: integer
+          minimum: 2
+          default: 8
+        seed: {type: integer, nullable: true}
+        schedulePath: {type: string, nullable: true}
+      required:
+        - teamA
+        - teamB
+    PlayoffTradeResponse:
+      type: object
+      properties:
+        baseline: {$ref: '#/components/schemas/PlayoffOddsResponse'}
+        scenario: {$ref: '#/components/schemas/PlayoffOddsResponse'}
+        delta:
+          type: array
+          items: {$ref: '#/components/schemas/PlayoffTeamDelta'}
+      required: [baseline, scenario, delta]
+    LeaderboardEntry:
+      type: object
+      properties:
+        team: {type: string}
+        value: {type: number}
+    StarterDetail:
+      type: object
+      properties:
+        name: {type: string}
+        position: {type: string, nullable: true}
+        csvName: {type: string, nullable: true}
+        rank: {type: integer, nullable: true}
+        posRank: {type: integer, nullable: true}
+        projection: {type: number, nullable: true}
+        vor: {type: number, nullable: true}
+    BenchDetail:
+      type: object
+      properties:
+        name: {type: string}
+        position: {type: string, nullable: true}
+        rank: {type: integer, nullable: true}
+        posRank: {type: integer, nullable: true}
+        projection: {type: number, nullable: true}
+        vor: {type: number, nullable: true}
+        benchScore: {type: number, nullable: true}
+        oVAR: {type: number, nullable: true}
+    TeamDetail:
+      type: object
+      properties:
+        team: {type: string}
+        starters:
+          type: array
+          items: {$ref: '#/components/schemas/StarterDetail'}
+        bench:
+          type: array
+          items: {$ref: '#/components/schemas/BenchDetail'}
+        benchLimit: {type: integer, nullable: true}
+    TeamEvaluation:
+      type: object
+      properties:
+        team: {type: string}
+        combinedScore: {type: number}
+        starterVOR: {type: number}
+        benchScore: {type: number}
+        starterProjection: {type: number}
+    EvaluateRequest:
+      type: object
+      properties:
+        projectionScaleBeta: {type: number, nullable: true}
+        replacementSkipPct: {type: number, nullable: true}
+        replacementWindow: {type: integer, nullable: true}
+        benchOvarBeta: {type: number, nullable: true}
+        combinedStartersWeight: {type: number, nullable: true}
+        combinedBenchWeight: {type: number, nullable: true}
+        benchZFallbackThreshold: {type: number, nullable: true}
+        benchPercentileClamp: {type: number, nullable: true}
+        scarcitySampleStep: {type: number, nullable: true}
+        rankingsPath: {type: string, nullable: true}
+        projectionsPath: {type: string, nullable: true}
+        supplementalPath: {type: string, nullable: true}
+        rosters:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: array
+              items: {type: string}
+        includeDetails: {type: boolean, default: false}
+        benchLimit: {type: integer, nullable: true}
+    EvaluateResponse:
+      type: object
+      properties:
+        evaluatedAt: {type: string, format: date-time}
+        playerCount: {type: integer}
+        teams:
+          type: array
+          items: {$ref: '#/components/schemas/TeamEvaluation'}
+        leaderboards:
+          type: object
+          additionalProperties:
+            type: array
+            items: {$ref: '#/components/schemas/LeaderboardEntry'}
+        settings:
+          $ref: '#/components/schemas/ConfigKnobs'
+        replacementPoints:
+          type: object
+          additionalProperties: {type: number}
+        replacementTargets:
+          type: object
+          additionalProperties: {type: number}
+        scarcitySamples:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: object
+              properties:
+                slot: {type: number}
+                projection: {type: number}
+        zeroSum:
+          $ref: '#/components/schemas/ZeroSumResponse'
+        details:
+          type: array
+          items: {$ref: '#/components/schemas/TeamDetail'}
+          nullable: true
+    ZeroSumEntry:
+      type: object
+      properties:
+        team: {type: string}
+        value: {type: number}
+        share: {type: number}
+        surplus: {type: number}
+      required: [team, value, share, surplus]
+    ZeroSumGroup:
+      type: object
+      properties:
+        total: {type: number}
+        baseline: {type: number}
+        shareSum: {type: number}
+        surplusSum: {type: number}
+        entries:
+          type: array
+          items: {$ref: '#/components/schemas/ZeroSumEntry'}
+      required: [total, baseline, shareSum, surplusSum, entries]
+    ZeroSumCombinedGroup:
+      allOf:
+        - $ref: '#/components/schemas/ZeroSumGroup'
+        - type: object
+          properties:
+            weights:
+              type: object
+              additionalProperties: {type: number}
+          required: [weights]
+    ZeroSumScarcityMetric:
+      type: object
+      properties:
+        deficit: {type: number}
+        pressure: {type: number}
+      required: [deficit, pressure]
+    ZeroSumConcentrationRisk:
+      type: object
+      properties:
+        starterPositions:
+          type: object
+          additionalProperties: {type: number}
+        benchPositions:
+          type: object
+          additionalProperties: {type: number}
+        slotShares:
+          type: object
+          additionalProperties: {type: number}
+        flexShare: {type: number}
+        herfindahl:
+          type: object
+          properties:
+            starters: {type: number}
+            bench: {type: number}
+            slots: {type: number}
+          additionalProperties: false
+      required: [starterPositions, benchPositions, slotShares, flexShare, herfindahl]
+    ZeroSumAnalyticsTeam:
+      type: object
+      properties:
+        scarcityPressure:
+          type: object
+          additionalProperties: {$ref: '#/components/schemas/ZeroSumScarcityMetric'}
+        concentrationRisk:
+          $ref: '#/components/schemas/ZeroSumConcentrationRisk'
+      required: [scarcityPressure, concentrationRisk]
+    ZeroSumAnalytics:
+      type: object
+      properties:
+        teams:
+          type: object
+          additionalProperties: {$ref: '#/components/schemas/ZeroSumAnalyticsTeam'}
+        league:
+          type: object
+          properties:
+            highPressurePositions:
+              type: array
+              items:
+                type: object
+                properties:
+                  position: {type: string}
+                  aggregateDeficit: {type: number}
+                required: [position, aggregateDeficit]
+          additionalProperties: false
+      required: [teams, league]
+    ZeroSumResponse:
+      type: object
+      properties:
+        teamCount: {type: integer}
+        starters: {$ref: '#/components/schemas/ZeroSumGroup'}
+        bench: {$ref: '#/components/schemas/ZeroSumGroup'}
+        combined: {$ref: '#/components/schemas/ZeroSumCombinedGroup'}
+        positions:
+          type: object
+          additionalProperties: {$ref: '#/components/schemas/ZeroSumGroup'}
+        benchPositions:
+          type: object
+          additionalProperties: {$ref: '#/components/schemas/ZeroSumGroup'}
+        slots:
+          type: object
+          additionalProperties: {$ref: '#/components/schemas/ZeroSumGroup'}
+        flex:
+          $ref: '#/components/schemas/ZeroSumGroup'
+          nullable: true
+        analytics:
+          $ref: '#/components/schemas/ZeroSumAnalytics'
+      required: [teamCount, starters, bench, combined, positions, benchPositions, slots, analytics]
+    ZeroSumShiftMetrics:
+      type: object
+      properties:
+        shareDelta: {type: number}
+        surplusDelta: {type: number}
+        valueDelta: {type: number}
+      required: [shareDelta, surplusDelta, valueDelta]
+    ZeroSumShift:
+      type: object
+      properties:
+        combined:
+          type: object
+          additionalProperties: {$ref: '#/components/schemas/ZeroSumShiftMetrics'}
+        starters:
+          type: object
+          additionalProperties: {$ref: '#/components/schemas/ZeroSumShiftMetrics'}
+        bench:
+          type: object
+          additionalProperties: {$ref: '#/components/schemas/ZeroSumShiftMetrics'}
+        positions:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties: {$ref: '#/components/schemas/ZeroSumShiftMetrics'}
+        benchPositions:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties: {$ref: '#/components/schemas/ZeroSumShiftMetrics'}
+        slots:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties: {$ref: '#/components/schemas/ZeroSumShiftMetrics'}
+        flex:
+          type: object
+          additionalProperties: {$ref: '#/components/schemas/ZeroSumShiftMetrics'}
+        summary: {type: object}
+      required: [combined, starters, bench, positions, benchPositions, slots, flex, summary]
+    EvaluateDeltaSnapshot:
+      type: object
+      properties:
+        teams:
+          type: array
+          items: {$ref: '#/components/schemas/TeamEvaluation'}
+        zeroSum:
+          $ref: '#/components/schemas/ZeroSumResponse'
+      required: [teams, zeroSum]
+    EvaluateDeltaResponse:
+      type: object
+      properties:
+        evaluatedAt: {type: string, format: date-time}
+        baseline: {$ref: '#/components/schemas/EvaluateDeltaSnapshot'}
+        scenario: {$ref: '#/components/schemas/EvaluateDeltaSnapshot'}
+        zeroSumShift: {$ref: '#/components/schemas/ZeroSumShift'}
+      required: [evaluatedAt, baseline, scenario, zeroSumShift]
+    TeamLeverageResponse:
+      type: object
+      properties:
+        team: {type: string}
+        combined: {$ref: '#/components/schemas/ZeroSumEntry'}
+        starters: {$ref: '#/components/schemas/ZeroSumEntry'}
+        bench: {$ref: '#/components/schemas/ZeroSumEntry'}
+        positions:
+          type: object
+          additionalProperties: {$ref: '#/components/schemas/ZeroSumEntry'}
+        benchPositions:
+          type: object
+          additionalProperties: {$ref: '#/components/schemas/ZeroSumEntry'}
+        slots:
+          type: object
+          additionalProperties: {$ref: '#/components/schemas/ZeroSumEntry'}
+        scarcityPressure:
+          type: object
+          additionalProperties: {$ref: '#/components/schemas/ZeroSumScarcityMetric'}
+        concentrationRisk:
+          $ref: '#/components/schemas/ZeroSumConcentrationRisk'
+        leveragePositions:
+          type: array
+          items: {type: string}
+        needPositions:
+          type: array
+          items: {type: string}
+      required: [team, combined, starters, bench, positions, benchPositions, slots, scarcityPressure, concentrationRisk, leveragePositions, needPositions]
+    ZeroSumPositionResponse:
+      type: object
+      properties:
+        position: {type: string}
+        starters: {$ref: '#/components/schemas/ZeroSumGroup'}
+        bench:
+          $ref: '#/components/schemas/ZeroSumGroup'
+          nullable: true
+        analytics: {type: object}
+      required: [position, starters, analytics]
+    TradePiece:
+      type: object
+      properties:
+        group: {type: string}
+        name: {type: string}
+      required: [group, name]
+    TradeTeamResult:
+      type: object
+      properties:
+        team: {type: string}
+        baseline: {type: number}
+        postTrade: {type: number}
+        delta: {type: number}
+    TradeEvaluateRequest:
+      type: object
+      properties:
+        teamA: {type: string}
+        teamB: {type: string}
+        sendA:
+          type: array
+          items: {$ref: '#/components/schemas/TradePiece'}
+        sendB:
+          type: array
+          items: {$ref: '#/components/schemas/TradePiece'}
+        includeDetails: {type: boolean, default: true}
+        benchLimit: {type: integer, nullable: true}
+      required: [teamA, teamB]
+    TradeEvaluateResponse:
+      type: object
+      properties:
+        evaluatedAt: {type: string, format: date-time}
+        teams:
+          type: array
+          items: {$ref: '#/components/schemas/TradeTeamResult'}
+        combinedScores:
+          type: object
+          additionalProperties: {type: number}
+        replacementPoints:
+          type: object
+          additionalProperties: {type: number}
+        replacementTargets:
+          type: object
+          additionalProperties: {type: number}
+        starterVOR:
+          type: object
+          additionalProperties: {type: number}
+        benchTotals:
+          type: object
+          additionalProperties: {type: number}
+        zeroSumBefore:
+          $ref: '#/components/schemas/ZeroSumResponse'
+        zeroSumAfter:
+          $ref: '#/components/schemas/ZeroSumResponse'
+        zeroSumShift:
+          $ref: '#/components/schemas/ZeroSumShift'
+        leaderboards:
+          type: object
+          additionalProperties:
+            type: array
+            items: {$ref: '#/components/schemas/LeaderboardEntry'}
+        details:
+          type: array
+          items: {$ref: '#/components/schemas/TeamDetail'}
+          nullable: true
+    TradeProposal:
+      type: object
+      properties:
+        sendA:
+          type: array
+          items: {$ref: '#/components/schemas/TradePiece'}
+        sendB:
+          type: array
+          items: {$ref: '#/components/schemas/TradePiece'}
+        receiveA:
+          type: array
+          items: {$ref: '#/components/schemas/TradePiece'}
+        receiveB:
+          type: array
+          items: {$ref: '#/components/schemas/TradePiece'}
+        combinedScores:
+          type: object
+          additionalProperties: {type: number}
+        delta:
+          type: object
+          additionalProperties: {type: number}
+        score: {type: number}
+        acceptance: {type: number}
+        fairnessSplit: {type: number, nullable: true}
+        dropTax:
+          type: object
+          additionalProperties: {type: number}
+        starGain:
+          type: object
+          additionalProperties: {type: number}
+        narrative:
+          type: object
+          additionalProperties: {type: string}
+        details:
+          type: array
+          items: {$ref: '#/components/schemas/TeamDetail'}
+          nullable: true
+        leaderboards:
+          type: object
+          additionalProperties:
+            type: array
+            items: {$ref: '#/components/schemas/LeaderboardEntry'}
+          nullable: true
+    TradeFindRequest:
+      type: object
+      properties:
+        teamA: {type: string}
+        teamB: {type: string}
+        maxPlayers: {type: integer, default: 3}
+        playerPool: {type: integer, default: 15}
+        topResults: {type: integer, default: 5}
+        topBench: {type: integer, default: 5}
+        minGainA: {type: number, default: 0.0}
+        maxLossB: {type: number, default: 0.25}
+        pruneMargin: {type: number, default: 0.05}
+        minUpperBound: {type: number, default: -5.0}
+        fairnessMode: {type: string, default: sum, enum: [sum, weighted, nash]}
+        fairnessSelfBias: {type: number, default: 0.6}
+        fairnessPenaltyWeight: {type: number, default: 0.5}
+        consolidationBonus: {type: number, default: 0.0}
+        dropTaxFactor: {type: number, default: 0.5}
+        acceptanceFairnessWeight: {type: number, default: 0.4}
+        acceptanceNeedWeight: {type: number, default: 0.35}
+        acceptanceStarWeight: {type: number, default: 0.25}
+        acceptanceNeedScale: {type: number, default: 1.0}
+        starVorScale: {type: number, default: 60.0}
+        dropTaxAcceptanceWeight: {type: number, default: 0.02}
+        narrativeOn: {type: boolean, default: true}
+        minAcceptance: {type: number, default: 0.2}
+        mustSendA:
+          type: array
+          items: {type: string}
+        mustReceiveB:
+          type: array
+          items: {type: string}
+        includeDetails: {type: boolean, default: true}
+        benchLimit: {type: integer, nullable: true}
+      required: [teamA, teamB]
+    TradeFindResponse:
+      type: object
+      properties:
+        evaluatedAt: {type: string, format: date-time}
+        baselineCombined:
+          type: object
+          additionalProperties: {type: number}
+        proposals:
+          type: array
+          items: {$ref: '#/components/schemas/TradeProposal'}
+    WaiverCandidate:
+      type: object
+      properties:
+        name: {type: string}
+        position: {type: string, nullable: true}
+        team: {type: string, nullable: true}
+        rank: {type: integer, nullable: true}
+        posRank: {type: integer, nullable: true}
+        projPoints: {type: number, nullable: true}
+        vor: {type: number, nullable: true}
+        benchScore: {type: number, nullable: true}
+        oVAR: {type: number, nullable: true}
+        needFactor: {type: number, nullable: true}
+    WaiverListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/WaiverCandidate'}
+        total: {type: integer}
+        limit: {type: integer}
+        offset: {type: integer}
+        positionFilter: {type: string, nullable: true}
+        teamFilter: {type: string, nullable: true}
+    WaiverChange:
+      type: object
+      properties:
+        team: {type: string}
+        adds:
+          type: array
+          items: {type: string}
+        drops:
+          type: array
+          items: {type: string}
+      required: [team]
+    WaiverRecommendRequest:
+      type: object
+      properties:
+        changes:
+          type: array
+          items: {$ref: '#/components/schemas/WaiverChange'}
+        includeDetails: {type: boolean, default: true}
+        benchLimit: {type: integer, nullable: true}
+      required: [changes]
+    WaiverTeamResult:
+      type: object
+      properties:
+        team: {type: string}
+        baseline: {type: number}
+        postChange: {type: number}
+        delta: {type: number}
+    WaiverRecommendResponse:
+      type: object
+      properties:
+        evaluatedAt: {type: string, format: date-time}
+        teams:
+          type: array
+          items: {$ref: '#/components/schemas/WaiverTeamResult'}
+        combinedScores:
+          type: object
+          additionalProperties: {type: number}
+        leaderboards:
+          type: object
+          additionalProperties:
+            type: array
+            items: {$ref: '#/components/schemas/LeaderboardEntry'}
+        details:
+          type: array
+          items: {$ref: '#/components/schemas/TeamDetail'}
+          nullable: true
+    DataTableResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: {type: object}
+        total: {type: integer}
+        limit: {type: integer}
+        offset: {type: integer}
+    JobStatus:
+      type: string
+      enum: [pending, running, completed, failed]
+    JobInfo:
+      type: object
+      properties:
+        jobId: {type: string}
+        jobType: {type: string}
+        status: {$ref: '#/components/schemas/JobStatus'}
+        createdAt: {type: string, format: date-time}
+        startedAt: {type: string, format: date-time, nullable: true}
+        finishedAt: {type: string, format: date-time, nullable: true}
+        result: {type: object, nullable: true}
+        error: {type: string, nullable: true}
+        metadata: {type: object}
+      required: [jobId, jobType, status, createdAt, metadata]
+    JobCreatedResponse:
+      type: object
+      properties:
+        jobId: {type: string}
+        jobType: {type: string}
+        status: {$ref: '#/components/schemas/JobStatus'}
+        pollUrl: {type: string}
+      required: [jobId, jobType, status, pollUrl]
+paths:
+  /healthz:
+    get:
+      tags: [health]
+      summary: Health check
+      operationId: healthcheck
+      x-openai-isConsequential: false
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: {type: string}
+      security: []
+  /config:
+    get:
+      tags: [config]
+      summary: Get configuration knobs
+      operationId: getConfig
+      x-openai-isConsequential: false
+      responses:
+        '200':
+          description: Current settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigResponse'
+    patch:
+      tags: [config]
+      summary: Update configuration knobs
+      operationId: patchConfig
+      x-openai-isConsequential: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigUpdateRequest'
+      responses:
+        '200':
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigResponse'
+  /config/help:
+    get:
+      tags: [config]
+      summary: Describe configuration knobs
+      operationId: configHelp
+      x-openai-isConsequential: false
+      responses:
+        '200':
+          description: Help text for each knob
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigHelp'
+  /league:
+    get:
+      tags: [league]
+      summary: League metadata
+      operationId: getLeague
+      x-openai-isConsequential: false
+      responses:
+        '200':
+          description: League metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeagueMetadata'
+  /league/reload:
+    post:
+      tags: [league]
+      summary: Reload league data files
+      description: Validate and reload CSV inputs. Invalid paths return 400.
+      operationId: reloadLeague
+      x-openai-isConsequential: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rankingsPath: {type: string, nullable: true}
+                projectionsPath: {type: string, nullable: true}
+                supplementalPath: {type: string, nullable: true}
+                projectionScaleBeta: {type: number, nullable: true}
+      responses:
+        '200':
+          description: Reloaded context summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeagueMetadata'
+  /league/activity:
+    get:
+      tags: [league]
+      summary: Recent league activity
+      operationId: recentLeagueActivity
+      x-openai-isConsequential: false
+      parameters:
+        - name: limit
+          in: query
+          schema: {type: integer, default: 25, minimum: 1, maximum: 100}
+          description: How many recent ESPN communication topics to inspect.
+      responses:
+        '200':
+          description: Recent activity entries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeagueActivityResponse'
+  /history/power-rankings:
+    get:
+      tags: [history]
+      summary: List saved power ranking snapshots
+      operationId: listPowerHistory
+      x-openai-isConsequential: false
+      parameters:
+        - name: sources
+          in: query
+          schema:
+            type: array
+            items: {type: string}
+          style: form
+          explode: true
+          description: Filter by one or more snapshot sources.
+        - name: tags
+          in: query
+          schema:
+            type: array
+            items: {type: string}
+          style: form
+          explode: true
+          description: Require snapshots to contain all of the supplied tags.
+        - name: weeks
+          in: query
+          schema:
+            type: array
+            items: {type: integer}
+          style: form
+          explode: true
+          description: Limit to specific weeks.
+        - name: startDate
+          in: query
+          schema: {type: string, format: date-time}
+          description: Earliest snapshot timestamp (inclusive).
+        - name: endDate
+          in: query
+          schema: {type: string, format: date-time}
+          description: Latest snapshot timestamp (inclusive).
+        - name: includeTeams
+          in: query
+          schema: {type: boolean, default: false}
+          description: Include per-team values for each snapshot.
+        - name: archetypes
+          in: query
+          schema:
+            type: array
+            items: {type: string}
+          style: form
+          explode: true
+          description: Expand predefined archetype keys into matching sources/tags filters.
+        - name: limit
+          in: query
+          schema: {type: integer, default: 100, minimum: 1, maximum: 500}
+        - name: offset
+          in: query
+          schema: {type: integer, default: 0, minimum: 0}
+      responses:
+        '200':
+          description: Snapshot list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PowerSnapshotResponse'
+  /league/history:
+    post:
+      tags: [league]
+      summary: Week-by-week league history
+      operationId: leagueHistory
+      x-openai-isConsequential: false
+      requestBody:
+        required: false
+        description: Configure which weeks and assets to return.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeagueHistoryRequest'
+            example:
+              window: full-season
+              includePlayerStats: true
+              includeMatchups: true
+              includeRosters: true
+              includePowerRankings: true
+      responses:
+        '200':
+          description: History payload for the requested weeks.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeagueHistoryResponse'
+        '400':
+          description: Invalid parameters.
+        '503':
+          description: ESPN league data unavailable.
+  /playoffs/odds:
+    get:
+      tags: [playoffs]
+      summary: Compute playoff odds for the active league
+      operationId: getPlayoffOdds
+      x-openai-isConsequential: false
+      parameters:
+        - name: simulations
+          in: query
+          description: Number of Monte Carlo simulation runs to execute.
+          schema: {type: integer, default: 5000, minimum: 500, maximum: 50000}
+        - name: playoffTeams
+          in: query
+          description: How many teams qualify for the playoffs.
+          schema: {type: integer, default: 8, minimum: 2}
+        - name: seed
+          in: query
+          description: Optional RNG seed for deterministic simulation output.
+          schema: {type: integer, nullable: true}
+        - name: schedulePath
+          in: query
+          description: Optional override for the schedule CSV path.
+          schema: {type: string, nullable: true}
+      responses:
+        '200':
+          description: Playoff probabilities and supporting metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayoffOddsResponse'
+  /playoffs/trade:
+    post:
+      tags: [playoffs]
+      summary: Simulate playoff odds before and after a trade
+      operationId: simulatePlayoffTrade
+      x-openai-isConsequential: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlayoffTradeRequest'
+            example:
+              teamA: JohnBurrows_School
+              teamB: KWood_Super_Marios
+              sendA:
+                - {group: WR, name: George Pickens}
+              sendB:
+                - {group: WR, name: Drake London}
+              simulations: 2000
+              playoffTeams: 8
+      responses:
+        '200':
+          description: Baseline and post-trade playoff odds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayoffTradeResponse'
+  /players:
+    get:
+      tags: [players]
+      summary: Search players
+      operationId: listPlayers
+      x-openai-isConsequential: false
+      parameters:
+        - name: pos
+          in: query
+          description: Filter by position (QB/RB/WR/TE)
+          schema: {type: string}
+        - name: team
+          in: query
+          description: Filter by NFL team abbreviation
+          schema: {type: string}
+        - name: contains
+          in: query
+          description: Case-insensitive substring match on player name
+          schema: {type: string}
+        - name: metric
+          in: query
+          description: Sort metric (`rank`, `posrank`, `proj`, `projz`)
+          schema:
+            type: string
+            default: rank
+            enum: [rank, posrank, proj, projz]
+        - name: limit
+          in: query
+          schema: {type: integer, default: 25, minimum: 1, maximum: 200}
+        - name: offset
+          in: query
+          schema: {type: integer, default: 0, minimum: 0}
+      responses:
+        '200':
+          description: Player list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerListResponse'
+  /players/insights:
+    post:
+      tags: [players]
+      summary: Get comprehensive player insights
+      operationId: playerInsights
+      x-openai-isConsequential: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PlayerInfoRequest'}
+      responses:
+        '200':
+          description: Detailed player snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerInfoResponse'
+  /players/{player_id}:
+    get:
+      tags: [players]
+      summary: Player detail
+      operationId: getPlayer
+      x-openai-isConsequential: false
+      parameters:
+        - name: player_id
+          in: path
+          required: true
+          description: Name or alias (case-insensitive)
+          schema: {type: string}
+      responses:
+        '200':
+          description: Detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerDetail'
+  /players/compare:
+    post:
+      tags: [players]
+      summary: Compare multiple players across datasets
+      operationId: comparePlayers
+      x-openai-isConsequential: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlayerComparisonRequest'
+            example:
+              players: ["Puka Nacua", "Cooper Kupp", "Tyreek Hill"]
+              includeStats: true
+              includeProjections: true
+              includeAliases: false
+      responses:
+        '200':
+          description: Aggregated player comparison data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerComparisonResponse'
+  /rankings:
+    get:
+      tags: [players]
+      summary: Rankings view
+      operationId: getRankings
+      x-openai-isConsequential: false
+      parameters:
+        - name: pos
+          in: query
+          schema: {type: string}
+        - name: metric
+          in: query
+          description: Sort metric (`rank`, `posrank`, `proj`, `projz`)
+          schema:
+            type: string
+            default: rank
+            enum: [rank, posrank, proj, projz]
+        - name: limit
+          in: query
+          schema: {type: integer, default: 50, minimum: 1, maximum: 200}
+        - name: offset
+          in: query
+          schema: {type: integer, default: 0, minimum: 0}
+      responses:
+        '200':
+          description: Rankings slice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerListResponse'
+  /teams:
+    get:
+      tags: [teams]
+      summary: List teams
+      operationId: listTeams
+      x-openai-isConsequential: false
+      responses:
+        '200':
+          description: Team names
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {type: string}
+  /teams/{team}:
+    get:
+      tags: [teams]
+      summary: Team detail
+      operationId: getTeam
+      x-openai-isConsequential: false
+      parameters:
+        - name: team
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        '200':
+          description: Starters/bench detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamDetail'
+  /teams/{team}/leverage:
+    get:
+      tags: [teams]
+      summary: Zero-sum leverage insight for a team
+      operationId: getTeamLeverage
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: team
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        '200':
+          description: Zero-sum leverage snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamLeverageResponse'
+  /evaluate:
+    post:
+      tags: [league]
+      summary: Evaluate league
+      operationId: evaluateLeague
+      description: |
+        Submit an `EvaluateRequest` JSON body to tweak knobs and hypothetical rosters. For convenience,
+        `includeDetails` and `benchLimit` may also be supplied as query parameters when you only need
+        to toggle those flags.
+      x-openai-isConsequential: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluateRequest'
+            examples:
+              default:
+                summary: Baseline evaluation
+                value: {}
+              withDetails:
+                summary: Include details with custom bench limit
+                value:
+                  includeDetails: true
+                  benchLimit: 3
+      responses:
+        '200':
+          description: Evaluation result
+          content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluateResponse'
+  /evaluate/delta:
+    post:
+      tags: [league]
+      summary: Compare baseline and modified rosters
+      operationId: evaluateLeagueDelta
+      description: |
+        Run two evaluations (baseline vs. hypothetical roster override) and return both results alongside
+        a zero-sum shift summary (share/surplus/value deltas with winners/losers callouts).
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluateRequest'
+      responses:
+        '200':
+          description: Baseline and scenario comparison
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluateDeltaResponse'
+  /zero-sum/positions:
+    get:
+      tags: [zero-sum]
+      summary: Zero-sum ledger for a position
+      operationId: getZeroSumPosition
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: pos
+          in: query
+          required: true
+          schema: {type: string}
+          description: Position code (e.g., RB, WR, TE, QB).
+      responses:
+        '200':
+          description: Zero-sum ledger for the requested position
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ZeroSumPositionResponse'
+  /trade/evaluate:
+    post:
+      tags: [trade]
+      summary: Evaluate trade proposal
+      operationId: evaluateTrade
+      x-openai-isConsequential: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TradeEvaluateRequest'
+            example:
+              teamA: JohnBurrows_School
+              teamB: KWood_Super_Marios
+              sendA:
+                - {group: WR, name: George Pickens}
+              sendB:
+                - {group: WR, name: Drake London}
+              includeDetails: true
+      responses:
+        '200':
+          description: Trade impact summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradeEvaluateResponse'
+  /waivers/candidates:
+    get:
+      tags: [waivers]
+      summary: List waiver candidates
+      operationId: waiverCandidates
+      x-openai-isConsequential: false
+      parameters:
+        - name: team
+          in: query
+          description: Team context to weight positional needs
+          schema: {type: string}
+        - name: position
+          in: query
+          description: Filter by position
+          schema: {type: string}
+        - name: limit
+          in: query
+          schema: {type: integer, default: 25, minimum: 1, maximum: 200}
+        - name: offset
+          in: query
+          schema: {type: integer, default: 0, minimum: 0}
+      responses:
+        '200':
+          description: Ranked waiver targets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WaiverListResponse'
+  /waivers/recommend:
+    post:
+      tags: [waivers]
+      summary: Evaluate add/drop scenarios
+      operationId: waiverRecommend
+      x-openai-isConsequential: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WaiverRecommendRequest'
+            example:
+              changes:
+                - team: JohnBurrows_School
+                  adds: [Drake London]
+                  drops: [George Pickens]
+              includeDetails: true
+              benchLimit: 2
+      responses:
+        '200':
+          description: League impact of proposed moves
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WaiverRecommendResponse'
+  /stats/{dataset}:
+    get:
+      tags: [stats]
+      summary: Query statistical dataset
+      operationId: queryStats
+      x-openai-isConsequential: false
+      parameters:
+        - name: dataset
+          in: path
+          required: true
+          description: Dataset key (e.g., `passing`, `receiving_rushing`)
+          schema: {type: string}
+        - name: filters
+          in: query
+          style: form
+          explode: true
+          description: Filter expressions `column:op:value` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `contains`).
+          schema:
+            type: array
+            items: {type: string}
+        - name: sort
+          in: query
+          description: Comma separated columns; prefix `-` for descending.
+          schema: {type: string}
+        - name: columns
+          in: query
+          description: Comma separated list of columns to include.
+          schema: {type: string}
+        - name: limit
+          in: query
+          schema: {type: integer, default: 50, minimum: 1, maximum: 500}
+        - name: offset
+          in: query
+          schema: {type: integer, default: 0, minimum: 0}
+      responses:
+        '200':
+          description: Dataset slice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataTableResponse'
+  /sources/projections:
+    get:
+      tags: [sources]
+      summary: Query projections CSV
+      operationId: getProjectionsSource
+      x-openai-isConsequential: false
+      parameters:
+        - name: filters
+          in: query
+          style: form
+          explode: true
+          description: Filter expressions `column:op:value`.
+          schema:
+            type: array
+            items: {type: string}
+        - name: sort
+          in: query
+          schema: {type: string}
+        - name: columns
+          in: query
+          schema: {type: string}
+        - name: limit
+          in: query
+          schema: {type: integer, default: 100, minimum: 1, maximum: 1000}
+        - name: offset
+          in: query
+          schema: {type: integer, default: 0, minimum: 0}
+      responses:
+        '200':
+          description: Projections rows
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataTableResponse'
+  /sources/rankings:
+    get:
+      tags: [sources]
+      summary: Query rankings dataset
+      operationId: getRankingsSource
+      x-openai-isConsequential: false
+      parameters:
+        - name: filters
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: array
+            items: {type: string}
+          description: Filter expressions `column:op:value`.
+        - name: sort
+          in: query
+          schema: {type: string}
+        - name: columns
+          in: query
+          schema: {type: string}
+        - name: limit
+          in: query
+          schema: {type: integer, default: 100, minimum: 1, maximum: 1000}
+        - name: offset
+          in: query
+          schema: {type: integer, default: 0, minimum: 0}
+      responses:
+        '200':
+          description: Rankings rows
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataTableResponse'
+  /top/players:
+    get:
+      tags: [players]
+      summary: Simple top-N players view
+      operationId: topPlayers
+      x-openai-isConsequential: false
+      parameters:
+        - name: pos
+          in: query
+          description: Optional position filter
+          schema: {type: string}
+        - name: metric
+          in: query
+          description: Sort metric (`rank`, `posrank`, `proj`, `projz`)
+          schema:
+            type: string
+            default: rank
+            enum: [rank, posrank, proj, projz]
+        - name: limit
+          in: query
+          schema: {type: integer, default: 10, minimum: 1, maximum: 100}
+      responses:
+        '200':
+          description: Top players list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerListResponse'
+security:
+  - ApiKeyAuth: []

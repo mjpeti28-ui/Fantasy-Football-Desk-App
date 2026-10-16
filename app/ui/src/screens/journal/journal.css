@@ -1,0 +1,102 @@
+/* Journal — D field notes: a memo you write in, your words in cobalt ink, the model's numbers and the
+   outcome in the margin. Literata for prose; Archivo only in the margin and controls. */
+.journal { padding: 26px 36px 48px; display: grid; gap: 22px; align-content: start; max-width: 1060px; font-family: var(--prose); }
+.journal .jr-hd { display: grid; gap: 4px; }
+.journal .jr-hd h2 { margin: 0; font: 600 28px/1.15 var(--prose); letter-spacing: -.01em; }
+.journal .jr-hd p { margin: 0; color: var(--ink-2); font-size: 14px; max-width: 640px; }
+.journal .jr-err { color: var(--alert); font-family: var(--sys); }
+
+.journal .score { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 28px; padding: 16px 0; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); align-items: center; }
+.journal .figs { display: grid; grid-template-columns: repeat(3, auto) minmax(0, 1fr); gap: 4px 26px; align-items: end; }
+.journal .figs div { display: grid; }
+.journal .figs b { font: 600 34px/1 var(--prose); font-variant-numeric: lining-nums tabular-nums; }
+.journal .figs span { font: 500 11.5px/1.4 var(--sys); color: var(--ink-2); }
+.journal .figs p { grid-column: 1 / -1; margin: 10px 0 0; font-size: 14px; line-height: 1.5; max-width: 520px; }
+.journal .score figure { margin: 0; display: grid; gap: 4px; }
+.journal .score figcaption { font: 11px/1.35 var(--sys); color: var(--ink-2); max-width: 300px; }
+.journal .score figcaption i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; vertical-align: -1px; margin: 0 2px 0 6px; }
+.journal .score figcaption i:first-child { margin-left: 0; }
+.journal .k-you { background: var(--you); }
+.journal .k-model { background: var(--ink-2); border-radius: 1px !important; transform: rotate(45deg) scale(.85); }
+.journal .calib text { font: 10.5px var(--sys); fill: var(--ink-2); font-variant-numeric: tabular-nums; }
+.journal .calib .grid { stroke: var(--line); }
+.journal .calib .diag { stroke: var(--ink-3); stroke-dasharray: 3 3; }
+.journal .calib .diag-l { font-style: italic; }
+.journal .calib .you { fill: var(--you); fill-opacity: .85; stroke: var(--win); stroke-width: 1.5; }
+.journal .calib .model { fill: var(--ink-2); fill-opacity: .8; }
+
+.journal .compose { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+.journal textarea { font: 15px/1.5 var(--prose); color: var(--you); background: transparent; border: 0; border-bottom: 1px solid var(--line); padding: 6px 0; resize: vertical; outline: none; }
+.journal textarea::placeholder { color: var(--ink-3); font-style: italic; }
+.journal textarea:focus { border-bottom-color: var(--you); }
+.journal .jr-tools { display: flex; gap: 14px; align-items: center; font-family: var(--sys); }
+.journal .jr-empty { color: var(--ink-2); font-style: italic; font-size: 15px; margin: 0; }
+
+.journal .wk { display: grid; }
+.journal .wk h3 { margin: 6px 0 2px; font: 600 12px/1 var(--sys); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.journal .wk h3 small { font-weight: 500; letter-spacing: 0; text-transform: none; }
+.journal .entry { display: grid; grid-template-columns: minmax(0, 1fr) 230px; border-bottom: 1px solid var(--line); }
+.journal .entry .ebody { padding: 14px 22px 12px 0; display: grid; gap: 5px; min-width: 0; }
+.journal .entry .kind { font: 600 10.5px/1 var(--sys); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.journal .entry h4 { margin: 0; font: 600 17px/1.3 var(--prose); }
+.journal .entry .why { margin: 0; font-size: 15px; line-height: 1.55; color: var(--you); white-space: pre-wrap; }
+.journal .entry .why.none { color: var(--ink-3); font-style: italic; font-size: 13.5px; }
+.journal .entry.skipped h4, .journal .entry.skipped .why { opacity: .6; }
+.journal .entry.skipped h4 { text-decoration: line-through; text-decoration-thickness: 1px; }
+.journal .meta { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font: 12px/1.3 var(--sys); color: var(--ink-2); margin-top: 2px; }
+.journal .meta .sure b { color: var(--you); font-weight: 600; }
+.journal .meta .when { margin-left: auto; color: var(--ink-3); }
+.journal .status-pick { display: inline-flex; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+.journal .status-pick button { border: 0; background: none; padding: 1px 8px; cursor: pointer; font-size: 11.5px; color: var(--ink-2); }
+.journal .status-pick button + button { border-left: 1px solid var(--line); }
+.journal .status-pick button[aria-pressed="true"] { background: var(--ink); color: var(--win); }
+.journal .lnk { border: 0; background: none; padding: 0; color: var(--ink-2); cursor: pointer; font-size: 12px; text-decoration: underline; text-decoration-color: var(--ink-3); text-underline-offset: 2px; }
+.journal .lnk:hover { color: var(--ink); }
+.journal .lnk.bad { color: var(--alert); }
+.journal .edit { display: grid; gap: 8px; }
+.journal .edit .acts { display: flex; gap: 8px; font-family: var(--sys); }
+.journal .sure-ctl, .logsheet .sure-ctl { display: flex; align-items: center; gap: 10px; font: 12.5px var(--sys); color: var(--ink-2); }
+.journal .sure-ctl input, .logsheet .sure-ctl input { width: 160px; accent-color: var(--you); }
+.journal .sure-ctl b, .logsheet .sure-ctl b { color: var(--you); min-width: 34px; }
+
+.journal .margin { border-left: 1px solid var(--line); padding: 14px 0 12px 16px; display: grid; gap: 6px; align-content: start; font: 12px/1.35 var(--content); font-variation-settings: "wdth" 85; color: var(--ink-2); }
+.journal .margin > div:not(.oc) { display: flex; justify-content: space-between; gap: 8px; }
+.journal .margin > div b { color: var(--ink); font-weight: 600; }
+.journal .oc { display: grid; gap: 1px; margin-top: 4px; padding: 6px 8px; border-radius: 6px; background: var(--field); }
+.journal .oc b { font-weight: 700; font-size: 12.5px; }
+.journal .oc.ok { background: color-mix(in srgb, var(--above) 13%, transparent); }
+.journal .oc.ok b, .journal .oc.ok .diff { color: var(--above); }
+.journal .oc.bad { background: color-mix(in srgb, var(--below) 12%, transparent); }
+.journal .oc.bad b, .journal .oc.bad .diff { color: var(--below); }
+.journal .oc.pend { background: none; border: 1px dashed var(--ink-3); color: var(--ink-2); }
+.journal .oc .diff { font-weight: 700; }
+
+/* log sheet (shared, opened from any screen) */
+.logsheet-wrap { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.28); display: grid; place-items: start center; padding-top: 12vh; }
+.logsheet { width: min(560px, 92vw); background: var(--win); border-radius: 12px; box-shadow: 0 18px 50px rgba(0,0,0,.28), 0 0 0 1px var(--line); padding: 20px 22px 16px; display: grid; gap: 10px; font-family: var(--prose); }
+.logsheet .kind { font: 600 10.5px/1 var(--sys); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.logsheet .ttl { font: 600 19px/1.3 var(--prose); border: 0; border-bottom: 1px solid transparent; padding: 2px 0; background: none; color: var(--ink); outline: none; }
+.logsheet .ttl:focus { border-bottom-color: var(--line); }
+.logsheet .ctx { margin: 0; font: 12px/1.45 var(--sys); color: var(--ink-2); }
+.logsheet textarea { font: 15px/1.5 var(--prose); color: var(--you); background: var(--zebra); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; resize: vertical; outline: none; }
+.logsheet textarea:focus { border-color: var(--you); }
+.logsheet textarea::placeholder { color: var(--ink-3); font-style: italic; }
+.logsheet .row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; font-family: var(--sys); }
+.logsheet .mp { font-size: 12.5px; color: var(--ink-2); }
+.logsheet .mp b { color: var(--ink); }
+.logsheet .skip { font-size: 12px; color: var(--ink-2); display: inline-flex; gap: 5px; align-items: center; }
+.logsheet .err { color: var(--alert); margin: 0; font: 12px var(--sys); }
+.logsheet .acts { display: flex; gap: 8px; align-items: center; font-family: var(--sys); margin-top: 4px; }
+.logsheet .acts .dim { margin-right: auto; font-size: 11.5px; }
+.journal .people { display: inline-flex; gap: 10px; }
+
+/* worth logging this week: a margin checklist in the notebook's own voice */
+.journal .prompts { display: grid; gap: 6px; }
+.journal .prompts h3 { margin: 0; font: 600 15px/1.3 var(--prose); display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.journal .prompts h3 span { font: italic 400 13px var(--prose); color: var(--ink-2); }
+.journal .prompts ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border-top: 1px solid var(--line); }
+.journal .prompts li { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.journal .prompts .pk { font: 600 10.5px/1.8 var(--sys); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); }
+.journal .prompts .pt { display: grid; gap: 2px; font-family: var(--prose); }
+.journal .prompts .pt b { font-weight: 600; font-size: 15px; }
+.journal .prompts .pt span { color: var(--ink-2); font-size: 13.5px; line-height: 1.45; }

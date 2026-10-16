@@ -1,0 +1,31 @@
+/* League › What if — console (job: test): matte readout panel, switches per player. */
+.wi { display: grid; gap: 14px; }
+.wi-name { font: 700 17px/1.2 var(--sys); }
+.wi .lcd { background: #121416; color: #e9ece4; border-radius: 10px; padding: 12px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px;
+  font-family: var(--mono); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), inset 0 2px 8px rgba(0,0,0,.5); transition: opacity .15s; }
+.wi .lcd.busy { opacity: .55; }
+.wi .ro { display: grid; }
+.wi .ro .k { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; opacity: .6; }
+.wi .ro .v { font-size: 26px; font-weight: 600; line-height: 1.1; }
+.wi .ro .dd { font-size: 11.5px; opacity: .7; min-height: 1em; }
+.wi .ro .dd.up { color: #6fd39a; opacity: 1; } .wi .ro .dd.down { color: #ff8b7e; opacity: 1; }
+.wi .lcd .foot { grid-column: 1 / -1; font-size: 11.5px; opacity: .7; border-top: 1px solid rgba(255,255,255,.08); padding-top: 8px; }
+.wi h6 { margin: 0 0 8px; font: 600 11px/1 var(--sys); color: var(--ink-2); }
+.wi h6 span { font-weight: 400; }
+.wi-list { display: grid; gap: 2px; }
+.wi-row { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 4px 8px; align-items: center; padding: 6px 6px; border-radius: 6px; }
+.wi-row .sw { grid-column: 2; justify-self: start; }
+.wi-row .face { width: 28px; height: 28px; }
+.wi-row .who { display: grid; min-width: 0; }
+.wi-row .who b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wi-row .who span { color: var(--ink-2); font-size: 11.5px; }
+.wi-row.out { background: color-mix(in srgb, var(--alert) 10%, transparent); }
+.wi-row.out .who b { color: var(--alert); }
+.wi .sw { display: inline-flex; background: var(--field); border-radius: 6px; padding: 2px; }
+.wi .sw button { white-space: nowrap; border: 0; background: none; padding: 2px 7px; border-radius: 4px; font: 500 11px/1.4 var(--sys); color: var(--ink-2); cursor: pointer; }
+.wi .sw button[aria-pressed="true"] { background: var(--win); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.wi-row.out .sw button[aria-pressed="true"] { background: var(--alert); color: #fff; }
+.wi .sw button:disabled { cursor: default; }
+
+.wi-name { all: unset; font-weight: 600; cursor: pointer; }
+.wi-name:hover, .wi-name:focus-visible { color: var(--you); text-decoration: underline; }

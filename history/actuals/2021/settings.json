@@ -1,0 +1,32 @@
+{
+  "season": 2021,
+  "teams": 12,
+  "team_names": {
+    "1": "Shai Hulud",
+    "2": "Kirkwood Kittens",
+    "3": "STL Rams",
+    "4": "Flavortown Fieris",
+    "5": "Hines Ward  Jersey",
+    "6": "STL  Lunatics",
+    "7": "Braeside  Bangers",
+    "8": "Tompa Bay",
+    "9": "Kansas City Carnevores",
+    "10": "Beautiful Boys: Redux",
+    "11": "TPetite Ty",
+    "12": "U City  BeephWellington"
+  },
+  "lineup_slot_counts": {
+    "QB": 1,
+    "RB": 2,
+    "WR": 2,
+    "TE": 1,
+    "DST": 1,
+    "K": 1,
+    "BE": 7,
+    "IR": 2,
+    "FLEX": 1
+  },
+  "regular_season_weeks": 14,
+  "playoff_teams": 8,
+  "seeding": "TOTAL_POINTS_SCORED"
+}

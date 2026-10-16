@@ -1,0 +1,313 @@
+from __future__ import annotations
+
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+import pytest
+
+pytest.importorskip("fastapi")
+from fastapi.testclient import TestClient  # noqa: E402
+
+
+def _assert_json_keys(payload: dict[str, Any], keys: list[str]) -> None:
+    for key in keys:
+        assert key in payload, f"Expected key '{key}' in response payload"
+
+
+def test_history_power_rankings_endpoint(client: TestClient) -> None:
+    history_dir = Path("history/power_rankings")
+    history_dir.mkdir(parents=True, exist_ok=True)
+    created_at = datetime.now(timezone.utc).isoformat()
+    snapshot_path = history_dir / "test_snapshot_unit.json"
+    snapshot_payload = {
+        "createdAt": created_at,
+        "source": "unit.test",
+        "week": 99,
+        "tags": ["backfill", "unit"],
+        "settings": {"projection_scale_beta": 0.5},
+        "meta": {"note": "unit test"},
+        "teams": [
+            {
+                "team": "Example Team",
+                "rank": 1,
+                "combinedScore": 123.4,
+                "starterVOR": 12.3,
+                "benchScore": 4.5,
+                "starterProjection": 101.1,
+            }
+        ],
+    }
+    snapshot_path.write_text(json.dumps(snapshot_payload))
+    try:
+        response = client.get(
+            "/history/power-rankings",
+            params=[("sources", "unit.test"), ("includeTeams", "true")],
+        )
+        assert response.status_code == 200
+        payload = response.json()
+        _assert_json_keys(payload, ["total", "snapshots"])
+        assert payload["total"] >= 1
+        assert payload["snapshots"], "Expected at least one snapshot in response"
+        snapshot = next(
+            (item for item in payload["snapshots"] if item["source"] == "unit.test"),
+            None,
+        )
+        assert snapshot is not None
+        assert snapshot["week"] == 99
+        assert snapshot["tags"] == ["backfill", "unit"]
+        team_entries = snapshot.get("teams") or []
+        assert team_entries and team_entries[0]["team"] == "Example Team"
+    finally:
+        snapshot_path.unlink(missing_ok=True)
+
+
+def test_league_history_endpoint(client: TestClient) -> None:
+    payload = {
+        "window": "explicit",
+        "weeks": [1],
+        "includeRosters": False,
+        "includeMatchups": False,
+        "includePlayerStats": False,
+        "includePowerRankings": False,
+    }
+    resp = client.post("/league/history", json=payload)
+    if resp.status_code == 503:
+        pytest.skip("ESPN data unavailable for history endpoint")
+    assert resp.status_code == 200
+    data = resp.json()
+    _assert_json_keys(data, ["generatedAt", "weeks"])
+    assert data["weeks"], "Expected at least one week in response"
+    week = data["weeks"][0]
+    _assert_json_keys(week, ["week", "teams"])
+
+
+def test_players_endpoint(client: TestClient) -> None:
+    resp = client.get("/players", params={"pos": "RB", "metric": "proj", "limit": 3})
+    assert resp.status_code == 200
+    data = resp.json()
+    _assert_json_keys(data, ["items", "total", "limit", "offset", "metric"])
+    assert data["limit"] == 3
+    assert len(data["items"]) <= 3
+    if data["items"]:
+        sample = data["items"][0]
+        _assert_json_keys(sample, ["id", "name", "position", "rank"])
+
+
+def test_rankings_endpoint(client: TestClient) -> None:
+    resp = client.get("/rankings", params={"metric": "rank", "limit": 5})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["limit"] == 5
+    assert len(data["items"]) <= 5
+
+
+def test_evaluate_endpoint_basic(client: TestClient) -> None:
+    resp = client.post("/evaluate", json={})
+    assert resp.status_code == 200
+    data = resp.json()
+    _assert_json_keys(
+        data,
+        [
+            "evaluatedAt",
+            "playerCount",
+            "teams",
+            "leaderboards",
+            "replacementPoints",
+            "replacementTargets",
+            "zeroSum",
+        ],
+    )
+    assert isinstance(data["teams"], list) and data["teams"]
+    zero_sum = data["zeroSum"]
+    _assert_json_keys(
+        zero_sum,
+        [
+            "teamCount",
+            "starters",
+            "bench",
+            "combined",
+            "positions",
+            "benchPositions",
+            "slots",
+            "analytics",
+        ],
+    )
+
+
+def test_evaluate_endpoint_with_details(client: TestClient) -> None:
+    payload = {"includeDetails": True, "benchLimit": 2}
+    resp = client.post("/evaluate", json=payload)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data.get("details")
+    detail = data["details"][0]
+    _assert_json_keys(detail, ["team", "starters", "bench"])
+
+
+def test_trade_evaluate_endpoint(client: TestClient, trade_pair) -> None:
+    side_a, side_b = trade_pair
+    payload = {
+        "teamA": side_a["team"],
+        "teamB": side_b["team"],
+        "sendA": [{"group": side_a["group"], "name": side_a["name"]}],
+        "sendB": [{"group": side_b["group"], "name": side_b["name"]}],
+        "includeDetails": True,
+        "benchLimit": 1,
+    }
+    resp = client.post("/trade/evaluate", json=payload)
+    assert resp.status_code == 200
+    data = resp.json()
+    teams = {entry["team"] for entry in data.get("teams", [])}
+    assert {payload["teamA"], payload["teamB"]} == teams
+    if data.get("details"):
+        assert len(data["details"]) == 2
+    _assert_json_keys(
+        data,
+        [
+            "zeroSumBefore",
+            "zeroSumAfter",
+            "zeroSumShift",
+        ],
+    )
+    assert "combined" in data["zeroSumShift"]
+
+
+def test_trade_find_endpoint(client: TestClient, trade_pair) -> None:
+    side_a, side_b = trade_pair
+    payload = {
+        "teamA": side_a["team"],
+        "teamB": side_b["team"],
+        "maxPlayers": 2,
+        "playerPool": 6,
+        "topResults": 2,
+        "includeDetails": False,
+    }
+    resp = client.post("/trade/find", json=payload)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "proposals" in data
+    assert isinstance(data["proposals"], list)
+
+
+def test_teams_endpoints(client: TestClient) -> None:
+    list_resp = client.get("/teams")
+    assert list_resp.status_code == 200
+    teams = list_resp.json()
+    assert isinstance(teams, list)
+    assert teams
+    team_name = teams[0]
+
+    detail_resp = client.get(f"/teams/{team_name}")
+    assert detail_resp.status_code == 200
+    detail = detail_resp.json()
+    assert detail["team"] == team_name
+    assert "starters" in detail
+
+
+def test_waivers_candidates_endpoint(client: TestClient) -> None:
+    resp = client.get("/waivers/candidates", params={"limit": 5})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["limit"] == 5
+    assert "items" in data
+    assert isinstance(data["items"], list)
+    if data["items"]:
+        sample = data["items"][0]
+        assert "name" in sample
+
+
+def test_waivers_recommend_endpoint(client: TestClient) -> None:
+    candidates = client.get("/waivers/candidates", params={"limit": 1}).json()
+    assert candidates["items"]
+    add_name = candidates["items"][0]["name"]
+
+    team_name = client.get("/teams").json()[0]
+    team_detail = client.get(f"/teams/{team_name}").json()
+    drop_name = team_detail["bench"][0]["name"] if team_detail["bench"] else team_detail["starters"][0]["name"]
+
+    payload = {
+        "changes": [
+            {
+                "team": team_name,
+                "adds": [add_name],
+                "drops": [drop_name],
+            }
+        ],
+        "benchLimit": 1,
+        "includeDetails": True,
+    }
+    resp = client.post("/waivers/recommend", json=payload)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "teams" in data
+    assert data["teams"]
+
+
+def test_top_players_endpoint(client: TestClient) -> None:
+    resp = client.get("/top/players", params={"pos": "WR", "metric": "proj", "limit": 5})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "items" in data
+    assert len(data["items"]) <= 5
+
+
+def test_stats_endpoint(client: TestClient) -> None:
+    resp = client.get("/stats/passing", params={"limit": 5, "sort": "-fantasyPts"})
+    if resp.status_code == 404:
+        # Stats/ is empty between seasons until the new year's feed is ingested;
+        # a missing dataset is expected then, a malformed one is not.
+        pytest.skip("no passing stats loaded for the current season")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["limit"] == 5
+    assert isinstance(data["items"], list)
+
+
+def test_sources_projections_endpoint(client: TestClient) -> None:
+    resp = client.get("/sources/projections", params={"limit": 5})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["limit"] == 5
+
+
+def test_evaluate_delta_endpoint(client: TestClient) -> None:
+    resp = client.post("/evaluate/delta", json={})
+    assert resp.status_code == 200
+    data = resp.json()
+    _assert_json_keys(data, ["evaluatedAt", "baseline", "scenario", "zeroSumShift"])
+    baseline = data["baseline"]
+    scenario = data["scenario"]
+    _assert_json_keys(baseline, ["teams", "zeroSum"])
+    _assert_json_keys(scenario, ["teams", "zeroSum"])
+
+
+def test_team_leverage_endpoint(client: TestClient) -> None:
+    team_name = client.get("/teams").json()[0]
+    resp = client.get(f"/teams/{team_name}/leverage")
+    assert resp.status_code == 200
+    data = resp.json()
+    _assert_json_keys(
+        data,
+        [
+            "team",
+            "combined",
+            "starters",
+            "bench",
+            "positions",
+            "benchPositions",
+            "slots",
+            "scarcityPressure",
+            "concentrationRisk",
+            "leveragePositions",
+            "needPositions",
+        ],
+    )
+
+
+def test_zero_sum_position_endpoint(client: TestClient) -> None:
+    resp = client.get("/zero-sum/positions", params={"pos": "RB"})
+    assert resp.status_code == 200
+    data = resp.json()
+    _assert_json_keys(data, ["position", "starters", "analytics"])

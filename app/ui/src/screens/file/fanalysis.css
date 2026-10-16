@@ -1,0 +1,44 @@
+/* Player file › Season analytics. Same card-back surface; small cards with hairlines, numbers tabular. */
+.pf-an { display: grid; gap: 14px; }
+.pf-an-flags { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.pf-an-flags li { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 8px; align-items: center; font: 12.5px/1.4 var(--sys); color: var(--ink-2); }
+.pf-an-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 1180px) { .pf-an-grid { grid-template-columns: minmax(0, 1fr); } }
+.pf-an-card { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.pf-an h3 { margin: 0; font: 700 13px/1.2 var(--content); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.pf-an h3 small { font: 500 12px var(--sys); color: var(--ink-2); }
+.pf-an .pf-an-h { margin-top: 6px; font-size: 15px; }
+.pf-an .pf-cap { margin: 0; }
+.pf-an .dim { color: var(--ink-2); }
+.pf-an .num { font-variant-numeric: tabular-nums; }
+.pf-an-big { display: grid; grid-template-columns: repeat(3, auto); justify-content: start; gap: 22px; }
+.pf-an-big span { display: grid; gap: 2px; }
+.pf-an-big b { font: 800 28px/1 var(--content); font-variation-settings: "wdth" 90; }
+.pf-an-big small { font: 11.5px var(--sys); color: var(--ink-2); }
+.pf-an-big .up b { color: var(--ink); } .pf-an-big .down b { color: var(--ink); }
+.pf-an-ct { margin: 0; font: 12.5px var(--sys); }
+.pf-an .tstrip .tc { width: 26px; height: 20px; line-height: 20px; font-size: 10.5px; }
+.pf-an-sp svg { display: block; }
+.pf-an-sp .gl { stroke: var(--line); }
+.pf-an-sp text { font: 10px var(--mono); fill: var(--ink-2); }
+.pf-an-sp .band { fill: var(--field); }
+.pf-an-sp .avg { stroke: var(--ink); stroke-width: 2; stroke-linecap: round; }
+.pf-an-sp .d { stroke: var(--win); stroke-width: 2; fill: var(--ink-2); }
+.pf-an-sp .d.smash { fill: var(--above); } .pf-an-sp .d.start { fill: color-mix(in srgb, var(--above) 55%, var(--ink-3)); }
+.pf-an-sp .d.dud { fill: var(--below); }
+.pf-an-tr { border-collapse: collapse; width: 100%; font: 12px var(--sys); }
+.pf-an-tr th { text-align: left; font-weight: 500; color: var(--ink-2); padding: 4px 4px 4px 0; white-space: nowrap; }
+.pf-an-tr td { padding: 4px; text-align: right; white-space: nowrap; }
+.pf-an-tr .ar { color: var(--ink-3); padding: 4px 0; }
+.pf-an-tr .d { font-weight: 650; color: var(--ink-2); } .pf-an-tr .d.up { color: var(--above); } .pf-an-tr .d.down { color: var(--below); }
+.pf-an-rk { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 36px; }
+@media (max-width: 1180px) { .pf-an-rk { grid-template-columns: minmax(0, 1fr); } }
+.pf-an-rk .rk { display: grid; grid-template-columns: minmax(150px, 1.1fr) minmax(80px, 1fr) 52px 40px; gap: 10px; align-items: center; font: 12px var(--sys); }
+.pf-an-rk .lab { color: var(--ink); white-space: nowrap; }
+.pf-an-rk .trk { position: relative; height: 6px; border-radius: 3px; background: var(--field); }
+.pf-an-rk .trk .mid { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--ink-3); }
+.pf-an-rk .trk .dot { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 0 2px var(--win); }
+.pf-an-rk .val { text-align: right; font-weight: 600; } .pf-an-rk .pc { text-align: right; font-size: 11px; }
+/* by-week chart: the ring is what his usage usually produces that week */
+.pf-weeks .xring { fill: none; stroke: var(--ink); stroke-width: 2; }
+.pf-weeks .k-ring { width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--ink); box-sizing: border-box; }

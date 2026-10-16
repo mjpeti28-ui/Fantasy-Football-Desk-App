@@ -1,0 +1,1 @@
+{"createdAt": "2026-10-10T22:12:52.547252+00:00", "source": "unit.test", "week": 99, "tags": ["backfill", "unit"], "settings": {"projection_scale_beta": 0.5}, "meta": {"note": "unit test"}, "teams": [{"team": "Example Team", "rank": 1, "combinedScore": 123.4, "starterVOR": 12.3, "benchScore": 4.5, "starterProjection": 101.1}]}

@@ -1,0 +1,34 @@
+{
+  "season": 2025,
+  "teams": 12,
+  "team_names": {
+    "1": "The Lord's Force",
+    "2": "Kirkwood Kittens",
+    "3": "The Little Stinkers",
+    "4": "Righteous Gemstones",
+    "5": "Hines Ward  Jersey",
+    "6": "K-Wood Super Marios",
+    "7": "Braeside  Bangers",
+    "8": "Live Laugh Love",
+    "9": "Kansas City Carnevores",
+    "10": "Dobis P.R.",
+    "11": "John Burrows School",
+    "12": "Blue Streak Bombers"
+  },
+  "lineup_slot_counts": {
+    "QB": 1,
+    "RB": 1,
+    "RB/WR": 1,
+    "WR": 1,
+    "WR/TE": 1,
+    "TE": 1,
+    "DST": 1,
+    "K": 1,
+    "BE": 6,
+    "IR": 2,
+    "FLEX": 1
+  },
+  "regular_season_weeks": 14,
+  "playoff_teams": 8,
+  "seeding": "TOTAL_POINTS_SCORED"
+}

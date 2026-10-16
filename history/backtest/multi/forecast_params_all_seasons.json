@@ -1,0 +1,116 @@
+{
+  "k": {
+    "QB": 10,
+    "RB": 6,
+    "WR": 10,
+    "TE": 10,
+    "K": 50,
+    "DST": 15
+  },
+  "availability": {
+    "QB": {
+      "now": {
+        "active": 0.964,
+        "missed_last": 0.536,
+        "ir": 0.368
+      },
+      "later": {
+        "active": 0.824,
+        "missed_last": 0.593,
+        "ir": 0.556
+      }
+    },
+    "RB": {
+      "now": {
+        "active": 0.951,
+        "missed_last": 0.527,
+        "ir": 0.256
+      },
+      "later": {
+        "active": 0.844,
+        "missed_last": 0.779,
+        "ir": 0.593
+      }
+    },
+    "WR": {
+      "now": {
+        "active": 0.945,
+        "missed_last": 0.548,
+        "ir": 0.253
+      },
+      "later": {
+        "active": 0.847,
+        "missed_last": 0.739,
+        "ir": 0.604
+      }
+    },
+    "TE": {
+      "now": {
+        "active": 0.961,
+        "missed_last": 0.682,
+        "ir": 0.353
+      },
+      "later": {
+        "active": 0.832,
+        "missed_last": 0.762,
+        "ir": 0.652
+      }
+    },
+    "K": {
+      "now": {
+        "active": 0.981,
+        "missed_last": 0.653,
+        "ir": 0.871
+      },
+      "later": {
+        "active": 0.926,
+        "missed_last": 0.71,
+        "ir": 0.65
+      }
+    },
+    "DST": {
+      "now": {
+        "active": 1.0,
+        "missed_last": 1.0,
+        "ir": 1.0
+      },
+      "later": {
+        "active": 0.998,
+        "missed_last": 0.998,
+        "ir": 0.998
+      }
+    }
+  },
+  "prior_scale": {
+    "QB": 1.057,
+    "RB": 1.086,
+    "WR": 1.021,
+    "TE": 1.159,
+    "K": 1.035,
+    "DST": 1.052
+  },
+  "espn_weight": {
+    "QB": 0.4,
+    "RB": 0.4,
+    "WR": 0.4,
+    "TE": 0.3,
+    "K": 0.6,
+    "DST": 0.3
+  },
+  "espn_zero_now": {
+    "QB": 0.038,
+    "RB": 0.011,
+    "WR": 0.02,
+    "TE": 0.01,
+    "K": 0.045,
+    "DST": 0.05
+  },
+  "waiver_scale": {
+    "QB": 0.815,
+    "RB": 0.622,
+    "WR": 0.66,
+    "TE": 1.14,
+    "K": 0.758,
+    "DST": 1.006
+  }
+}

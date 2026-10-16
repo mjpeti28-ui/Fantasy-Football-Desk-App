@@ -1,0 +1,149 @@
+/* Trades — deal desk (job: negotiate). Wider Archivo, firm rules. Your side cobalt, partner plum;
+   the gain chart's grey band is the backtest's noise zone (edges under 10 points). */
+.trades { --t-ink: var(--ink); --t-ink2: var(--ink-2); --t-rule: var(--line);
+  min-height: 100%; padding: 22px 26px 30px; display: grid; gap: 14px; align-content: start; grid-template-columns: minmax(0, 1fr);
+  font-family: var(--content); font-variation-settings: "wdth" 108; }
+.trades .tr-hd { border-bottom: 3px solid var(--t-ink); padding-bottom: 10px; }
+.trades .tr-hd h2 { margin: 0; font: 800 30px/1 var(--content); font-variation-settings: "wdth" 115; text-transform: uppercase; letter-spacing: -.01em; }
+.trades .tr-hd p { margin: 6px 0 0; color: var(--t-ink2); font-size: 13.5px; font-variation-settings: "wdth" 100; max-width: 95ch; }
+.trades .tr-off { color: var(--alert); margin: 0; }
+.trades .tr-empty { color: var(--t-ink2); margin: 8px 0; }
+
+.trades .partners { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 6px; }
+.trades .pc { text-align: left; border: 1px solid var(--t-rule); background: var(--win); border-radius: 8px; padding: 7px 10px; display: grid; gap: 2px; cursor: pointer; position: relative; color: var(--t-ink); }
+.trades .pc:hover { border-color: var(--t-ink2); }
+.trades .pc.on { border-color: var(--them); box-shadow: inset 0 0 0 1px var(--them); }
+.trades .pc b { font: 700 13px/1.2 var(--content); font-variation-settings: "wdth" 85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 26px; }
+.trades .pc .h { font-size: 11.5px; color: var(--t-ink2); font-variation-settings: "wdth" 95; }
+.trades .pc .h.good, .trades .facts .h.good { color: var(--above); } .pc .h.bad, .facts .h.bad { color: var(--below); }
+.trades .pc .fit { position: absolute; top: 6px; right: 7px; font: 700 9.5px/1 var(--content); letter-spacing: .08em; text-transform: uppercase; color: var(--you); border: 1px solid var(--you); border-radius: 3px; padding: 2px 3px; }
+
+.trades .desk { display: grid; grid-template-columns: minmax(200px, 0.9fr) minmax(0, 1.5fr) minmax(200px, 0.9fr); gap: 16px; align-items: start; }
+@media (max-width: 1350px) { .trades .desk { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .trades .desk .center { grid-column: 1 / -1; grid-row: 1; } }
+.trades .roster h5 { margin: 0 0 6px; font: 700 12px/1 var(--content); letter-spacing: .1em; text-transform: uppercase; color: var(--you); }
+.trades .roster.them h5 { color: var(--them); }
+.trades .rlist { display: grid; gap: 4px; }
+.trades .trow { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto 36px 14px; gap: 7px; align-items: center; padding: 5px 8px; border-radius: 7px; border: 0; cursor: pointer;
+  text-align: left; color: var(--t-ink); background: var(--field); font-variation-settings: "wdth" 85; }
+.trades .trow.team { color: #fff; background: linear-gradient(180deg, var(--thi), var(--tlo)); box-shadow: inset 0 2px 0 var(--tac), inset 0 0 0 1px rgba(255,255,255,.08); }
+.trades .trow .face { width: 26px; height: 26px; }
+.trades .trow.team .face { box-shadow: 0 0 0 1.5px var(--tac); background: var(--tlo); }
+.trades .trow .nm { font: 700 13px/1.2 var(--content); font-variation-settings: "wdth" 80; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trades .trow .pchip { font: 700 9px/1 var(--content); font-style: normal; color: var(--pos-ink); border-radius: 3px; padding: 2px 4px; }
+.trades .trow .pchip.wr { color: var(--wr-ink); }
+.trades .trow .v { font: 600 12.5px/1 var(--mono); text-align: right; }
+.trades .trow .mk { font: 700 13px/1 var(--sys); opacity: .55; text-align: center; }
+.trades .trow:hover .mk { opacity: 1; }
+.trades .roster.me .trow.on { outline: 2px solid var(--you); outline-offset: 2px; }
+.trades .roster.them .trow.on { outline: 2px solid var(--them); outline-offset: 2px; }
+.trades .trow.on .mk { opacity: 1; }
+
+.trades .center { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.trades .tray { display: grid; grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1fr); gap: 8px; align-items: start; border: 1px solid var(--t-rule); border-radius: 10px; padding: 10px 12px; }
+.trades .tray .side { display: flex; flex-wrap: wrap; gap: 5px; align-content: flex-start; min-height: 30px; }
+.trades .tray .lab { width: 100%; font: 700 11px/1 var(--content); letter-spacing: .1em; text-transform: uppercase; color: var(--you); }
+.trades .tray .them .lab { color: var(--them); }
+.trades .tray .swap { font-size: 20px; color: var(--t-ink2); text-align: center; padding-top: 14px; }
+.trades .tray .pill { display: inline-flex; align-items: center; gap: 5px; background: var(--you-soft); border-radius: 999px; padding: 3px 4px 3px 10px; font: 600 12.5px/1.2 var(--content); font-variation-settings: "wdth" 90; }
+.trades .tray .them .pill { background: var(--them-soft); }
+.trades .tray .pill button { border: 0; background: rgba(127,127,127,.25); border-radius: 50%; width: 17px; height: 17px; line-height: 1; cursor: pointer; }
+.trades .tray .ph { color: var(--t-ink2); font-size: 12.5px; }
+
+.trades .gain { font-family: var(--content); }
+.trades .gain .noise { fill: color-mix(in srgb, var(--noise) 22%, transparent); }
+.trades .gain .nz, .trades .gain .tk { fill: var(--t-ink2); font: 500 10.5px var(--mono); }
+.trades .gain .zero { stroke: var(--t-ink); stroke-width: 1.5; }
+.trades .gain .view { fill: var(--t-ink2); font: 700 9.5px var(--content); letter-spacing: .08em; text-transform: uppercase; }
+.trades .gain .who { fill: var(--t-ink); font: 600 12px var(--content); font-variation-settings: "wdth" 85; }
+.trades .gain .val { fill: var(--t-ink); font: 600 12px var(--mono); }
+.trades .gain .me .bar { fill: var(--you); } .gain .them .bar { fill: var(--them); }
+.trades .verdict { margin: 0; font: 500 15px/1.45 var(--content); font-variation-settings: "wdth" 100; max-width: 75ch; }
+.trades .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.trades .facts > div { border: 1px solid var(--t-rule); border-radius: 8px; padding: 9px 11px; display: grid; gap: 3px; align-content: start; }
+.trades .facts .k { font: 700 10.5px/1.2 var(--content); letter-spacing: .08em; text-transform: uppercase; color: var(--t-ink2); }
+.trades .facts b { font: 800 16px/1.15 var(--content); font-variation-settings: "wdth" 90; }
+.trades .facts .conf { justify-self: start; }
+.trades .drops { margin: 0; font-size: 12.5px; }
+.trades .odds { display: grid; gap: 4px; }
+.trades .orow { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); gap: 8px; align-items: center; padding: 6px 10px; border-radius: 6px; }
+.trades .orow.head { font: 700 10.5px/1 var(--content); letter-spacing: .08em; text-transform: uppercase; color: var(--t-ink2); padding-bottom: 2px; }
+.trades .orow.me { background: var(--you-soft); } .orow.them { background: var(--them-soft); }
+.trades .orow .who { font: 700 13px/1.2 var(--content); font-variation-settings: "wdth" 85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trades .orow b { font: 600 14px var(--mono); }
+.trades .orow em { font: 600 11.5px var(--mono); font-style: normal; margin-left: 4px; }
+.trades .orow em.up { color: var(--above); } .orow em.down { color: var(--below); } .orow em.flat { color: var(--noise); }
+.trades .odds p { margin: 2px 0 0; font-size: 12px; }
+.trades .why { display: grid; gap: 4px; border-top: 1px solid var(--t-rule); padding-top: 10px; }
+.trades .why div { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 8px; font-size: 12px; }
+.trades .why b { font-weight: 600; } .why span { color: var(--t-ink2); font-family: var(--mono); font-size: 11.5px; }
+
+.ideas { display: grid; gap: 12px; }
+.ilist { display: grid; gap: 6px; }
+.idea { text-align: left; border: 1px solid var(--line); background: var(--win); border-radius: 8px; padding: 8px 10px; display: grid; gap: 3px; cursor: pointer; color: var(--ink); font-size: 12.5px; }
+.idea:hover { border-color: var(--you); }
+.idea .w { font-size: 11px; color: var(--them); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.idea .g b { font-weight: 600; }
+.idea .n { color: var(--ink-2); font-size: 11.5px; }
+.idea .n .you { color: var(--you); } .idea .n .them { color: var(--them); }
+.idea .d { color: var(--ink-2); font-size: 11px; }
+
+/* call sheet (empty desk) */
+.trades .calls { display: grid; gap: 4px; margin-top: 4px; }
+.trades .calls h3 { margin: 6px 0 6px; font: 800 16px/1.1 var(--content); font-variation-settings: "wdth" 110; text-transform: uppercase; letter-spacing: .02em; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.trades .calls h3 span { font: 500 12px var(--sys); text-transform: none; letter-spacing: 0; color: var(--t-ink2); }
+.trades .call-hd, .trades .call { display: grid; grid-template-columns: minmax(120px, 1.2fr) minmax(104px, 1fr) minmax(104px, 1fr) minmax(112px, 1.1fr) minmax(96px, .9fr) 56px 84px; gap: 8px; align-items: center; }
+.trades .call-hd { font: 600 10.5px var(--sys); text-transform: uppercase; letter-spacing: .06em; color: var(--t-ink2); padding: 0 10px 4px; border-bottom: 1px solid var(--t-rule); }
+.trades .call { all: unset; box-sizing: border-box; display: grid; grid-template-columns: minmax(120px, 1.2fr) minmax(104px, 1fr) minmax(104px, 1fr) minmax(112px, 1.1fr) minmax(96px, .9fr) 56px 84px; gap: 8px; align-items: center;
+  padding: 8px 10px; border-bottom: 1px solid var(--t-rule); cursor: pointer; font: 13px var(--sys); color: var(--t-ink); }
+.trades .call:hover, .trades .call:focus-visible { background: var(--hover); }
+.trades .call.half { opacity: .7; }
+.trades .call .cn { position: relative; display: block; padding: 4px 0; min-width: 0; }
+.trades .call .cn b { position: relative; font: 700 13.5px/1.2 var(--content); font-variation-settings: "wdth" 90; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.trades .call .cbar { position: absolute; left: 0; bottom: 0; height: 3px; border-radius: 0 3px 3px 0; background: var(--them); }
+.trades .call .pz { display: flex; gap: 5px; flex-wrap: wrap; }
+.trades .call .pz i { font-style: normal; font: 700 11px/1 var(--content); padding: 3px 6px; border-radius: 4px; border-left: 3px solid var(--c); background: var(--field); }
+.trades .call .pz em { font: 500 11px var(--sys); font-style: normal; color: var(--t-ink2); }
+.trades .call .chip { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trades .call .h { font-size: 12px; } .trades .call .h.good { color: var(--above); } .trades .call .h.bad { color: var(--below); }
+.trades .call .go { color: var(--you); font-size: 12px; text-align: right; }
+
+/* below ~1560px the page has little room: the row itself is the button, so drop the "Open desk" column */
+@media (max-width: 1560px) {
+  .trades .call-hd, .trades .call { grid-template-columns: minmax(112px, 1.2fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(104px, 1.1fr) minmax(92px, .9fr) 52px; }
+  .trades .call-hd > :last-child, .trades .call > .go { display: none; }
+}
+
+/* season analytics on the desk */
+.trades .trow .fw { position: relative; display: inline-block; width: 26px; height: 26px; }
+/* a corner badge on the face: running hot/cold vs usage (dashed: it fades) or a model value move */
+.trades .trow .tfb { position: absolute; right: -4px; bottom: -3px; width: 13px; height: 13px; border-radius: 50%; font: 700 9px/11px var(--sys); font-style: normal;
+  text-align: center; background: var(--win); color: var(--ink); border: 1px dashed var(--ink-2); }
+.trades .trow .tfb.edge { border-style: solid; } .trades .trow .tfb.edge.up { color: var(--above); } .trades .trow .tfb.edge.down { color: var(--below); }
+.trades .dsf { border-top: 1px solid var(--line); padding-top: 10px; display: grid; gap: 6px; }
+.trades .dsf h5 { margin: 0; font: 700 12px/1 var(--content); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.trades .dsf h5 span { font: 500 11.5px var(--sys); letter-spacing: 0; text-transform: none; margin-left: 6px; }
+.trades .dsf table { border-collapse: collapse; width: 100%; table-layout: fixed; font: 12.5px var(--sys); }
+.trades .dsf col.n { width: auto; }
+.trades .dsf th, .trades .dsf td { padding: 5px 4px; text-align: right; border-bottom: 1px solid var(--line); vertical-align: top; }
+.trades .dsf thead th:not(:first-child), .trades .dsf td { width: 52px; }
+.trades .dsf thead th:nth-child(3) { width: 74px; }
+.trades .dsf tbody th .aflag { margin-top: 4px; }
+.trades .dsf thead th { font: 600 10.5px var(--sys); color: var(--ink-2); }
+.trades .dsf tbody th { text-align: left; font-weight: 400; } .trades .dsf tbody th small { display: block; color: var(--ink-2); font-size: 11px; }
+.trades .dsf .num { font-variant-numeric: tabular-nums; }
+.trades .dsf p { margin: 0; font-size: 12px; line-height: 1.45; }
+.trades .dg { margin-top: 18px; }
+.trades .dg h3 .ev { margin: 0 6px; }
+.trades .dg-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+@media (max-width: 1200px) { .trades .dg-two { grid-template-columns: minmax(0, 1fr); } }
+.trades .dg h5 { margin: 0 0 6px; font: 700 12px/1 var(--content); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.trades .dg-row { all: unset; box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1fr) 46px 46px 46px 50px 82px; gap: 8px; align-items: center; width: 100%; padding: 5px 6px; border-radius: 6px; font: 12.5px var(--sys); cursor: pointer; }
+.trades .dg-row:disabled { cursor: default; }
+.trades .dg-row:not(.hd):not(:disabled):hover { background: var(--hover); }
+.trades .dg-row.hd { font: 600 10.5px var(--sys); color: var(--ink-2); cursor: default; padding-bottom: 2px; }
+.trades .dg-row.hd span { text-align: right; }
+.trades .dg-row .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .trades .dg-row .nm small { color: var(--ink-2); }
+.trades .dg-row .num { text-align: right; font-variant-numeric: tabular-nums; }
+.trades .dg-row .gap { font-weight: 650; color: var(--ink-2); }
+.trades .dg-row .go { color: var(--you); font-size: 12px; text-align: right; opacity: 0; }
+.trades .dg-row:hover .go { opacity: 1; }

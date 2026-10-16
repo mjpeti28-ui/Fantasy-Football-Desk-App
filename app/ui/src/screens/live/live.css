@@ -1,0 +1,147 @@
+/* M — Live. Broadcast idiom: a scorebug band, a win-chance line, bullet rows, a play timeline.
+   Overpass Mono for every clock and number (the readout face); Archivo condensed for names. */
+.live { display: grid; gap: 14px; padding: 16px 18px 28px; min-width: 0; }
+.live h5 { margin: 0 0 8px; font: 700 11px/1.2 var(--content); font-variation-settings: "wdth" 72; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.live h5 span { font: 500 11px var(--sys); text-transform: none; letter-spacing: 0; color: var(--ink-3); }
+.live h6 { margin: 12px 0 6px; font: 600 10.5px var(--sys); text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
+.live .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.live .dim { color: var(--ink-3); }
+.live .up { color: var(--above); } .live .down { color: var(--below); }
+.lv-empty { color: var(--ink-2); padding: 40px 0; text-align: center; }
+.live .pchip { font: 700 9px/1 var(--content); font-style: normal; padding: 2px 3px; border-radius: 3px; width: 24px; text-align: center; flex: none; display: inline-block; }
+
+/* scorebug */
+.lv-bug { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 300px) minmax(0, 1fr); gap: 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: var(--win); }
+.lv-bug .side { display: grid; gap: 2px; padding: 14px 18px 12px; min-width: 0; }
+.lv-bug .side.me { box-shadow: inset 4px 0 0 var(--you); }
+.lv-bug .side.opp { box-shadow: inset -4px 0 0 var(--them); text-align: right; }
+.lv-bug .nm { font: 800 13px/1.1 var(--content); font-variation-settings: "wdth" 72; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lv-bug .me .nm { color: var(--you); } .lv-bug .opp .nm { color: var(--them); }
+.lv-bug .pts { font: 600 40px/1 var(--mono); letter-spacing: -.02em; }
+.lv-bug .sub { font: 12px/1.35 var(--sys); color: var(--ink-2); }
+.lv-bug .sub em { font-style: normal; color: var(--ink-3); }
+.lv-bug .mid { display: grid; justify-items: center; align-content: center; gap: 3px; padding: 12px; background: var(--field); border-inline: 1px solid var(--line); }
+.lv-bug .lbl { font: 600 10.5px var(--sys); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); }
+.lv-bug .wp { font: 700 34px/1 var(--mono); }
+.lv-bug .dl { font: 11.5px var(--sys); color: var(--ink-2); }
+.lv-bug .tug { width: 100%; height: 6px; border-radius: 3px; background: var(--them); overflow: hidden; margin-top: 4px; }
+.lv-bug .tug i { display: block; height: 100%; background: var(--you); }
+
+/* games strip */
+.lv-games { display: flex; gap: 8px; flex-wrap: wrap; }
+.lv-games .gm { display: grid; grid-template-columns: auto auto; column-gap: 12px; row-gap: 2px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--win); font-size: 12px; min-width: 150px; }
+.lv-games .gm.in { border-color: color-mix(in srgb, var(--alert) 45%, var(--line)); }
+.lv-games .gm.post { opacity: .7; }
+.lv-games .tm { display: flex; gap: 6px; align-items: center; grid-column: 1; }
+.lv-games .tm b { font: 700 12px var(--content); font-variation-settings: "wdth" 80; width: 34px; }
+.lv-games .tm i { font: 600 13px var(--mono); font-style: normal; }
+.lv-games .ball { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-2); display: inline-block; }
+.lv-games .st { grid-column: 2; grid-row: 1; font: 600 11.5px var(--mono); color: var(--ink-2); text-align: right; }
+.lv-games .gm.in .st { color: var(--alert); }
+.lv-games .dd { grid-column: 2; grid-row: 2; font: 11px var(--sys); color: var(--ink-3); text-align: right; white-space: nowrap; }
+.lv-games .dd.rz { color: var(--alert); font-weight: 600; }
+.lv-games .who { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; margin-top: 3px; }
+.lv-games .who i { font: 600 10.5px var(--sys); font-style: normal; padding: 1px 6px; border-radius: 9px; }
+.lv-games .who i.me { background: var(--you-soft); color: var(--you); }
+.lv-games .who i.opp { background: var(--them-soft); color: var(--them); }
+
+/* win-chance line */
+.lv-wp, .lv-swing, .lv-roster, .lv-track, .lv-feed { background: var(--win); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; min-width: 0; }
+.lv-wp svg, .lv-track svg { width: 100%; height: 150px; display: block; overflow: visible; }
+.lv-track svg { height: 170px; }
+.live svg .grid { stroke: var(--line); stroke-width: 1; }
+.live svg .mid { stroke: var(--ink-3); stroke-dasharray: 3 4; stroke-width: 1; }
+.live svg .ax { font: 10px var(--mono); fill: var(--ink-3); }
+.live svg .brk { stroke: var(--ink-3); stroke-dasharray: 1 3; stroke-width: 1; }
+.lv-wp .fill.me { fill: color-mix(in srgb, var(--you) 16%, transparent); }
+.lv-wp .fill.opp { fill: color-mix(in srgb, var(--them) 16%, transparent); }
+.lv-wp .ln { fill: none; stroke: var(--ink); stroke-width: 2; }
+.live svg .dot { stroke: var(--win); stroke-width: 1.5; cursor: pointer; }
+.live svg .dot.me { fill: var(--you); } .live svg .dot.opp { fill: var(--them); }
+.live svg .dot.now { fill: var(--ink); cursor: default; }
+.live svg .dot.evt { fill: var(--ink-3); cursor: default; }
+.lv-read { margin: 8px 0 0; font: 12px/1.45 var(--sys); color: var(--ink-2); }
+.lv-read b { color: var(--ink); }
+
+/* starters as bullets */
+.lv-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 1100px) { .lv-cols { grid-template-columns: minmax(0, 1fr); } }
+.lv-roster.me { box-shadow: inset 3px 0 0 var(--you); } .lv-roster.opp { box-shadow: inset 3px 0 0 var(--them); }
+.lv-row { all: unset; box-sizing: border-box; width: 100%; display: grid; grid-template-columns: 46px minmax(0, 1.15fr) 74px minmax(80px, 1.6fr) 40px 54px; gap: 8px; align-items: center; height: 30px; padding: 0 6px; border-radius: 6px; cursor: pointer; }
+.lv-row:hover, .lv-row:focus-visible { background: var(--hover); }
+.lv-row.on { background: var(--zebra); box-shadow: inset 0 0 0 1px var(--line); }
+.lv-row.bye, .lv-row.out { opacity: .5; }
+.lv-row .sl { font: 700 10px var(--content); font-variation-settings: "wdth" 72; letter-spacing: .06em; color: var(--ink-3); }
+.lv-row .nm { display: flex; gap: 6px; align-items: center; font: 700 12.5px/1 var(--content); font-variation-settings: "wdth" 76; letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lv-row .hurt { font: 700 10px var(--sys); font-style: normal; text-transform: none; color: var(--alert); background: repeating-linear-gradient(135deg, transparent 0 3px, color-mix(in srgb, var(--alert) 20%, transparent) 3px 5px); padding: 1px 4px; border-radius: 3px; }
+.lv-row .clk { font-size: 11px; color: var(--ink-3); white-space: nowrap; }
+.lv-row.in .clk { color: var(--alert); font-weight: 600; }
+.lv-row .pt { font-size: 14px; font-weight: 700; text-align: right; }
+.lv-row .pt em { font-style: normal; font-weight: 500; color: var(--ink-3); font-size: 12px; }
+.lv-row .hd { font-size: 11.5px; color: var(--ink-2); white-space: nowrap; }
+.bul { position: relative; height: 14px; display: block; }
+.bul::before { content: ""; position: absolute; left: 0; right: 0; top: 6px; height: 2px; background: var(--line); }
+.bul .band { position: absolute; top: 2px; height: 10px; background: color-mix(in srgb, var(--noise) 28%, transparent); border-radius: 2px; }
+.bul .now { position: absolute; left: 0; top: 3px; height: 8px; border-radius: 0 3px 3px 0; }
+.bul.me .now { background: var(--you); } .bul.opp .now { background: var(--them); }
+.bul .exp { position: absolute; top: 0; height: 14px; border-left: 2px dashed var(--ink); opacity: .7; }
+.bul .proj { position: absolute; top: 1px; height: 12px; width: 1px; background: var(--ink-3); }
+.bul .mean { position: absolute; top: 4px; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--win); }
+
+/* one player's game */
+.lv-track.me { box-shadow: inset 3px 0 0 var(--you); } .lv-track.opp { box-shadow: inset 3px 0 0 var(--them); }
+.lv-track h5 { font-size: 13px; color: var(--ink); align-items: center; }
+.lv-track .facts { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 12.5px/1.4 var(--sys); color: var(--ink-2); margin-bottom: 6px; }
+.lv-track .facts b { color: var(--ink); }
+.lv-track .facts em { font-style: normal; font-weight: 650; }
+.lv-track .pace { stroke: var(--ink-3); stroke-dasharray: 5 5; stroke-width: 1.5; }
+.lv-track .proj-to { stroke: var(--ink-2); stroke-dasharray: 2 3; stroke-width: 1.5; }
+.lv-track .band { fill: color-mix(in srgb, var(--noise) 45%, transparent); }
+.lv-track .cum { fill: none; stroke-width: 2.5; }
+.lv-track .cum.me { stroke: var(--you); } .lv-track .cum.opp { stroke: var(--them); }
+.lv-track .nowline { stroke: var(--alert); stroke-width: 1; stroke-dasharray: 2 3; }
+.lv-track .ev line { stroke: var(--ink-2); stroke-width: 1.5; }
+.lv-track .ev circle { fill: var(--ink-2); stroke: var(--win); stroke-width: 1; }
+.lv-track.me .ev.catch circle, .lv-track.me .ev.carry circle { fill: var(--you); }
+.lv-track.opp .ev.catch circle, .lv-track.opp .ev.carry circle { fill: var(--them); }
+.lv-track .ev.target circle { fill: var(--win); stroke: var(--ink-2); stroke-width: 1.5; }
+.lv-track .ev.rz circle { stroke: var(--alert); stroke-width: 2; }
+.lv-track .ev.td circle { stroke: var(--ink); stroke-width: 2; }
+
+/* plays lists + notes */
+.live ol.plays { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 3px; }
+.live ol.plays li { display: grid; grid-template-columns: 74px auto 44px minmax(0, 1fr); gap: 8px; align-items: baseline; font: 12px/1.35 var(--sys); color: var(--ink-2); }
+.lv-track ol.plays li { grid-template-columns: 74px 44px minmax(0, 1fr); }
+.live ol.plays li > span:first-child { color: var(--ink-3); font-size: 11px; }
+.live ol.plays .who { font: 700 11px var(--content); font-style: normal; font-variation-settings: "wdth" 76; text-transform: uppercase; }
+.live ol.plays .who.me { color: var(--you); } .live ol.plays .who.opp { color: var(--them); }
+.live ol.plays b { text-align: right; }
+.lv-feed ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.lv-feed li { display: flex; gap: 8px; align-items: baseline; font: 13px/1.4 var(--sys); }
+.lv-feed .tone { width: 8px; height: 8px; border-radius: 50%; flex: none; transform: translateY(-1px); background: var(--noise); }
+.lv-feed .tone.up { background: var(--above); } .lv-feed .tone.down { background: var(--below); }
+.lv-feed .tone.alert { background: var(--alert); box-shadow: 0 0 0 3px color-mix(in srgb, var(--alert) 25%, transparent); }
+.lv-notes { font: 11.5px/1.45 var(--sys); color: var(--ink-3); display: grid; gap: 3px; }
+.lv-notes p { margin: 0; }
+.lv-notes .err { color: var(--alert); }
+.lv-row .pt sup { font: 600 9px var(--sys); color: var(--ink-3); margin-left: 1px; }
+
+/* What moved it (Swings): the five biggest single-play changes and the total by player. */
+.lv-swing h5 span { font-weight: 400; }
+.lv-swing .sw-two { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; }
+@media (max-width: 1150px) { .lv-swing .sw-two { grid-template-columns: minmax(0, 1fr); } }
+.lv-swing .sw-top { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.lv-swing .sw-top li { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 10px; align-items: baseline; padding: 4px 6px; border-radius: 6px; font: 12.5px/1.35 var(--sys); }
+.lv-swing .sw-top li.pick { cursor: pointer; } .lv-swing .sw-top li.pick:hover { background: var(--hover); }
+.lv-swing .d { font: 700 14px var(--mono); text-align: right; } .lv-swing .d.up { color: var(--above); } .lv-swing .d.down { color: var(--below); }
+.lv-swing .t em { font-style: normal; font-weight: 650; } .lv-swing .t em.me { color: var(--you); } .lv-swing .t em.opp { color: var(--them); }
+.lv-swing .t small { display: block; color: var(--ink-2); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lv-swing .sw-who { display: grid; gap: 3px; align-content: start; }
+.lv-swing .sw-row { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 110px minmax(0, 1fr) 48px; gap: 8px; align-items: center; height: 22px; padding: 0 4px; border-radius: 5px; cursor: pointer; font: 12px var(--sys); }
+.lv-swing .sw-row:hover { background: var(--hover); }
+.lv-swing .sw-row .nm { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .lv-swing .sw-row .nm.me { color: var(--you); } .lv-swing .sw-row .nm.opp { color: var(--them); }
+.lv-swing .sw-row .trk { position: relative; height: 10px; background: linear-gradient(var(--line), var(--line)) center / 1px 100% no-repeat; }
+.lv-swing .sw-row .trk i { position: absolute; top: 0; bottom: 0; }
+.lv-swing .sw-row .trk i.up { background: var(--above); border-radius: 0 3px 3px 0; } .lv-swing .sw-row .trk i.down { background: var(--below); border-radius: 3px 0 0 3px; }
+.lv-swing .sw-row b { font: 600 11.5px var(--mono); text-align: right; }
+.lv-swing .sw-who p { margin: 4px 0 0; font-size: 11.5px; }

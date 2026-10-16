@@ -1,0 +1,139 @@
+{
+  "createdAt": "2026-10-10T22:12:58.049102+00:00",
+  "source": "api.evaluate.delta",
+  "season": 2026,
+  "week": 5,
+  "tags": [
+    "api",
+    "evaluate",
+    "delta",
+    "baseline",
+    "source:api.evaluate.delta",
+    "season:2026",
+    "week:5",
+    "rankings:FantasyPros_ROS_rankings.csv",
+    "projections:FantasyPros_ROS_projections.csv",
+    "bench_ovar_beta:0.25",
+    "bench_percentile_clamp:0.05",
+    "bench_z_fallback_threshold:3",
+    "combined_bench_weight:0.2",
+    "combined_starters_weight:0.8",
+    "projection_scale_beta:0.5",
+    "replacement_skip_pct:0.1",
+    "replacement_window:3",
+    "scarcity_method:monotone_cubic",
+    "scarcity_positions:['QB', 'RB', 'TE', 'WR']",
+    "scarcity_sample_step:0.5"
+  ],
+  "rankingsPath": "/sessions/rcw-01lxxix9jhytprd3e178hahg/mnt/Developer--PFF-fantasy-ranking/FantasyPros_ROS_rankings.csv",
+  "projectionsPath": "FantasyPros_ROS_projections.csv",
+  "supplementalPath": null,
+  "settings": {
+    "projection_scale_beta": 0.5,
+    "replacement_skip_pct": 0.1,
+    "replacement_window": 3,
+    "bench_ovar_beta": 0.25,
+    "combined_starters_weight": 0.8,
+    "combined_bench_weight": 0.2,
+    "bench_z_fallback_threshold": 3.0,
+    "bench_percentile_clamp": 0.05,
+    "scarcity_method": "monotone_cubic",
+    "scarcity_positions": [
+      "QB",
+      "RB",
+      "TE",
+      "WR"
+    ],
+    "scarcity_sample_step": 0.5
+  },
+  "teams": [
+    {
+      "rank": 1,
+      "team": "Dobis_P_R",
+      "combinedScore": 1.475,
+      "starterVOR": 329.65,
+      "benchScore": 72.55,
+      "starterProjection": 1466.71
+    },
+    {
+      "rank": 2,
+      "team": "Righteous_Gemstones",
+      "combinedScore": 1.154,
+      "starterVOR": 349.73,
+      "benchScore": 14.57,
+      "starterProjection": 1462.57
+    },
+    {
+      "rank": 3,
+      "team": "The_Little_Stinkers",
+      "combinedScore": 0.939,
+      "starterVOR": 321.18,
+      "benchScore": 30.24,
+      "starterProjection": 1458.36
+    },
+    {
+      "rank": 4,
+      "team": "Braeside_Bangers",
+      "combinedScore": 0.724,
+      "starterVOR": 303.65,
+      "benchScore": 31.62,
+      "starterProjection": 1440.71
+    },
+    {
+      "rank": 5,
+      "team": "Avoid_the_Noid",
+      "combinedScore": -0.297,
+      "starterVOR": 245.05,
+      "benchScore": 6.22,
+      "starterProjection": 1382.34
+    },
+    {
+      "rank": 6,
+      "team": "Blue_Streak_Bombers",
+      "combinedScore": -0.34,
+      "starterVOR": 242.2,
+      "benchScore": 5.69,
+      "starterProjection": 1379.38
+    },
+    {
+      "rank": 7,
+      "team": "Kansas_City_Carnevores",
+      "combinedScore": -0.626,
+      "starterVOR": 216.39,
+      "benchScore": 10.71,
+      "starterProjection": 1353.57
+    },
+    {
+      "rank": 8,
+      "team": "K_Wood_Super_Marios",
+      "combinedScore": -0.781,
+      "starterVOR": 208.34,
+      "benchScore": 5.75,
+      "starterProjection": 1345.52
+    },
+    {
+      "rank": 9,
+      "team": "3rd_and_41",
+      "combinedScore": -0.821,
+      "starterVOR": 201.53,
+      "benchScore": 10.67,
+      "starterProjection": 1338.59
+    },
+    {
+      "rank": 10,
+      "team": "Kirkwood_Kittens",
+      "combinedScore": -1.425,
+      "starterVOR": 157.46,
+      "benchScore": 7.78,
+      "starterProjection": 1294.64
+    }
+  ],
+  "meta": {
+    "contextCreatedAt": "2026-10-10T22:12:56.688696+00:00",
+    "leagueId": "1891655995",
+    "scenario": "baseline",
+    "request": {
+      "include_details": false
+    }
+  }
+}

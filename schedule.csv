@@ -1,0 +1,71 @@
+Week,AwayTeam,AwayManagers,AwayScore,HomeTeam,HomeManagers,HomeScore,MatchupId,Winner
+1,3rd and 41,phillidb,107.22,Kirkwood Kittens,ESPNFAN0592165389,100.76,2,AWAY
+1,Blue Streak Bombers,ESPNFAN6749346089,132.26,Avoid the Noid,espn06800705,115.46,3,AWAY
+1,Braeside  Bangers,phillips52,120.96,K-Wood Super Marios,moultonbrandon1984,118.8,1,AWAY
+1,Kansas City Carnevores,espn79356636,102.12,Righteous Gemstones,ESPNFAN3837296307,126.2,4,HOME
+1,The Little Stinkers,"ESPNFAN1196082106, emmamax718",124.36,Dobis P.R.,espn28298553,181.8,5,HOME
+2,3rd and 41,phillidb,101.26,Blue Streak Bombers,ESPNFAN6749346089,113.28,8,HOME
+2,Avoid the Noid,espn06800705,109.64,Kansas City Carnevores,espn79356636,140.08,9,HOME
+2,K-Wood Super Marios,moultonbrandon1984,107.18,Dobis P.R.,espn28298553,118.76,6,HOME
+2,Kirkwood Kittens,ESPNFAN0592165389,102.4,Braeside  Bangers,phillips52,118.9,7,HOME
+2,The Little Stinkers,"ESPNFAN1196082106, emmamax718",156.52,Righteous Gemstones,ESPNFAN3837296307,127.68,10,AWAY
+3,Blue Streak Bombers,ESPNFAN6749346089,,Braeside  Bangers,phillips52,,12,UNDECIDED
+3,K-Wood Super Marios,moultonbrandon1984,,Kirkwood Kittens,ESPNFAN0592165389,,11,UNDECIDED
+3,Kansas City Carnevores,espn79356636,,3rd and 41,phillidb,,13,UNDECIDED
+3,Righteous Gemstones,ESPNFAN3837296307,,Dobis P.R.,espn28298553,,15,UNDECIDED
+3,The Little Stinkers,"ESPNFAN1196082106, emmamax718",,Avoid the Noid,espn06800705,,14,UNDECIDED
+4,Avoid the Noid,espn06800705,,Righteous Gemstones,ESPNFAN3837296307,,20,UNDECIDED
+4,Braeside  Bangers,phillips52,,Kansas City Carnevores,espn79356636,,18,UNDECIDED
+4,K-Wood Super Marios,moultonbrandon1984,,Blue Streak Bombers,ESPNFAN6749346089,,16,UNDECIDED
+4,Kirkwood Kittens,ESPNFAN0592165389,,Dobis P.R.,espn28298553,,17,UNDECIDED
+4,The Little Stinkers,"ESPNFAN1196082106, emmamax718",,3rd and 41,phillidb,,19,UNDECIDED
+5,3rd and 41,phillidb,,Righteous Gemstones,ESPNFAN3837296307,,24,UNDECIDED
+5,Avoid the Noid,espn06800705,,Dobis P.R.,espn28298553,,25,UNDECIDED
+5,Blue Streak Bombers,ESPNFAN6749346089,,Kirkwood Kittens,ESPNFAN0592165389,,22,UNDECIDED
+5,Braeside  Bangers,phillips52,,The Little Stinkers,"ESPNFAN1196082106, emmamax718",,23,UNDECIDED
+5,Kansas City Carnevores,espn79356636,,K-Wood Super Marios,moultonbrandon1984,,21,UNDECIDED
+6,Avoid the Noid,espn06800705,,3rd and 41,phillidb,,30,UNDECIDED
+6,Blue Streak Bombers,ESPNFAN6749346089,,Dobis P.R.,espn28298553,,28,UNDECIDED
+6,Kirkwood Kittens,ESPNFAN0592165389,,Kansas City Carnevores,espn79356636,,27,UNDECIDED
+6,Righteous Gemstones,ESPNFAN3837296307,,Braeside  Bangers,phillips52,,29,UNDECIDED
+6,The Little Stinkers,"ESPNFAN1196082106, emmamax718",,K-Wood Super Marios,moultonbrandon1984,,26,UNDECIDED
+7,3rd and 41,phillidb,,Dobis P.R.,espn28298553,,35,UNDECIDED
+7,Blue Streak Bombers,ESPNFAN6749346089,,Kansas City Carnevores,espn79356636,,33,UNDECIDED
+7,Braeside  Bangers,phillips52,,Avoid the Noid,espn06800705,,34,UNDECIDED
+7,K-Wood Super Marios,moultonbrandon1984,,Righteous Gemstones,ESPNFAN3837296307,,31,UNDECIDED
+7,The Little Stinkers,"ESPNFAN1196082106, emmamax718",,Kirkwood Kittens,ESPNFAN0592165389,,32,UNDECIDED
+8,Avoid the Noid,espn06800705,,K-Wood Super Marios,moultonbrandon1984,,36,UNDECIDED
+8,Braeside  Bangers,phillips52,,3rd and 41,phillidb,,40,UNDECIDED
+8,Kansas City Carnevores,espn79356636,,Dobis P.R.,espn28298553,,39,UNDECIDED
+8,Kirkwood Kittens,ESPNFAN0592165389,,Righteous Gemstones,ESPNFAN3837296307,,37,UNDECIDED
+8,The Little Stinkers,"ESPNFAN1196082106, emmamax718",,Blue Streak Bombers,ESPNFAN6749346089,,38,UNDECIDED
+9,3rd and 41,phillidb,,K-Wood Super Marios,moultonbrandon1984,,41,UNDECIDED
+9,Blue Streak Bombers,ESPNFAN6749346089,,Righteous Gemstones,ESPNFAN3837296307,,43,UNDECIDED
+9,Braeside  Bangers,phillips52,,Dobis P.R.,espn28298553,,45,UNDECIDED
+9,Kansas City Carnevores,espn79356636,,The Little Stinkers,"ESPNFAN1196082106, emmamax718",,44,UNDECIDED
+9,Kirkwood Kittens,ESPNFAN0592165389,,Avoid the Noid,espn06800705,,42,UNDECIDED
+10,Avoid the Noid,espn06800705,,Blue Streak Bombers,ESPNFAN6749346089,,48,UNDECIDED
+10,Dobis P.R.,espn28298553,,The Little Stinkers,"ESPNFAN1196082106, emmamax718",,50,UNDECIDED
+10,K-Wood Super Marios,moultonbrandon1984,,Braeside  Bangers,phillips52,,46,UNDECIDED
+10,Kirkwood Kittens,ESPNFAN0592165389,,3rd and 41,phillidb,,47,UNDECIDED
+10,Righteous Gemstones,ESPNFAN3837296307,,Kansas City Carnevores,espn79356636,,49,UNDECIDED
+11,Blue Streak Bombers,ESPNFAN6749346089,,3rd and 41,phillidb,,53,UNDECIDED
+11,Braeside  Bangers,phillips52,,Kirkwood Kittens,ESPNFAN0592165389,,52,UNDECIDED
+11,Dobis P.R.,espn28298553,,K-Wood Super Marios,moultonbrandon1984,,51,UNDECIDED
+11,Kansas City Carnevores,espn79356636,,Avoid the Noid,espn06800705,,54,UNDECIDED
+11,Righteous Gemstones,ESPNFAN3837296307,,The Little Stinkers,"ESPNFAN1196082106, emmamax718",,55,UNDECIDED
+12,3rd and 41,phillidb,,Kansas City Carnevores,espn79356636,,58,UNDECIDED
+12,Avoid the Noid,espn06800705,,The Little Stinkers,"ESPNFAN1196082106, emmamax718",,59,UNDECIDED
+12,Braeside  Bangers,phillips52,,Blue Streak Bombers,ESPNFAN6749346089,,57,UNDECIDED
+12,Dobis P.R.,espn28298553,,Righteous Gemstones,ESPNFAN3837296307,,60,UNDECIDED
+12,Kirkwood Kittens,ESPNFAN0592165389,,K-Wood Super Marios,moultonbrandon1984,,56,UNDECIDED
+13,3rd and 41,phillidb,,The Little Stinkers,"ESPNFAN1196082106, emmamax718",,64,UNDECIDED
+13,Blue Streak Bombers,ESPNFAN6749346089,,K-Wood Super Marios,moultonbrandon1984,,61,UNDECIDED
+13,Dobis P.R.,espn28298553,,Kirkwood Kittens,ESPNFAN0592165389,,62,UNDECIDED
+13,Kansas City Carnevores,espn79356636,,Braeside  Bangers,phillips52,,63,UNDECIDED
+13,Righteous Gemstones,ESPNFAN3837296307,,Avoid the Noid,espn06800705,,65,UNDECIDED
+14,Dobis P.R.,espn28298553,,Avoid the Noid,espn06800705,,70,UNDECIDED
+14,K-Wood Super Marios,moultonbrandon1984,,Kansas City Carnevores,espn79356636,,66,UNDECIDED
+14,Kirkwood Kittens,ESPNFAN0592165389,,Blue Streak Bombers,ESPNFAN6749346089,,67,UNDECIDED
+14,Righteous Gemstones,ESPNFAN3837296307,,3rd and 41,phillidb,,69,UNDECIDED
+14,The Little Stinkers,"ESPNFAN1196082106, emmamax718",,Braeside  Bangers,phillips52,,68,UNDECIDED

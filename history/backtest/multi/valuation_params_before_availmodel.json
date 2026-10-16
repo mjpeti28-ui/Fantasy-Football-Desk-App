@@ -1,0 +1,178 @@
+{
+  "k": {
+    "QB": 10,
+    "RB": 6,
+    "WR": 10,
+    "TE": 10,
+    "K": 50,
+    "DST": 15
+  },
+  "availability": {
+    "QB": {
+      "now": {
+        "active": 0.964,
+        "missed_last": 0.536,
+        "ir": 0.368
+      },
+      "later": {
+        "active": 0.824,
+        "missed_last": 0.593,
+        "ir": 0.556
+      }
+    },
+    "RB": {
+      "now": {
+        "active": 0.951,
+        "missed_last": 0.527,
+        "ir": 0.256
+      },
+      "later": {
+        "active": 0.844,
+        "missed_last": 0.779,
+        "ir": 0.593
+      }
+    },
+    "WR": {
+      "now": {
+        "active": 0.945,
+        "missed_last": 0.548,
+        "ir": 0.253
+      },
+      "later": {
+        "active": 0.847,
+        "missed_last": 0.739,
+        "ir": 0.604
+      }
+    },
+    "TE": {
+      "now": {
+        "active": 0.961,
+        "missed_last": 0.682,
+        "ir": 0.353
+      },
+      "later": {
+        "active": 0.832,
+        "missed_last": 0.762,
+        "ir": 0.652
+      }
+    },
+    "K": {
+      "now": {
+        "active": 0.981,
+        "missed_last": 0.653,
+        "ir": 0.871
+      },
+      "later": {
+        "active": 0.926,
+        "missed_last": 0.71,
+        "ir": 0.65
+      }
+    },
+    "DST": {
+      "now": {
+        "active": 1.0,
+        "missed_last": 1.0,
+        "ir": 1.0
+      },
+      "later": {
+        "active": 0.998,
+        "missed_last": 0.998,
+        "ir": 0.998
+      }
+    }
+  },
+  "prior_scale": {
+    "QB": 1.057,
+    "RB": 1.086,
+    "WR": 1.021,
+    "TE": 1.159,
+    "K": 1.035,
+    "DST": 1.052
+  },
+  "espn_weight": {
+    "QB": 0.4,
+    "RB": 0.4,
+    "WR": 0.4,
+    "TE": 0.3,
+    "K": 0.6,
+    "DST": 0.3
+  },
+  "espn_zero_now": {
+    "QB": 0.038,
+    "RB": 0.011,
+    "WR": 0.02,
+    "TE": 0.01,
+    "K": 0.045,
+    "DST": 0.05
+  },
+  "waiver_scale": {
+    "QB": 0.921,
+    "RB": 0.901,
+    "WR": 0.897,
+    "TE": 1.155,
+    "K": 0.796,
+    "DST": 1.006
+  },
+  "espn_zero_later": {
+    "QB": {
+      "rostered": 0.483,
+      "free_agent": 0.138
+    },
+    "RB": {
+      "rostered": 0.542,
+      "free_agent": 0.262
+    },
+    "WR": {
+      "rostered": 0.573,
+      "free_agent": 0.328
+    },
+    "TE": {
+      "rostered": 0.629,
+      "free_agent": 0.516
+    },
+    "K": {
+      "rostered": 0.537,
+      "free_agent": 0.072
+    },
+    "DST": {
+      "rostered": 0.998,
+      "free_agent": 0.998
+    }
+  },
+  "calibration": {
+    "source": "backtest/currency_validation.py --target espn: 1600 hypothetical trades 2021-2025 (12-team seasons), LOSO; realized = weekly lineups picked by ESPN projections (not hindsight). Audit 2026-09-23.",
+    "realized_over_predicted": 0.9,
+    "sign_accuracy_by_abs_pred_edge": [
+      [
+        0,
+        5,
+        0.467
+      ],
+      [
+        5,
+        10,
+        0.526
+      ],
+      [
+        10,
+        20,
+        0.616
+      ],
+      [
+        20,
+        40,
+        0.692
+      ],
+      [
+        40,
+        80,
+        0.823
+      ],
+      [
+        80,
+        1000000000.0,
+        0.937
+      ]
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+captured_utc,season,week,origin,note,team,with,give_ids,get_ids,give,get,me_blend,them_blend,me_playoffs,p_right,me_drop,them_drop,me_ours,them_ours,me_espn,them_espn,me_ecr,them_ecr
+2026-10-02T22:11Z,2026,4,watchlist,wk3 top pick (wide search),3,9,4379399 4685702 4695883,4242335,"James Cook III, Quinshon Judkins, Jalen Coker",Jonathan Taylor,3.6,20.5,1.0,0.467,,"Rico Dowdle, Harrison Butker",1.7,21.3,6.8,20.8,2.0,11.1
+2026-10-02T22:11Z,2026,4,watchlist,wk3 variant,3,9,4379399 4685702 4695883,4242335 3116365,"James Cook III, Quinshon Judkins, Jalen Coker","Jonathan Taylor, Mark Andrews",8.5,18.6,2.1,0.568,,Harrison Butker,10.7,18.7,19.9,18.2,4.7,10.4
+2026-10-02T22:11Z,2026,4,watchlist,wk3 variant,3,9,4379399 4685512 4695883,4242335,"James Cook III, Jadarian Price, Jalen Coker",Jonathan Taylor,16.7,2.3,4.0,0.606,,"Rico Dowdle, Harrison Butker",12.1,7.8,19.5,2.2,12.7,-6.7
+2026-10-02T22:11Z,2026,4,watchlist,wk3,3,9,4685512 16737,4431459,"Jadarian Price, Mike Evans",Tyler Warren,38.9,-20.6,8.5,0.689,,Harrison Butker,28.7,-10.9,42.7,-18.0,27.6,-39.1
+2026-10-02T22:11Z,2026,4,watchlist,wk3 single-source,3,9,16737 4695883,4431459 4036378,"Mike Evans, Jalen Coker","Tyler Warren, Jordan Love",31.6,6.8,7.1,0.689,,,13.1,26.9,28.5,17.1,33.5,-34.0
+2026-10-02T22:11Z,2026,4,watchlist,wk3,3,6,4685702 4248528,4426515 12483,"Quinshon Judkins, Christian Watson","Puka Nacua, Matthew Stafford",50.9,-32.1,12.0,0.821,,,29.6,-16.8,70.3,-52.1,46.5,-29.0
+2026-10-02T22:11Z,2026,4,watchlist,wk3,3,12,4569618 4685512 4241416,3043078 3916148,"Garrett Wilson, Jadarian Price, Chuba Hubbard","Derrick Henry, Tony Pollard",5.7,10.0,0.8,0.568,,Marvin Harrison Jr.,21.5,-8.0,-1.3,9.5,-1.9,10.8
+2026-10-02T22:11Z,2026,4,watchlist,wk3 single-source,3,1,4248528 4241416,4429615 4430027,"Christian Watson, Chuba Hubbard","Zay Flowers, Sam LaPorta",-5.1,31.3,-1.2,0.568,,,-27.2,53.8,-11.3,49.1,16.4,-19.2
+2026-10-02T22:11Z,2026,4,watchlist,wk3 single-source,3,4,4248528 4695883,4432665 2577417,"Christian Watson, Jalen Coker","Brock Bowers, Dak Prescott",38.0,-28.2,7.9,0.689,,,15.0,7.4,36.2,-42.7,47.2,-40.5
+2026-10-02T22:11Z,2026,4,watchlist,wk3 single-source,3,7,4685512 4695883,4038941 3040151,"Jadarian Price, Jalen Coker","Justin Herbert, George Kittle",39.6,-16.2,8.9,0.689,,,44.1,-17.9,43.3,-14.0,13.7,-13.3
+2026-10-02T22:11Z,2026,4,find,,3,9,4685702 4695883,4431459,"Quinshon Judkins, Jalen Coker",Tyler Warren,22.9,6.8,4.8,0.689,,Harrison Butker,10.3,21.4,22.8,17.6,21.5,-27.7
+2026-10-02T22:11Z,2026,4,find,,3,1,4685702,4426348 4430027,Quinshon Judkins,"Jayden Daniels, Sam LaPorta",22.7,1.2,5.4,0.689,Josh Jacobs,,25.6,-11.4,21.0,14.6,4.6,-8.7
+2026-10-02T22:11Z,2026,4,find,,3,9,4248528,4431459 4036378,Christian Watson,"Tyler Warren, Jordan Love",23.4,8.5,5.2,0.689,Josh Jacobs,,1.3,29.2,23.8,13.9,30.2,-29.1
+2026-10-02T22:11Z,2026,4,find,,3,9,16737 4695883,4431459,"Mike Evans, Jalen Coker",Tyler Warren,22.5,4.6,4.9,0.689,,Harrison Butker,3.1,28.9,25.8,13.5,22.9,-35.8
+2026-10-02T22:11Z,2026,4,find,,3,7,4695883,15847 4361432,Jalen Coker,"Travis Kelce, Romeo Doubs",21.2,2.0,4.6,0.689,Josh Jacobs,,23.3,2.0,21.3,6.9,6.3,-4.3
+2026-10-02T22:11Z,2026,4,find,,3,7,4695883,15847,Jalen Coker,Travis Kelce,21.2,3.2,4.6,0.689,,,23.6,2.2,20.7,8.6,6.1,-2.0
+2026-10-02T22:11Z,2026,4,find,,3,7,4695883,15847 4429013,Jalen Coker,"Travis Kelce, Tank Bigsby",21.1,3.1,4.5,0.689,Josh Jacobs,,23.3,2.2,20.7,8.6,6.0,-2.0
+2026-10-02T22:11Z,2026,4,find,,3,1,4685702,4432710 4430027,Quinshon Judkins,"TreVeyon Henderson, Sam LaPorta",19.9,2.9,4.1,0.606,Josh Jacobs,,21.4,-3.8,20.3,15.3,1.5,-10.3
+2026-10-02T22:11Z,2026,4,find,,3,1,4685702,4426348 4361050,Quinshon Judkins,"Jayden Daniels, Isaiah Likely",20.6,3.3,5.1,0.689,Josh Jacobs,,29.4,-15.2,27.4,8.2,-0.5,7.8
+2026-10-02T22:11Z,2026,4,find,,3,1,4685702,4430027 4608686,Quinshon Judkins,"Sam LaPorta, Kyle Monangai",18.6,6.0,3.8,0.606,Josh Jacobs,,21.2,-3.8,19.9,16.0,0.7,-4.2
+2026-10-02T22:11Z,2026,4,find,,3,1,4685702,4430027 4683062,Quinshon Judkins,"Sam LaPorta, Xavier Worthy",18.5,5.9,3.7,0.606,Josh Jacobs,,20.6,-3.2,20.4,15.0,0.2,-3.4
+2026-10-02T22:11Z,2026,4,find,,3,1,16737,4430027 4683062,Mike Evans,"Sam LaPorta, Xavier Worthy",18.9,1.5,4.0,0.606,Josh Jacobs,,17.7,2.4,22.4,3.3,5.4,-11.5
+2026-10-02T22:11Z,2026,4,find,,3,1,16737,4430027 4870795,Mike Evans,"Sam LaPorta, Makai Lemon",18.6,2.1,4.0,0.606,Josh Jacobs,,17.3,2.6,22.9,1.7,5.6,-11.5
+2026-10-02T22:11Z,2026,4,find,,3,1,4685702,4430027,Quinshon Judkins,Sam LaPorta,18.4,6.8,3.7,0.606,,,20.7,-2.9,19.9,16.1,0.2,-2.9
+2026-10-02T22:11Z,2026,4,find,,3,1,4685702,4430027 4870795,Quinshon Judkins,"Sam LaPorta, Makai Lemon",18.3,6.7,3.7,0.606,Josh Jacobs,,20.3,-2.9,20.8,13.2,0.3,-3.3

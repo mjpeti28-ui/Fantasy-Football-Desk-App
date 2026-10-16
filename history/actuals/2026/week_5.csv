@@ -1,0 +1,149 @@
+week,espn_id,name,name_norm,position,fantasy_team,points,played
+5,4362628,Ja'Marr Chase,jamarr chase,WR,Avoid the Noid,19.7,True
+5,4685382,Omarion Hampton,omarion hampton,RB,Avoid the Noid,4.9,True
+5,4258173,Nico Collins,nico collins,WR,Avoid the Noid,10.6,True
+5,4567750,Emeka Egbuka,emeka egbuka,WR,Avoid the Noid,17.2,True
+5,4429615,Zay Flowers,zay flowers,WR,Avoid the Noid,14.6,True
+5,4426348,Jayden Daniels,jayden daniels,QB,Avoid the Noid,32.26,True
+5,4432710,TreVeyon Henderson,treveyon henderson,RB,Avoid the Noid,4.8,True
+5,4430027,Sam LaPorta,sam laporta,TE,Avoid the Noid,19.8,True
+5,4426338,Bo Nix,bo nix,QB,Avoid the Noid,7.92,True
+5,4361050,Isaiah Likely,isaiah likely,TE,Avoid the Noid,32.4,True
+5,4608686,Kyle Monangai,kyle monangai,RB,Avoid the Noid,0.0,False
+5,4686361,Cam Little,cam little,K,Avoid the Noid,9.0,True
+5,-16023,Steelers D/ST,steelers d st,DST,Avoid the Noid,1.0,True
+5,4262921,Justin Jefferson,justin jefferson,WR,Kirkwood Kittens,18.8,True
+5,4361579,Javonte Williams,javonte williams,RB,Kirkwood Kittens,14.2,True
+5,3916387,Lamar Jackson,lamar jackson,QB,Kirkwood Kittens,0.0,False
+5,4372016,Jaylen Waddle,jaylen waddle,WR,Kirkwood Kittens,4.8,True
+5,-16034,Texans D/ST,texans d st,DST,Kirkwood Kittens,15.0,True
+5,4360248,Kyle Pitts Sr.,kyle pitts,TE,Kirkwood Kittens,15.2,True
+5,3953687,Brandon Aubrey,brandon aubrey,K,Kirkwood Kittens,5.0,True
+5,4569987,Jaylen Warren,jaylen warren,RB,Kirkwood Kittens,38.8,True
+5,4241985,J.K. Dobbins,jk dobbins,RB,Kirkwood Kittens,15.4,True
+5,4431611,Caleb Williams,caleb williams,QB,Kirkwood Kittens,0.0,False
+5,2976212,Stefon Diggs,stefon diggs,WR,Kirkwood Kittens,0.0,False
+5,4036133,T.J. Hockenson,tj hockenson,TE,Kirkwood Kittens,1.7,True
+5,3042519,Aaron Jones Sr.,aaron jones,RB,Kirkwood Kittens,18.7,True
+5,4241463,Jerry Jeudy,jerry jeudy,WR,Kirkwood Kittens,4.9,True
+5,2578570,Jacoby Brissett,jacoby brissett,QB,Kirkwood Kittens,25.28,True
+5,4379399,James Cook III,james cook,RB,The Little Stinkers,22.8,True
+5,4241389,CeeDee Lamb,ceedee lamb,WR,The Little Stinkers,2.9,True
+5,3918298,Josh Allen,josh allen,QB,The Little Stinkers,30.5,True
+5,4569618,Garrett Wilson,garrett wilson,WR,The Little Stinkers,23.4,True
+5,4685702,Quinshon Judkins,quinshon judkins,RB,The Little Stinkers,8.0,True
+5,4723086,Colston Loveland,colston loveland,TE,The Little Stinkers,3.9,True
+5,4685512,Jadarian Price,jadarian price,RB,The Little Stinkers,0.0,False
+5,16737,Mike Evans,mike evans,WR,The Little Stinkers,26.3,True
+5,4248528,Christian Watson,christian watson,WR,The Little Stinkers,33.3,True
+5,4567104,Will Reichard,will reichard,K,The Little Stinkers,16.0,True
+5,4047365,Josh Jacobs,josh jacobs,RB,The Little Stinkers,0.0,False
+5,-16016,Vikings D/ST,vikings d st,DST,The Little Stinkers,13.0,True
+5,5083315,Kenyon Sadiq,kenyon sadiq,TE,The Little Stinkers,0.3,True
+5,4880281,Jordyn Tyson,jordyn tyson,WR,The Little Stinkers,0.0,False
+5,4832800,Denzel Boston,denzel boston,WR,The Little Stinkers,13.6,True
+5,4430807,Bijan Robinson,bijan robinson,RB,Righteous Gemstones,15.8,True
+5,4432665,Brock Bowers,brock bowers,TE,Righteous Gemstones,23.0,True
+5,16800,Davante Adams,davante adams,WR,Righteous Gemstones,22.1,True
+5,4239996,Travis Etienne Jr.,travis etienne,RB,Righteous Gemstones,0.0,False
+5,4685278,Luther Burden III,luther burden,WR,Righteous Gemstones,8.9,True
+5,4871023,Carnell Tate,carnell tate,WR,Righteous Gemstones,1.6,True
+5,2577417,Dak Prescott,dak prescott,QB,Righteous Gemstones,13.64,True
+5,4035687,Michael Pittman Jr.,michael pittman,WR,Righteous Gemstones,0.0,False
+5,4361741,Brock Purdy,brock purdy,QB,Righteous Gemstones,16.16,True
+5,4572680,Tucker Kraft,tucker kraft,TE,Righteous Gemstones,11.6,True
+5,4697815,Rachaad White,rachaad white,RB,Righteous Gemstones,3.0,True
+5,2473037,Jason Myers,jason myers,K,Righteous Gemstones,23.0,True
+5,4575131,Jacory Croskey-Merritt,jacory croskey merritt,RB,Righteous Gemstones,14.2,True
+5,4429205,Jordan Addison,jordan addison,WR,Righteous Gemstones,0.0,False
+5,-16020,Jets D/ST,jets d st,DST,Righteous Gemstones,18.0,True
+5,4426515,Puka Nacua,puka nacua,WR,K-Wood Super Marios,37.7,True
+5,4361307,Trey McBride,trey mcbride,TE,K-Wood Super Marios,21.6,True
+5,4595348,Malik Nabers,malik nabers,WR,K-Wood Super Marios,29.1,True
+5,4426388,Jameson Williams,jameson williams,WR,K-Wood Super Marios,18.7,True
+5,12483,Matthew Stafford,matthew stafford,QB,K-Wood Super Marios,28.32,True
+5,4035538,David Montgomery,david montgomery,RB,K-Wood Super Marios,1.1,True
+5,4569173,Rhamondre Stevenson,rhamondre stevenson,RB,K-Wood Super Marios,17.5,True
+5,4242355,Jake Ferguson,jake ferguson,TE,K-Wood Super Marios,4.9,True
+5,4371733,Kenny Gainwell,kenny gainwell,RB,K-Wood Super Marios,5.8,True
+5,4429096,Blake Corum,blake corum,RB,K-Wood Super Marios,16.2,True
+5,3046779,Jared Goff,jared goff,QB,K-Wood Super Marios,28.94,True
+5,-16017,Patriots D/ST,patriots d st,DST,K-Wood Super Marios,6.0,True
+5,4034949,Eddy Pineiro,eddy pineiro,K,K-Wood Super Marios,6.0,True
+5,4429023,MarShawn Lloyd,marshawn lloyd,RB,K-Wood Super Marios,16.7,True
+5,4374302,Amon-Ra St. Brown,amon ra st brown,WR,Braeside  Bangers,12.9,True
+5,3929630,Saquon Barkley,saquon barkley,RB,Braeside  Bangers,0.0,False
+5,4361370,Chris Olave,chris olave,WR,Braeside  Bangers,8.6,True
+5,4430737,Kyren Williams,kyren williams,RB,Braeside  Bangers,19.6,True
+5,4038941,Justin Herbert,justin herbert,QB,Braeside  Bangers,10.24,True
+5,4696981,Cam Skattebo,cam skattebo,RB,Braeside  Bangers,7.1,True
+5,3128429,Courtland Sutton,courtland sutton,WR,Braeside  Bangers,9.8,True
+5,3040151,George Kittle,george kittle,TE,Braeside  Bangers,7.4,True
+5,4574716,Harrison Mevis,harrison mevis,K,Braeside  Bangers,2.0,True
+5,4361432,Romeo Doubs,romeo doubs,WR,Braeside  Bangers,2.6,True
+5,17372,Chris Boswell,chris boswell,K,Braeside  Bangers,13.0,True
+5,4429013,Tank Bigsby,tank bigsby,RB,Braeside  Bangers,0.0,False
+5,4360689,Tyler Shough,tyler shough,QB,Braeside  Bangers,-0.16,True
+5,-16006,Cowboys D/ST,cowboys d st,DST,Braeside  Bangers,-2.0,True
+5,4887558,Emanuel Wilson,emanuel wilson,RB,Braeside  Bangers,13.2,True
+5,3117251,Christian McCaffrey,christian mccaffrey,RB,3rd and 41,17.3,True
+5,4870808,Jeremiyah Love,jeremiyah love,RB,3rd and 41,2.2,True
+5,4426354,George Pickens,george pickens,WR,3rd and 41,28.0,True
+5,4040715,Jalen Hurts,jalen hurts,QB,3rd and 41,13.0,True
+5,4431299,Rome Odunze,rome odunze,WR,3rd and 41,5.0,True
+5,5083076,Harold Fannin Jr.,harold fannin,TE,3rd and 41,1.4,True
+5,4882093,Bhayshul Tuten,bhayshul tuten,RB,3rd and 41,11.6,True
+5,4360078,Alec Pierce,alec pierce,WR,3rd and 41,0.0,False
+5,4701936,Matthew Golden,matthew golden,WR,3rd and 41,20.3,True
+5,3916433,Jakobi Meyers,jakobi meyers,WR,3rd and 41,5.7,True
+5,4569587,Wan'Dale Robinson,wandale robinson,WR,3rd and 41,11.3,True
+5,4697745,Tyler Loop,tyler loop,K,3rd and 41,14.0,True
+5,-16026,Seahawks D/ST,seahawks d st,DST,3rd and 41,11.0,True
+5,4688813,Josh Downs,josh downs,WR,3rd and 41,7.7,True
+5,4711533,Ollie Gordon II,ollie gordon,RB,3rd and 41,14.8,True
+5,4685247,Braelon Allen,braelon allen,RB,3rd and 41,18.6,True
+5,4242335,Jonathan Taylor,jonathan taylor,RB,Kansas City Carnevores,11.2,True
+5,4426502,Drake London,drake london,WR,Kansas City Carnevores,18.8,True
+5,4047646,A.J. Brown,aj brown,WR,Kansas City Carnevores,0.0,False
+5,4431452,Drake Maye,drake maye,QB,Kansas City Carnevores,40.46,True
+5,3121422,Terry McLaurin,terry mclaurin,WR,Kansas City Carnevores,12.2,True
+5,4431459,Tyler Warren,tyler warren,TE,Kansas City Carnevores,21.4,True
+5,4259545,D'Andre Swift,dandre swift,RB,Kansas City Carnevores,17.3,True
+5,4047650,DK Metcalf,dk metcalf,WR,Kansas City Carnevores,5.3,True
+5,-16014,Rams D/ST,rams d st,DST,Kansas City Carnevores,-1.0,True
+5,4038815,Rico Dowdle,rico dowdle,RB,Kansas City Carnevores,0.0,False
+5,3116365,Mark Andrews,mark andrews,TE,Kansas City Carnevores,4.8,True
+5,4373678,Khalil Shakir,khalil shakir,WR,Kansas City Carnevores,11.0,True
+5,2971573,Ka'imi Fairbairn,kaimi fairbairn,K,Kansas City Carnevores,17.0,True
+5,4036378,Jordan Love,jordan love,QB,Kansas City Carnevores,26.28,True
+5,4569559,Devaughn Vele,devaughn vele,WR,Kansas City Carnevores,6.6,True
+5,4430878,Jaxon Smith-Njigba,jaxon smith njigba,WR,Dobis P.R.,22.8,True
+5,4362238,Chase Brown,chase brown,RB,Dobis P.R.,7.0,True
+5,4890973,Ashton Jeanty,ashton jeanty,RB,Dobis P.R.,10.7,True
+5,4427366,Breece Hall,breece hall,RB,Dobis P.R.,0.0,False
+5,4612826,Ladd McConkey,ladd mcconkey,WR,Dobis P.R.,0.0,False
+5,3915416,DJ Moore,dj moore,WR,Dobis P.R.,0.0,False
+5,4596448,Bucky Irving,bucky irving,RB,Dobis P.R.,31.5,True
+5,4360310,Trevor Lawrence,trevor lawrence,QB,Dobis P.R.,22.74,True
+5,4432620,Parker Washington,parker washington,WR,Dobis P.R.,31.4,True
+5,4360761,Michael Wilson,michael wilson,WR,Dobis P.R.,7.28,True
+5,4385690,Dalton Kincaid,dalton kincaid,TE,Dobis P.R.,3.7,True
+5,4362249,Jayden Reed,jayden reed,WR,Dobis P.R.,0.0,False
+5,3929645,Juwan Johnson,juwan johnson,TE,Dobis P.R.,5.6,True
+5,4571557,Spencer Shrader,spencer shrader,K,Dobis P.R.,21.0,True
+5,-16030,Jaguars D/ST,jaguars d st,DST,Dobis P.R.,4.0,True
+5,4429795,Jahmyr Gibbs,jahmyr gibbs,RB,Blue Streak Bombers,37.7,True
+5,3043078,Derrick Henry,derrick henry,RB,Blue Streak Bombers,21.0,True
+5,4241478,DeVonta Smith,devonta smith,WR,Blue Streak Bombers,0.0,False
+5,4239993,Tee Higgins,tee higgins,WR,Blue Streak Bombers,4.2,True
+5,3915511,Joe Burrow,joe burrow,QB,Blue Streak Bombers,24.6,True
+5,4432708,Marvin Harrison Jr.,marvin harrison,WR,Blue Streak Bombers,0.0,False
+5,3121023,Dallas Goedert,dallas goedert,TE,Blue Streak Bombers,9.8,True
+5,4362081,Cameron Dicker,cameron dicker,K,Blue Streak Bombers,6.0,True
+5,-16007,Broncos D/ST,broncos d st,DST,Blue Streak Bombers,14.0,True
+5,3916148,Tony Pollard,tony pollard,RB,Blue Streak Bombers,5.2,True
+5,3126486,Deebo Samuel Sr.,deebo samuel,WR,Blue Streak Bombers,2.5,True
+5,3052587,Baker Mayfield,baker mayfield,QB,Blue Streak Bombers,0.0,False
+5,3046439,Hunter Henry,hunter henry,TE,Blue Streak Bombers,13.4,True
+5,3116165,Chris Godwin Jr.,chris godwin,WR,Blue Streak Bombers,7.0,True
+5,4568490,RJ Harvey,rj harvey,RB,Blue Streak Bombers,0.7,True

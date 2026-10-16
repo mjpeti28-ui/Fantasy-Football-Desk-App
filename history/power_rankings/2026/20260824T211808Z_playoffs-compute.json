@@ -1,0 +1,133 @@
+{
+  "createdAt": "2026-08-24T21:18:08.700680+00:00",
+  "source": "playoffs.compute",
+  "season": 2026,
+  "week": null,
+  "tags": [
+    "playoffs",
+    "baseline",
+    "source:playoffs.compute",
+    "season:2026",
+    "rankings:PFF_rankings.csv",
+    "projections:projections.csv",
+    "bench_ovar_beta:0.25",
+    "bench_percentile_clamp:0.05",
+    "bench_z_fallback_threshold:3",
+    "combined_bench_weight:0.2",
+    "combined_starters_weight:0.8",
+    "projection_scale_beta:0.5",
+    "replacement_skip_pct:0.1",
+    "replacement_window:3",
+    "scarcity_method:monotone_cubic",
+    "scarcity_positions:['QB', 'RB', 'TE', 'WR']",
+    "scarcity_sample_step:0.5"
+  ],
+  "rankingsPath": "PFF_rankings.csv",
+  "projectionsPath": "projections.csv",
+  "supplementalPath": null,
+  "settings": {
+    "projection_scale_beta": 0.5,
+    "replacement_skip_pct": 0.1,
+    "replacement_window": 3,
+    "bench_ovar_beta": 0.25,
+    "combined_starters_weight": 0.8,
+    "combined_bench_weight": 0.2,
+    "bench_z_fallback_threshold": 3.0,
+    "bench_percentile_clamp": 0.05,
+    "scarcity_method": "monotone_cubic",
+    "scarcity_positions": [
+      "QB",
+      "RB",
+      "TE",
+      "WR"
+    ],
+    "scarcity_sample_step": 0.5
+  },
+  "teams": [
+    {
+      "rank": 1,
+      "team": "Dobis_P_R",
+      "combinedScore": 1.18,
+      "starterVOR": 582.59,
+      "benchScore": 869.77,
+      "starterProjection": 1772.45
+    },
+    {
+      "rank": 2,
+      "team": "3rd_and_41",
+      "combinedScore": 1.021,
+      "starterVOR": 607.09,
+      "benchScore": 631.25,
+      "starterProjection": 1796.95
+    },
+    {
+      "rank": 3,
+      "team": "Righteous_Gemstones",
+      "combinedScore": 0.467,
+      "starterVOR": 553.56,
+      "benchScore": 751.44,
+      "starterProjection": 1725.77
+    },
+    {
+      "rank": 4,
+      "team": "Kansas_City_Carnevores",
+      "combinedScore": 0.364,
+      "starterVOR": 567.97,
+      "benchScore": 606.75,
+      "starterProjection": 1768.55
+    },
+    {
+      "rank": 5,
+      "team": "Avoid_the_Noid",
+      "combinedScore": 0.36,
+      "starterVOR": 555.74,
+      "benchScore": 688.96,
+      "starterProjection": 1767.04
+    },
+    {
+      "rank": 6,
+      "team": "The_Little_Stinkers",
+      "combinedScore": 0.336,
+      "starterVOR": 552.96,
+      "benchScore": 697.1,
+      "starterProjection": 1753.54
+    },
+    {
+      "rank": 7,
+      "team": "K_Wood_Super_Marios",
+      "combinedScore": 0.188,
+      "starterVOR": 535.58,
+      "benchScore": 750.43,
+      "starterProjection": 1746.88
+    },
+    {
+      "rank": 8,
+      "team": "Blue_Streak_Bombers",
+      "combinedScore": -0.931,
+      "starterVOR": 479.87,
+      "benchScore": 633.83,
+      "starterProjection": 1680.45
+    },
+    {
+      "rank": 9,
+      "team": "Braeside_Bangers",
+      "combinedScore": -1.259,
+      "starterVOR": 469.75,
+      "benchScore": 557.06,
+      "starterProjection": 1659.61
+    },
+    {
+      "rank": 10,
+      "team": "Kirkwood_Kittens",
+      "combinedScore": -1.725,
+      "starterVOR": 434.6,
+      "benchScore": 590.73,
+      "starterProjection": 1635.18
+    }
+  ],
+  "meta": {
+    "scheduleSource": "schedule.csv",
+    "numSimulations": 5000,
+    "playoffTeams": 8
+  }
+}

@@ -1,0 +1,424 @@
+from __future__ import annotations
+
+from copy import deepcopy
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Tuple
+
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
+from fastapi.responses import JSONResponse
+
+from api.background import JobManager
+from api.dependencies import get_context_manager, get_job_manager, require_api_key
+from api.models import (
+    JobCreatedResponse,
+    JobStatus,
+    TradeEvaluateRequest,
+    TradeEvaluateResponse,
+    TradeFindRequest,
+    TradeFindResponse,
+    TradePiece,
+    TradeProposal,
+    TradeTeamResult,
+)
+from api.utils import (
+    build_leaderboards_map,
+    build_team_details,
+    build_team_metadata_map,
+    build_zero_sum_payload,
+    build_zero_sum_shift,
+    coerce_float,
+)
+from config import SCORABLE_POS
+from context import ContextManager
+from trading import TradeFinder
+from pydantic import ValidationError
+
+router = APIRouter(prefix="/trade", tags=["trade"], dependencies=[Depends(require_api_key)])
+
+
+def _instantiate_finder(ctx: ContextManager) -> TradeFinder:
+    rankings_path = str(ctx.rankings_path)
+    projections_path = str(ctx.projections_path) if ctx.projections_path else None
+    finder = TradeFinder(rankings_path, projections_path, build_baseline=True)
+    finder.rosters = deepcopy(ctx.rosters)
+    finder.team_targets = {
+        team: finder._team_player_count(roster)  # noqa: SLF001
+        for team, roster in finder.rosters.items()
+    }
+    finder.team_groups = {
+        team: {grp for grp in roster if grp in SCORABLE_POS}
+        for team, roster in finder.rosters.items()
+    }
+    return finder
+
+
+def _resolve_team_key(rosters: Dict[str, Dict[str, List[str]]], team: str) -> str:
+    if team in rosters:
+        return team
+    normalized = team.replace("_", "").replace(" ", "").lower()
+    for key in rosters:
+        if key.replace("_", "").replace(" ", "").lower() == normalized:
+            return key
+    raise KeyError(team)
+
+
+def _convert_pieces(pieces) -> List[Tuple[str, str]]:
+    return [(piece.group, piece.name) for piece in pieces]
+
+
+def _convert_to_tradepieces(entries: List[Tuple[str, str]]) -> List[TradePiece]:
+    return [TradePiece(group=grp, name=name) for grp, name in entries]
+
+
+def _should_run_async(request: TradeFindRequest, force_async: bool) -> bool:
+    if force_async:
+        return True
+    pool = request.player_pool or TradeFindRequest.model_fields["player_pool"].default
+    max_players = request.max_players or TradeFindRequest.model_fields["max_players"].default
+    top_results = request.top_results or TradeFindRequest.model_fields["top_results"].default
+    return pool > 24 or max_players > 3 or top_results > 8
+
+
+def _build_trade_find_response(
+    manager: ContextManager,
+    request_model: TradeFindRequest,
+    display_names: tuple[str, str] | None = None,
+) -> TradeFindResponse:
+    ctx = manager.get()
+    finder = _instantiate_finder(ctx)
+    team_metadata = build_team_metadata_map(ctx.rosters, ctx.espn_league)
+    finder.team_metadata = team_metadata
+
+    team_a_key = request_model.team_a
+    team_b_key = request_model.team_b
+    if display_names is None:
+        display_a, display_b = team_a_key, team_b_key
+    else:
+        display_a, display_b = display_names
+
+    def _display_for(name: str) -> str:
+        if name == team_a_key:
+            return display_a
+        if name == team_b_key:
+            return display_b
+        return name
+
+    results = finder.find_trades(
+        team_a_key,
+        team_b_key,
+        max_players=request_model.max_players,
+        player_pool=request_model.player_pool,
+        top_results=request_model.top_results,
+        top_bench=request_model.top_bench,
+        min_gain_a=request_model.min_gain_a,
+        max_loss_b=request_model.max_loss_b,
+        prune_margin=request_model.prune_margin,
+        min_upper_bound=request_model.min_upper_bound,
+        fairness_mode=request_model.fairness_mode,
+        fairness_self_bias=request_model.fairness_self_bias,
+        fairness_penalty_weight=request_model.fairness_penalty_weight,
+        consolidation_bonus=request_model.consolidation_bonus,
+        drop_tax_factor=request_model.drop_tax_factor,
+        acceptance_fairness_weight=request_model.acceptance_fairness_weight,
+        acceptance_need_weight=request_model.acceptance_need_weight,
+        acceptance_star_weight=request_model.acceptance_star_weight,
+        acceptance_need_scale=request_model.acceptance_need_scale,
+        star_vor_scale=request_model.star_vor_scale,
+        drop_tax_acceptance_weight=request_model.drop_tax_acceptance_weight,
+        narrative_on=request_model.narrative_on,
+        min_acceptance=request_model.min_acceptance,
+        verbose=False,
+        show_progress=False,
+        must_receive_from_b=request_model.must_receive_b or None,
+        must_send_from_a=request_model.must_send_a or None,
+    )
+
+    baseline = finder.baseline
+    if baseline is None:
+        baseline = finder._evaluate(finder.rosters, include_details=True)  # noqa: SLF001
+        finder.baseline = baseline
+
+    proposals: List[TradeProposal] = []
+    for entry in results:
+        combined = {
+            _display_for(team): coerce_float(val)
+            for team, val in entry.get("combined", {}).items()
+        }
+        delta = {
+            _display_for(team): coerce_float(val)
+            for team, val in entry.get("delta", {}).items()
+        }
+        evaluation = entry.get("evaluation", {})
+        details_payload = None
+        leaderboards_payload = None
+        if request_model.include_details and evaluation:
+            details_payload = build_team_details(
+                [team_a_key, team_b_key],
+                results=evaluation.get("results", {}),
+                bench_tables=evaluation.get("bench_tables", {}),
+                bench_limit=request_model.bench_limit,
+            )
+            for detail in details_payload:
+                detail.team = _display_for(detail.team)
+        if evaluation:
+            leaderboards_payload = build_leaderboards_map(
+                {
+                    "starters": evaluation.get("starters_board", []),
+                    "bench": evaluation.get("bench_board", []),
+                    "combined": evaluation.get("combined_board", []),
+                }
+            )
+
+        proposals.append(
+            TradeProposal(
+                send_a=_convert_to_tradepieces(entry.get("send_a", [])),
+                send_b=_convert_to_tradepieces(entry.get("send_b", [])),
+                receive_a=_convert_to_tradepieces(entry.get("receive_a", [])),
+                receive_b=_convert_to_tradepieces(entry.get("receive_b", [])),
+                combined_scores=combined,
+                delta=delta,
+                score=coerce_float(entry.get("score")),
+                acceptance=coerce_float(entry.get("acceptance")),
+                fairness_split=entry.get("fairness_split"),
+                drop_tax={team: coerce_float(val) for team, val in entry.get("drop_tax", {}).items()},
+                star_gain={team: coerce_float(val) for team, val in entry.get("star_gain", {}).items()},
+                narrative={team: str(msg) for team, msg in entry.get("narrative", {}).items()},
+                details=details_payload,
+                leaderboards=leaderboards_payload,
+                team_metadata={
+                    _display_for(name): value
+                    for name, value in entry.get(
+                        "team_metadata",
+                        {
+                            team_a_key: team_metadata.get(team_a_key, {}),
+                            team_b_key: team_metadata.get(team_b_key, {}),
+                        },
+                    ).items()
+                },
+            )
+        )
+
+    evaluated_at = datetime.now(timezone.utc)
+    baseline_combined = baseline.get("combined_scores", {}) if baseline else {}
+    baseline_combined_display = {
+        _display_for(team): coerce_float(val)
+        for team, val in baseline_combined.items()
+    }
+    team_metadata_display = dict(team_metadata)
+    team_metadata_display[display_a] = team_metadata.get(team_a_key, {})
+    team_metadata_display[display_b] = team_metadata.get(team_b_key, {})
+    return TradeFindResponse(
+        evaluated_at=evaluated_at,
+        baseline_combined=baseline_combined_display,
+        proposals=proposals,
+        team_metadata=team_metadata_display,
+    )
+
+
+@router.post("/evaluate", response_model=TradeEvaluateResponse, summary="Evaluate a proposed trade")
+async def evaluate_trade_endpoint(
+    payload: TradeEvaluateRequest,
+    manager: ContextManager = Depends(get_context_manager),
+) -> TradeEvaluateResponse:
+    ctx = manager.get()
+    finder = _instantiate_finder(ctx)
+    team_metadata = build_team_metadata_map(ctx.rosters, ctx.espn_league)
+    finder.team_metadata = team_metadata
+
+    try:
+        team_a_key = _resolve_team_key(finder.rosters, payload.team_a)
+        team_b_key = _resolve_team_key(finder.rosters, payload.team_b)
+    except KeyError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unknown team") from None
+
+    send_a = _convert_pieces(payload.send_a)
+    send_b = _convert_pieces(payload.send_b)
+
+    try:
+        trade_data = finder.evaluate_trade(
+            team_a_key,
+            team_b_key,
+            send_a,
+            send_b,
+            include_details=True,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    baseline = finder.baseline
+    if baseline is None:
+        baseline = finder._evaluate(finder.rosters, include_details=True)  # noqa: SLF001
+        finder.baseline = baseline
+
+    baseline_combined = baseline["combined_scores"]
+    combined_scores = trade_data.get("combined_scores", {})
+
+    teams_payload: List[TradeTeamResult] = []
+    name_map = {
+        payload.team_a: team_a_key,
+        payload.team_b: team_b_key,
+    }
+
+    for display_name, canonical in name_map.items():
+        base_val = coerce_float(baseline_combined.get(canonical))
+        post_val = coerce_float(combined_scores.get(canonical))
+        teams_payload.append(
+            TradeTeamResult(
+                team=display_name,
+                baseline=base_val,
+                post_trade=post_val,
+                delta=post_val - base_val,
+            )
+        )
+
+    details_payload = None
+    if payload.include_details:
+        results = trade_data.get("results", {})
+        bench_tables = trade_data.get("bench_tables", {})
+        details_payload = build_team_details(
+            [team_a_key, team_b_key],
+            results=results,
+            bench_tables=bench_tables,
+            bench_limit=payload.bench_limit,
+        )
+        for detail in details_payload:
+            for display_name, canonical in name_map.items():
+                if detail.team == canonical:
+                    detail.team = display_name
+                    break
+
+    leaderboards_raw: Dict[str, List] = {
+        "starters": trade_data.get("starters_board", []),
+        "bench": trade_data.get("bench_board", []),
+        "combined": trade_data.get("combined_board", []),
+    }
+
+    zero_sum_before_raw = baseline.get("zero_sum", {}) if baseline else {}
+    zero_sum_after_raw = trade_data.get("zero_sum", {})
+    zero_sum_before = build_zero_sum_payload(zero_sum_before_raw)
+    zero_sum_after = build_zero_sum_payload(zero_sum_after_raw)
+    zero_sum_shift = build_zero_sum_shift(
+        zero_sum_before_raw,
+        zero_sum_after_raw,
+        focus_teams=[team_a_key, team_b_key],
+    )
+
+    evaluated_at = datetime.now(timezone.utc)
+    combined_scores_display = {team: coerce_float(val) for team, val in combined_scores.items()}
+    starter_vor_display = {team: coerce_float(val) for team, val in trade_data.get("starter_vor", {}).items()}
+    bench_totals_display = {team: coerce_float(val) for team, val in trade_data.get("bench_totals", {}).items()}
+    for display_name, canonical in name_map.items():
+        value = coerce_float(combined_scores.get(canonical))
+        combined_scores_display[display_name] = value
+        starter_vor_display[display_name] = coerce_float(trade_data.get("starter_vor", {}).get(canonical))
+        bench_totals_display[display_name] = coerce_float(trade_data.get("bench_totals", {}).get(canonical))
+
+    return TradeEvaluateResponse(
+        evaluated_at=evaluated_at,
+        teams=teams_payload,
+        combined_scores=combined_scores_display,
+        replacement_points={k: coerce_float(v) for k, v in trade_data.get("replacement_points", {}).items()},
+        replacement_targets={k: coerce_float(v) for k, v in trade_data.get("replacement_targets", {}).items()},
+        starter_vor=starter_vor_display,
+        bench_totals=bench_totals_display,
+        zero_sum_before=zero_sum_before,
+        zero_sum_after=zero_sum_after,
+        zero_sum_shift=zero_sum_shift,
+        leaderboards=build_leaderboards_map(leaderboards_raw),
+        details=details_payload,
+        team_metadata=team_metadata,
+    )
+
+
+@router.post("/find", response_model=TradeFindResponse, summary="Search for favorable trades")
+async def find_trades_endpoint(
+    payload: Dict[str, Any] | None = Body(default=None),
+    team_a: str | None = Query(None, alias="teamA"),
+    team_b: str | None = Query(None, alias="teamB"),
+    max_players: int | None = Query(None, alias="maxPlayers"),
+    player_pool: int | None = Query(None, alias="playerPool"),
+    top_results: int | None = Query(None, alias="topResults"),
+    top_bench: int | None = Query(None, alias="topBench"),
+    include_details: bool | None = Query(None, alias="includeDetails"),
+    bench_limit: int | None = Query(None, alias="benchLimit"),
+    run_async: bool = Query(False, alias="runAsync"),
+    manager: ContextManager = Depends(get_context_manager),
+    jobs: JobManager = Depends(get_job_manager),
+) -> TradeFindResponse | JSONResponse:
+    request_model: TradeFindRequest
+
+    if payload:
+        try:
+            request_model = TradeFindRequest.model_validate(payload)
+        except ValidationError as exc:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=exc.errors()) from exc
+    else:
+        if team_a is None or team_b is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="teamA and teamB are required",
+            )
+        data: Dict[str, Any] = {
+            "team_a": team_a,
+            "team_b": team_b,
+        }
+        if max_players is not None:
+            data["max_players"] = max_players
+        if player_pool is not None:
+            data["player_pool"] = player_pool
+        if top_results is not None:
+            data["top_results"] = top_results
+        if top_bench is not None:
+            data["top_bench"] = top_bench
+        if include_details is not None:
+            data["include_details"] = include_details
+        if bench_limit is not None:
+            data["bench_limit"] = bench_limit
+        request_model = TradeFindRequest(**data)
+
+    ctx = manager.get()
+    try:
+        team_a_key = _resolve_team_key(ctx.rosters, request_model.team_a)
+        team_b_key = _resolve_team_key(ctx.rosters, request_model.team_b)
+    except KeyError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unknown team") from None
+
+    internal_request = request_model.model_copy(update={"team_a": team_a_key, "team_b": team_b_key})
+
+    if _should_run_async(request_model, run_async):
+
+        def job_func() -> Dict[str, Any]:
+            try:
+                response = _build_trade_find_response(
+                    manager,
+                    internal_request,
+                    display_names=(request_model.team_a, request_model.team_b),
+                )
+            except ValueError as exc:  # propagate as failure message
+                raise RuntimeError(str(exc)) from exc
+            return response.model_dump(by_alias=True)
+
+        job_id = jobs.create_job(
+            "trade.find",
+            job_func,
+            metadata={
+                "teamA": request_model.team_a,
+                "teamB": request_model.team_b,
+                "playerPool": request_model.player_pool,
+                "maxPlayers": request_model.max_players,
+                "topResults": request_model.top_results,
+            },
+        )
+        poll_url = f"/jobs/{job_id}"
+        created = JobCreatedResponse(jobId=job_id, status=JobStatus.pending, jobType="trade.find", pollUrl=poll_url)
+        return JSONResponse(status_code=status.HTTP_202_ACCEPTED, content=created.model_dump(by_alias=True))
+
+    try:
+        response = _build_trade_find_response(
+            manager,
+            internal_request,
+            display_names=(request_model.team_a, request_model.team_b),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    return response

@@ -1,0 +1,34 @@
+{
+  "season": 2022,
+  "teams": 12,
+  "team_names": {
+    "1": "Frasier  Claus",
+    "2": "Kirkwood Kittens",
+    "3": "The Little Stinkers",
+    "4": "Flavortown Fieris",
+    "5": "Hines Ward  Jersey",
+    "6": "STL  Lunatics",
+    "7": "Braeside  Bangers",
+    "8": "Tompa Babies",
+    "9": "Kansas City Carnevores",
+    "10": "Malone's Mayday Murderers",
+    "11": "Tuscan Hairy Snakes",
+    "12": "U City  BeephWellington"
+  },
+  "lineup_slot_counts": {
+    "QB": 1,
+    "RB": 1,
+    "RB/WR": 1,
+    "WR": 1,
+    "WR/TE": 1,
+    "TE": 1,
+    "DST": 1,
+    "K": 1,
+    "BE": 7,
+    "IR": 2,
+    "FLEX": 1
+  },
+  "regular_season_weeks": 14,
+  "playoff_teams": 8,
+  "seeding": "TOTAL_POINTS_SCORED"
+}

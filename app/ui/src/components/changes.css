@@ -1,0 +1,22 @@
+/* What's new: a native-feeling popover under the titlebar (system font, compact rows). */
+.chg-btn { position: relative; }
+.chg-btn .badge { font: 700 10.5px/1 var(--sys); background: var(--you); color: var(--on-you); border-radius: 999px; padding: 2px 6px; margin-left: 2px; }
+.chg-panel { position: fixed; top: 48px; right: 12px; z-index: 55; width: min(460px, calc(100vw - 24px)); max-height: min(70vh, 640px); overflow-y: auto;
+  background: var(--win); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 18px 50px rgba(0, 0, 0, .3); font: 13px var(--sys); padding: 12px 14px; display: grid; gap: 10px; }
+.chg-panel header { display: grid; gap: 2px; }
+.chg-panel header b { font-size: 15px; }
+.chg-panel header span { color: var(--ink-2); font-size: 12px; }
+.chg-panel h6 { margin: 0 0 4px; font: 600 10.5px var(--sys); text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); }
+.chg-panel ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+.chg-panel li { display: grid; grid-template-columns: 8px auto auto minmax(0, 1fr); gap: 7px; align-items: center; padding: 4px 4px; border-radius: 6px; }
+.chg-panel li:hover { background: var(--hover); }
+.chg-panel li.team { display: block; font-weight: 600; font-size: 12px; color: var(--ink); padding: 6px 4px 2px; }
+.chg-panel li.team:hover { background: none; }
+.chg-panel .tone { width: 8px; height: 8px; border-radius: 50%; background: var(--noise); display: inline-block; }
+.chg-panel .tone.up { background: var(--above); } .chg-panel .tone.down { background: var(--below); }
+.chg-panel .pchip { font: 700 9.5px/1 var(--content); font-style: normal; padding: 2px 4px; border-radius: 3px; width: 26px; text-align: center; }
+.chg-panel .nm { all: unset; cursor: pointer; font-weight: 600; white-space: nowrap; }
+.chg-panel .nm:hover { color: var(--you); text-decoration: underline; }
+.chg-panel .tx { color: var(--ink-2); min-width: 0; }
+.chg-panel .empty { margin: 0; color: var(--ink-2); }
+.chg-panel footer { font-size: 11px; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 8px; }
