@@ -370,22 +370,9 @@ export default function App() {
           </>}
         </div>
         <div className="right">
-          <span className={`stamp ${stale || failedSteps.length ? "warn" : ""}`}
-            title={failedSteps.length ? failedSteps.map((l) => `${l.step}: ${(l.tail ?? []).join(" | ")}`).join("\n") : "Age of the last ESPN roster pull"}>
-            {source !== "engine" ? (source === "starting" ? "Starting engine…" : "Sample data") : refresh.state === "running" ? (refresh.quick ? "Checking ESPN…" : refresh.full ? `Full refresh: ${refresh.step ?? "starting"}…` : "Refreshing…")
-              : failedSteps.length ? `Refresh: ${failedSteps.length} step${failedSteps.length > 1 ? "s" : ""} failed (hover)`
-              : warmStep ? `Precomputing ${warmStep.label.toLowerCase()}…` : `Rosters ${age(now, snap.data_age.rosters)} · projections ${age(now, snap.data_age.espn_proj)}`}
-          </span>
           <button className="tbtn chg-btn" type="button" onClick={() => { if (chgOpen) { setChgOpen(false); if (chg?.to) setSeen(chg.to); } else setChgOpen(true); }} disabled={!chg} title="Injury tags, projections and roster moves since you last looked">
             What's new{chg && chg.items.length > 0 && chg.to !== seen ? <span className="badge">{chg.items.length}</span> : null}</button>
           <button className="tbtn" type="button" onClick={() => setPalOpen(true)} title="Find a player, team or command">Find <kbd>⌘K</kbd></button>
-          <button className="tbtn" type="button" onClick={() => void startRefresh()} disabled={source !== "engine" || refresh.state === "running"}
-            title={`Pull rosters, projections and usage now. Automatic quick refreshes: every ${autoEvery(Date.now()) >= 60 ? `${autoEvery(Date.now()) / 60} hours` : `${autoEvery(Date.now())} minutes`} right now.`}>Refresh</button>
-          <button className="tbtn" type="button" onClick={() => void startRefresh(false, true)} disabled={source !== "engine" || refresh.state === "running"}
-            title={`Run the whole weekly routine: every source (ESPN, FantasyPros, nflverse), ledger and season odds. Takes several minutes and uses ~25 FantasyPros API calls${fpLeft !== null ? `; ${fpLeft} usable left today` : ""}.`}>Full refresh</button>
-          {fp && <span className={`stamp ${fpLow ? "warn" : ""}`}
-            title={`FantasyPros API calls today (UTC day ${fp.day}): ${fp.used} of ${fp.limit}. Desk stops at ${fp.limit - fp.reserve} to keep ${fp.reserve} in reserve.${fpLow ? " Not enough left for another full refresh today; the FantasyPros step will fail but the rest still runs." : ""}`}>
-            FP API {fp.used}/{fp.limit}</span>}
           <button className="tbtn icon" type="button" onClick={() => void toggleFullscreen().then(flash)} title="Full screen (⇧⌘F)" aria-label="Toggle full screen">
             <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M1.5 4.5v-3h3M8.5 1.5h3v3M11.5 8.5v3h-3M4.5 11.5h-3v-3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
@@ -405,6 +392,25 @@ export default function App() {
               <span>{t.id === tw.team_id ? <span className="you-dot" /> : t.id === tw.matchup?.opp_id ? <span className="them-dot" /> : null}{t.name}</span><small>{f1(t.pf)}</small>
             </button>
           ))}
+          <div className="side-data">
+            <h6>Data</h6>
+            <span className={`stamp ${stale || failedSteps.length ? "warn" : ""}`}
+              title={failedSteps.length ? failedSteps.map((l) => `${l.step}: ${(l.tail ?? []).join(" | ")}`).join("\n") : "Age of the last ESPN roster pull"}>
+              {source !== "engine" ? (source === "starting" ? "Starting engine…" : "Sample data") : refresh.state === "running" ? (refresh.quick ? "Checking ESPN…" : refresh.full ? `Full refresh: ${refresh.step ?? "starting"}…` : "Refreshing…")
+              : failedSteps.length ? `Refresh: ${failedSteps.length} step${failedSteps.length > 1 ? "s" : ""} failed`
+              : warmStep ? `Precomputing ${warmStep.label.toLowerCase()}…` : `Rosters ${age(now, snap.data_age.rosters)} · projections ${age(now, snap.data_age.espn_proj)}`}
+            </span>
+            {failedSteps.map((l) => <small key={l.step} className="side-fail"><b>{l.step}</b> {(l.tail ?? []).join(" ")}</small>)}
+            <div className="side-btns">
+              <button className="tbtn" type="button" onClick={() => void startRefresh()} disabled={source !== "engine" || refresh.state === "running"}
+              title={`Pull rosters, projections and usage now. Automatic quick refreshes: every ${autoEvery(Date.now()) >= 60 ? `${autoEvery(Date.now()) / 60} hours` : `${autoEvery(Date.now())} minutes`} right now.`}>Refresh</button>
+              <button className="tbtn" type="button" onClick={() => void startRefresh(false, true)} disabled={source !== "engine" || refresh.state === "running"}
+              title={`Run the whole weekly routine: every source (ESPN, FantasyPros, nflverse), ledger and season odds. Takes several minutes and uses ~25 FantasyPros API calls${fpLeft !== null ? `; ${fpLeft} usable left today` : ""}.`}>Full refresh</button>
+            </div>
+            {fp && <span className={`stamp ${fpLow ? "warn" : ""}`}
+              title={`FantasyPros API calls today (UTC day ${fp.day}): ${fp.used} of ${fp.limit}. Desk stops at ${fp.limit - fp.reserve} to keep ${fp.reserve} in reserve.${fpLow ? " Not enough left for another full refresh today; the FantasyPros step will fail but the rest still runs." : ""}`}>
+              FantasyPros API: {fp.used}/{fp.limit} today</span>}
+          </div>
         </nav>
         <main className="content" ref={mainEl} onScroll={(e) => { scrollAt.current[scrollKey] = e.currentTarget.scrollTop; }}>
           {error && <div className="banner-src">{error}</div>}

@@ -48,7 +48,7 @@ button { font: inherit; color: inherit; }
 .titlebar .tools { display: flex; align-items: center; gap: 10px; min-width: 0; padding-left: 16px; }
 .titlebar .right { display: flex; gap: 8px; align-items: center; }
 .seg { display: inline-flex; background: var(--field); border-radius: 7px; padding: 2px; }
-.seg button { border: 0; background: none; padding: 3px 12px; border-radius: 5px; color: var(--ink-2); cursor: pointer; }
+.seg button { white-space: nowrap; border: 0; background: none; padding: 3px 12px; border-radius: 5px; color: var(--ink-2); cursor: pointer; }
 .seg button[aria-pressed="true"] { background: var(--win); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.18); }
 .tbtn { border: 1px solid var(--line); background: var(--win); border-radius: 6px; padding: 3px 10px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; white-space: nowrap; }
 .tbtn:hover { background: var(--hover); }
@@ -63,6 +63,12 @@ button { font: inherit; color: inherit; }
 .sidebar { background: var(--side); border-right: 1px solid var(--line); padding: 10px 8px; overflow-y: auto; display: grid; align-content: start; gap: 1px; }
 .sidebar h6 { margin: 14px 8px 4px; font: 600 11px/1 var(--sys); color: var(--ink-2); }
 .sidebar h6:first-child { margin-top: 4px; }
+.side-data { display: grid; gap: 6px; padding: 0 8px 14px; position: sticky; bottom: -10px; margin: 8px -8px -10px; background: var(--side); border-top: 1px solid var(--line); }  /* pinned to the sidebar bottom */
+.side-data h6 { margin: 10px 0 0; }
+.side-data .stamp { white-space: normal; line-height: 1.35; }
+.side-fail { color: var(--ink-2); font-size: 11px; line-height: 1.35; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.side-btns { display: flex; gap: 6px; }
+.side-btns .tbtn { flex: 1; justify-content: center; }
 .sitem { display: flex; justify-content: space-between; gap: 8px; padding: 5px 8px; border-radius: 6px; cursor: pointer; border: 0; background: none; text-align: left; width: 100%; }
 .sitem:hover { background: var(--hover); }
 .sitem[aria-current="true"] { background: var(--you); color: var(--on-you); }
