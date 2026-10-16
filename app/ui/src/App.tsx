@@ -373,7 +373,7 @@ export default function App() {
           <span className={`stamp ${stale || failedSteps.length ? "warn" : ""}`}
             title={failedSteps.length ? failedSteps.map((l) => `${l.step}: ${(l.tail ?? []).join(" | ")}`).join("\n") : "Age of the last ESPN roster pull"}>
             {source !== "engine" ? (source === "starting" ? "Starting engine…" : "Sample data") : refresh.state === "running" ? (refresh.quick ? "Checking ESPN…" : refresh.full ? `Full refresh: ${refresh.step ?? "starting"}…` : "Refreshing…")
-              : failedSteps.length ? `Refresh failed: ${failedSteps.map((l) => l.step).join(", ")}`
+              : failedSteps.length ? `Refresh: ${failedSteps.length} step${failedSteps.length > 1 ? "s" : ""} failed (hover)`
               : warmStep ? `Precomputing ${warmStep.label.toLowerCase()}…` : `Rosters ${age(now, snap.data_age.rosters)} · projections ${age(now, snap.data_age.espn_proj)}`}
           </span>
           <button className="tbtn chg-btn" type="button" onClick={() => { if (chgOpen) { setChgOpen(false); if (chg?.to) setSeen(chg.to); } else setChgOpen(true); }} disabled={!chg} title="Injury tags, projections and roster moves since you last looked">
