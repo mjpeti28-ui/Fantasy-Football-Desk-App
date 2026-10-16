@@ -26,6 +26,13 @@ fn python(root: &PathBuf) -> PathBuf {
             return p;
         }
     }
+    // the env app/run.sh builds outside the repo; a Finder-launched Desk (built).app has no DESK_PYTHON
+    if let Ok(home) = std::env::var("HOME") {
+        let local = PathBuf::from(home).join(".local/share/desk/venv/bin/python");
+        if local.exists() {
+            return local;
+        }
+    }
     let venv = root.join(".venv/bin/python");
     if venv.exists() { venv } else { PathBuf::from("python3") }
 }
