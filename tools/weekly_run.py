@@ -56,6 +56,7 @@ def refresh():
     run("ESPN weekly projections + source scoring", ["tools/track_projections.py", "score"])
     run("FantasyPros ROS consensus", ["tools/fetch_fantasypros.py"])
     run("FantasyPros ROS projected points (API, ~25 calls)", ["tools/fetch_fantasypros_projections.py"])
+    run("PFF ROS rankings (saved; not used by the model)", ["tools/fetch_pff.py", "--ros"])
     run("nflverse stats + injuries", ["nflverse_data.py", str(SEASON)])
     run("nflverse schedules/depth/ECR archive", ["nflverse_data.py", "--extras", str(SEASON)])
 
@@ -67,6 +68,7 @@ def snapshot() -> Path:
     src = {"espn_weekly_proj.csv": REPO / "history" / "actuals" / str(SEASON) / "espn_weekly_proj.csv",
            "FantasyPros_ROS_rankings.csv": REPO / "FantasyPros_ROS_rankings.csv",
            "FantasyPros_ROS_projections.csv": REPO / "FantasyPros_ROS_projections.csv",
+           "PFF_ROS_rankings.csv": REPO / "PFF_ROS_rankings.csv",
            "injuries.csv": REPO / "history" / "nflverse" / str(SEASON) / "injuries.csv",
            "depth.csv": REPO / "history" / "nflverse" / str(SEASON) / "depth.csv"}
     for name, f in src.items():

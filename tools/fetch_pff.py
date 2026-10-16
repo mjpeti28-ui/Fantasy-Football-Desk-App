@@ -13,6 +13,14 @@ Usage (from the repository root):
     python tools/fetch_pff.py                      # writes both CSVs
     python tools/fetch_pff.py --scoring REDRAFT_HALF_PPR
     python tools/fetch_pff.py --dry-run            # report only, write nothing
+    python tools/fetch_pff.py --ros                # in-season ROS board -> PFF_ROS_rankings.csv
+
+In-season, ``/fantasy/rankings`` is frozen at the preseason draft board (verified
+2026-10-16). ``--ros`` reads ``/fantasy/ros-rankings`` instead, the endpoint behind
+pff.com/fantasy/rankings/ros. It writes ranks plus PFF's projected points, which are
+for the NEXT game only (a player on bye has none), so they are labelled as such and
+not written to projections.csv. Each ROS board is also archived under
+history/rankings/<season>/ for ``backtest/pff_ros.py``.
 """
 
 from __future__ import annotations
@@ -37,6 +45,9 @@ HEADERS = {
     "User-Agent": "PFF-Fantasy-Ranking/pff-client",
 }
 
+ROS_POSITIONS = ("QB", "RB", "WR", "TE", "K", "DST")
+ROS_REQUIRED = {"QB", "RB", "WR", "TE"}  # K/DST param spellings are unverified
+
 # PFF labels team defenses "D"; the rest of this project calls them "DST".
 POSITION_ALIASES = {"D": "DST"}
 
@@ -59,6 +70,96 @@ def fetch_rankings(scoring: str, league_type: str = "standard", timeout: float =
     if not rankings:
         raise RuntimeError(f"PFF returned no rankings for scoringType={scoring!r}")
     return rankings
+
+
+def fetch_ros(position: str, scoring: str = "ppr", timeout: float = 60.0) -> Dict[str, Any]:
+    """One position's rest-of-season board (the payload, with ``currentGameWeek``)."""
+
+    resp = httpx.get(
+        f"{CONSUMER_API}/fantasy/ros-rankings",
+        params={"scoringType": scoring, "position": position},
+        headers=HEADERS,
+        timeout=timeout,
+    )
+    resp.raise_for_status()
+    payload = resp.json()
+    if not payload.get("rankings"):
+        raise RuntimeError(f"PFF returned no ROS rankings for position={position!r}")
+    return payload
+
+
+def build_ros_rows(payloads: Dict[str, Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Flatten per-position ROS boards. ``rank.current`` is PFF's cross-position rank."""
+
+    rows: List[Dict[str, Any]] = []
+    for position, payload in payloads.items():
+        week = payload.get("currentGameWeek")
+        for entry in payload["rankings"]:
+            pos = POSITION_ALIASES.get(entry.get("position"), entry.get("position")) or position
+            rows.append(
+                {
+                    "Rank": _nested(entry, "rank", "current"),
+                    "Position": pos,
+                    "Name": _full_name(entry),
+                    "Team": entry.get("teamAbbreviation"),
+                    "Position Rank": _nested(entry, "rank", "position"),
+                    "Bye Week": entry.get("byeWeek"),
+                    "PFF ID": entry.get("playerId"),
+                    "Next Week": week,
+                    "Next Week Points": _nested(entry, "projection", "points", "mid"),
+                    "Next Week Points Low": _nested(entry, "projection", "points", "low"),
+                    "Next Week Points High": _nested(entry, "projection", "points", "high"),
+                }
+            )
+    rows = [r for r in rows if r["Position Rank"] is not None and r["Name"]]
+    rows.sort(key=lambda r: (r["Rank"] is None, r["Rank"] or 0, r["Position"], r["Position Rank"]))
+    return rows
+
+
+ROS_FIELDS = [
+    "Rank", "Position", "Name", "Team", "Position Rank", "Bye Week", "PFF ID",
+    "Next Week", "Next Week Points", "Next Week Points Low", "Next Week Points High",
+]
+
+
+def write_ros_csv(rows: List[Dict[str, Any]], path: Path) -> None:
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=ROS_FIELDS)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def run_ros(args: argparse.Namespace) -> int:
+    import shutil
+    from collections import Counter
+    from datetime import datetime, timezone
+
+    payloads: Dict[str, Dict[str, Any]] = {}
+    for pos in ROS_POSITIONS:
+        try:
+            payloads[pos] = fetch_ros(pos)
+        except Exception as exc:  # noqa: BLE001
+            if pos in ROS_REQUIRED:
+                raise
+            print(f"  skipped {pos}: {exc}")
+    rows = build_ros_rows(payloads)
+    counts = Counter(r["Position"] for r in rows)
+    week = next(iter(payloads.values())).get("currentGameWeek")
+    print(f"fetched {len(rows)} PFF ROS-ranked players (as of week {week})")
+    print("  by position:", dict(sorted(counts.items())))
+    print(f"  top 3: {', '.join(r['Name'] for r in rows[:3])}")
+    if args.dry_run:
+        print("dry run: no files written")
+        return 0
+
+    out = REPO_ROOT / args.ros_out
+    write_ros_csv(rows, out)
+    now = datetime.now(timezone.utc)
+    arch = REPO_ROOT / "history" / "rankings" / str(now.year) / f"{now:%Y%m%dT%H%M%S}_PFF_ROS_rankings.csv"
+    arch.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(out, arch)
+    print(f"wrote {out.name}; archived {arch.relative_to(REPO_ROOT)}")
+    return 0
 
 
 def _full_name(row: Dict[str, Any]) -> str:
@@ -165,7 +266,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--rankings-out", default="PFF_rankings.csv")
     parser.add_argument("--projections-out", default="projections.csv")
     parser.add_argument("--dry-run", action="store_true", help="Report what would be written without touching files.")
+    parser.add_argument("--ros", action="store_true", help="Fetch the in-season ROS board instead of the draft board.")
+    parser.add_argument("--ros-out", default="PFF_ROS_rankings.csv")
     args = parser.parse_args(argv)
+    if args.ros:
+        return run_ros(args)
 
     rankings = fetch_rankings(args.scoring, args.league_type)
     rows = build_rows(rankings)
