@@ -400,7 +400,8 @@ export default function App() {
               : failedSteps.length ? `Refresh: ${failedSteps.length} step${failedSteps.length > 1 ? "s" : ""} failed`
               : warmStep ? `Precomputing ${warmStep.label.toLowerCase()}…` : `Rosters ${age(now, snap.data_age.rosters)} · projections ${age(now, snap.data_age.espn_proj)}`}
             </span>
-            {failedSteps.map((l) => <small key={l.step} className="side-fail"><b>{l.step}</b> {(l.tail ?? []).join(" ")}</small>)}
+            {failedSteps.map((l) => <small key={l.step} className="side-fail" title={(l.tail ?? []).join("\n")}><b>{l.step}</b> {(l.tail ?? []).map((t) => {  // "[FAIL] step (1s) :: traceback | … | Error: msg" -> "step (1s): Error: msg"
+              const [h, rest] = t.split(" :: "); return rest ? `${h.replace("[FAIL] ", "")}: ${rest.split(" | ").slice(-1)[0]}` : t; }).join(" · ")}</small>)}
             <div className="side-btns">
               <button className="tbtn" type="button" onClick={() => void startRefresh()} disabled={source !== "engine" || refresh.state === "running"}
               title={`Pull rosters, projections and usage now. Automatic quick refreshes: every ${autoEvery(Date.now()) >= 60 ? `${autoEvery(Date.now()) / 60} hours` : `${autoEvery(Date.now())} minutes`} right now.`}>Refresh</button>
