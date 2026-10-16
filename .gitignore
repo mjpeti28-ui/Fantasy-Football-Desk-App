@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.venv.icloud-old*/
+.pytest_cache/
+*.egg-info/
+
+# macOS / iCloud
+.DS_Store
+*.icloud
+
+# Pickled caches (regenerable). level_rows.pkl is an input to
+# backtest/multi_season.py fit_level_sd, so it stays tracked for now.
+*.pkl
+!history/backtest/multi/level_rows.pkl
+
+# Editor/tool temp files
+*.tmp
+*.swp
+*~
+
+# Secrets
+.env
+.env.*
