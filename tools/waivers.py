@@ -68,6 +68,7 @@ def main(argv=None) -> int:
     pool = t[~t.index.isin(rostered) & t["position"].isin(["QB", "RB", "WR", "TE", "K", "DST"])].copy()
     pool["v2_ros"] = v.expected_ros_points(pool, ctx.week, v.FANTASY_LAST_WEEK)
     pool["espn_wk"] = pool["espn_now"].fillna(0)
+    pool["p_start"], pool["p_boom"] = v.hit_probability(pool, "start"), v.hit_probability(pool, "boom")
     try:
         tags = fa_injury_tags()
     except Exception as e:  # noqa: BLE001
@@ -92,7 +93,8 @@ def main(argv=None) -> int:
             gain = best[0] - base
             drop = [ctx.tbl.at[best[1], "name"]]
             out.append({"pos": pos, "player": r["name"], "espn_this_week": round(r["espn_wk"], 1),
-                        "v2_ros_pts": round(r["v2_ros"], 0), "your_gain_pts": round(gain, 1), "drop": ", ".join(drop),
+                        "v2_ros_pts": round(r["v2_ros"], 0), "p_starter": round(r["p_start"], 2), "p_boom": round(r["p_boom"], 2),
+                        "your_gain_pts": round(gain, 1), "drop": ", ".join(drop),
                         "why": tv.why(ctx, pid)})
     pd.set_option("display.width", 200)
     df = pd.DataFrame(out)
@@ -101,6 +103,8 @@ def main(argv=None) -> int:
               + ", ".join(f"{n} ({t})" for n, t in zip(hurt["name"], hurt["tag"])))
     print(f"week {ctx.week}; gains are expected lineup points weeks {ctx.week}-17 (edges under ~10 are noise)")
     print(f"why = ours / ESPN week / experts rank -> blended ppg (typical miss +/-{tv.TYPICAL_MISS_PPG:.0f} ppg), chance he plays")
+    print("p_starter / p_boom = chance his ROS ppg reaches a weekly starter / top-half starter at his position "
+          "(est_ppg only; info, not a ranking)")
     for pos in ["QB", "RB", "WR", "TE", "K", "DST"]:
         sub = df[df["pos"] == pos].sort_values("your_gain_pts", ascending=False)
         if len(sub):

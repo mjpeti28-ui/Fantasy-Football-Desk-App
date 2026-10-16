@@ -210,6 +210,10 @@ def ledger_step():
     if len(cw):
         print("\nCALIBRATION WATCH (realized / expected so far, shrunk; flag = outside 0.85-1.15; not applied to forecasts)")
         print(cw.round(3).to_string(index=False))
+    ps = ledger.score_probs(SEASON)
+    if len(ps):
+        print("\nPROBABILITY TRACKING (logged start/boom/bust odds vs realized so far; tracking only, read at season end)")
+        print(ps.round(3).to_string(index=False))
     src = ledger.score_sources(SEASON)
     if len(src):
         print("\nPROJECTION SOURCES, per-game rest of season vs realized (mean over ledger weeks; same players)")

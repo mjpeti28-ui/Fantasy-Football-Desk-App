@@ -41,6 +41,9 @@ def write(season: int, week: int, tbl: pd.DataFrame, rostered_by_team: Dict[int,
         xa = v._avail_for_week(tbl, w)
         t[f"xp_w{w}"] = tbl["est_ppg"] * xa
         t[f"xa_w{w}"] = xa
+    # thin est_ppg-only probabilities (valuation.hit_probability), logged for a forward test
+    for task in ("start", "boom", "bust"):
+        t[f"p_{task}"] = v.hit_probability(tbl, task)
     t["pre_played"] = t.index.isin(list(already_played or []))
     t.loc[t["pre_played"], [f"xp_w{week}", f"xa_w{week}"]] = np.nan
     owner = {i: tm for tm, ids in rostered_by_team.items() for i in ids}
@@ -129,6 +132,45 @@ def score(season: int, tag: str = "") -> pd.DataFrame:
         out.append(rec)
     res = pd.DataFrame(out)
     res.to_csv(_dir(season) / f"scores{tag}.csv", index=False)
+    return res
+
+
+def score_probs(season: int, tag: str = "", min_games: int = 3, bins: int = 5) -> pd.DataFrame:
+    """Brier and a reliability table for the logged p_start / p_boom / p_bust against realized
+    ppg over weeks W..last completed (players with ``min_games`` games). Partial windows are
+    noisier than the full rest of season the probabilities were fit on; read at season end."""
+    import json
+    s = v.load_season(season)
+    wk = s.weekly[(s.weekly["week"] >= 1) & (s.weekly["week"] <= v.FANTASY_LAST_WEEK) & s.weekly["played"]]
+    wk = wk[wk["week"].isin(completed_weeks(season, wk["week"].unique()))]
+    if wk.empty:
+        return pd.DataFrame()
+    last_done = int(wk["week"].max())
+    lines = json.loads((ROOT / "valuation_params.json").read_text()).get("hit_prob", {}).get("lines_ppg", {})
+    rows = []
+    for f in sorted(_dir(season).glob(f"wk*{tag}_players.csv")):
+        W = int(f.name[2:4])
+        t = pd.read_csv(f, index_col=0)
+        if W > last_done or "p_start" not in t:
+            continue
+        fut = wk[(wk["week"] >= W) & (wk["week"] <= last_done)].groupby("espn_id")["points"].agg(["mean", "count"])
+        t = t.join(fut, how="inner")
+        t = t[(t["count"] >= min_games) & t["position"].isin(list(lines))]
+        y = {"start": t["mean"] >= t["position"].map({p: x["start"] for p, x in lines.items()}),
+             "boom": t["mean"] >= t["position"].map({p: x["boom"] for p, x in lines.items()}),
+             "bust": t["mean"] < 0.7 * t["est_ppg"]}
+        for task, yy in y.items():
+            rows.append(pd.DataFrame({"ledger_week": W, "task": task, "p": t[f"p_{task}"], "y": yy.astype(float)}))
+    if not rows:
+        return pd.DataFrame()
+    d = pd.concat(rows).dropna()
+    d["bin"] = pd.cut(d["p"], np.linspace(0, 1, bins + 1), include_lowest=True)
+    res = (d.groupby(["task", "bin"], observed=True).agg(n=("y", "size"), predicted=("p", "mean"), actual=("y", "mean"))
+           .reset_index())
+    brier = d.assign(se=(d["p"] - d["y"]) ** 2).groupby("task")["se"].mean()
+    res["brier"] = res["task"].map(brier)
+    res["through"] = last_done
+    res.to_csv(_dir(season) / f"prob_scores{tag}.csv", index=False)
     return res
 
 

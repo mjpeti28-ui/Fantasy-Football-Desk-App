@@ -206,7 +206,7 @@ export function Waivers({ board, err, sel, onSel, players, roles, shifts, onKeep
           </div>
         )}
         <table className="wv-table">
-          <thead><tr><th>Free agent</th><th>Role</th><th className="r">ESPN wk</th><th className="r">ROS ppg</th><th className="r">Plays</th><th>Last 4 weeks</th><th className="gcol">Season gain</th><th>Drop</th></tr></thead>
+          <thead><tr><th>Free agent</th><th>Role</th><th className="r">ESPN wk</th><th className="r">ROS ppg</th><th className="r" title="Chance his rest-of-season ppg reaches a weekly starter at his position, from his ROS ppg alone (2021-25 backtest)">Starter odds</th><th className="r">Plays</th><th>Last 4 weeks</th><th className="gcol">Season gain</th><th>Drop</th></tr></thead>
           <tbody>
             {rows.map((r) => {
               const u = usageLine(r.pos, r.usage);
@@ -217,6 +217,7 @@ export function Waivers({ board, err, sel, onSel, players, roles, shifts, onKeep
                   <td>{r.pos === "K" || r.pos === "DST" ? <span className="dim">–</span> : <RoleTag r={roles?.players[String(r.id)]} />}</td>
                   <td className="r num">{f1(r.espn_wk)}</td>
                   <td className="r num">{f1(r.est_ppg)}</td>
+                  <td className="r num" title={r.p_boom != null ? `Top-half starter: ${pct(r.p_boom)}` : undefined}>{pct(r.p_start)}</td>
                   <td className="r num">{pct(r.avail)}</td>
                   <td>{u ? <span className="use"><UsageSpark vals={u.vals} color={POS_VAR[r.pos]} /><small>{u.label} {u.vals.map((v) => (v == null ? "–" : Math.round(v))).join(" ")}{u.unit}</small></span> : <span className="dim">–</span>}</td>
                   <td className="gcol"><GainBar g={r.gain} noise={board.noise} max={gmax} /></td>
@@ -250,6 +251,7 @@ export function WaiverInspector({ r, board, onLog, onCopy, roles, onKeep }: { r:
         <dl className="kv cmp">
           <dt /><dd>{lastName(r.name)}</dd><dd>{drop ? lastName(drop.name) : "–"}</dd>
           <dt>ROS ppg when playing</dt><dd>{f1(r.est_ppg)}</dd><dd>{f1(drop?.est_ppg ?? null)}</dd>
+          <dt title="Chance his rest-of-season ppg reaches a weekly starter / a top-half starter at his position, from ROS ppg alone">Starter · top-half odds</dt><dd>{pct(r.p_start)} · {pct(r.p_boom)}</dd><dd>–</dd>
           <dt>Plays rest of season</dt><dd>{pct(r.avail)}</dd><dd>{pct(drop?.avail ?? null)}{drop?.ir ? " IR" : ""}</dd>
           <dt>ESPN this week</dt><dd>{f1(r.espn_wk)}</dd><dd>–</dd>
           <dt>Experts' rank</dt><dd>{r.ecr_rank ? `${r.pos}${Math.round(r.ecr_rank)}` : "–"}</dd><dd>–</dd>

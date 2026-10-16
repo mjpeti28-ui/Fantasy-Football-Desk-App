@@ -428,6 +428,17 @@ def expected_ros_points(tbl: pd.DataFrame, start: int, end: int) -> pd.Series:
     return tbl["est_ppg"] * pd.Series(total, index=tbl.index)
 
 
+def hit_probability(tbl: pd.DataFrame, task: str = "start") -> pd.Series:
+    """P(rest-of-season ppg clears the position's starter/boom line), or P(bust: < 0.7 x est_ppg),
+    from est_ppg and position only (backtest/hit_prob.py; LOSO ECE ~.01 for start/boom). NaN
+    outside QB/RB/WR/TE. Display next to est_ppg; never rank by it."""
+    hp = json.loads((ROOT / "valuation_params.json").read_text()).get("hit_prob", {}).get("logit", {}).get(task, {})
+    ab = [hp.get(p, [np.nan, np.nan]) for p in tbl["position"]]
+    a = np.array([x[0] for x in ab], dtype=float)
+    b = np.array([x[1] for x in ab], dtype=float)
+    return pd.Series(1 / (1 + np.exp(-(a + b * tbl["est_ppg"].to_numpy(dtype=float)))), index=tbl.index)
+
+
 # ------------------------------------------------------------------ lineups
 
 

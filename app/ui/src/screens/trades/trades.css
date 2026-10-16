@@ -65,7 +65,7 @@
 .trades .facts .conf { justify-self: start; }
 .trades .drops { margin: 0; font-size: 12.5px; }
 .trades .odds { display: grid; gap: 4px; }
-.trades .orow { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); gap: 8px; align-items: center; padding: 6px 10px; border-radius: 6px; }
+.trades .orow { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(0, 1fr)); gap: 8px; align-items: center; padding: 6px 10px; border-radius: 6px; }
 .trades .orow.head { font: 700 10.5px/1 var(--content); letter-spacing: .08em; text-transform: uppercase; color: var(--t-ink2); padding-bottom: 2px; }
 .trades .orow.me { background: var(--you-soft); } .orow.them { background: var(--them-soft); }
 .trades .orow .who { font: 700 13px/1.2 var(--content); font-variation-settings: "wdth" 85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
