@@ -6,8 +6,8 @@ Binds to 127.0.0.1 only. Endpoints:
     GET  /api/health
     GET  /api/warm                   what the start-up warm-up has precomputed so far
     GET  /api/snapshot?team=3        every view for the app, from cached files (fast)
-    POST /api/refresh                pull ESPN rosters + this week's projections in the background
-    GET  /api/refresh                refresh status
+    POST /api/refresh                pull ESPN rosters + this week's projections in the background (?full=true: weekly_run)
+    GET  /api/refresh                refresh status + FantasyPros API calls used today
     GET  /api/live                   live games folded into this week's matchup (ESPN public feeds)
     GET  /api/matchups               defenses in brief + your players / opponent's starters against theirs
     GET  /api/matchups/defense/DAL   one defense: scheme, allowed, who hurt it, defenders
@@ -21,6 +21,7 @@ from __future__ import annotations
 import subprocess
 import sys
 import threading
+from datetime import datetime, timezone
 import time
 from typing import List, Optional
 
@@ -180,23 +181,39 @@ def get_snapshot(team: int = 3):
     return _json(snapshot.build(team))
 
 
-def _run_refresh(season: int, week: int, quick: bool = False) -> None:
+def _fp_budget() -> dict:
+    """FantasyPros API calls spent today, read from the client's own per-day (UTC) ledger file."""
+    import fantasypros_api as fp
+    day = datetime.now(timezone.utc).date().isoformat()
+    try:
+        used = int(json.loads((fp.CACHE_DIR / f"calls-{day}.json").read_text()).get("calls", 0))
+    except (OSError, ValueError):
+        used = 0
+    return {"day": day, "used": used, "limit": fp.DAILY_LIMIT, "reserve": fp.DAILY_SAFETY_MARGIN}
+
+
+def _run_refresh(season: int, week: int, quick: bool = False, full: bool = False) -> None:
     steps = [
         ("ESPN rosters and scores", [sys.executable, "espn_history.py", str(season)]),
         (f"ESPN projections, week {week}", [sys.executable, "espn_history.py", "proj", str(season), str(week), str(week)]),
     ]
+    if full:  # the whole Tuesday routine (it pulls ESPN itself): every source, snapshot, health, ledger, season odds
+        steps = [("Weekly run: all sources, ledger, season odds", [sys.executable, "tools/weekly_run.py"])]
     if not quick:  # the button always rebuilds usage from nflverse
         steps.append(("nflverse play-by-play (roles)", [sys.executable, "-m", "app.engine.roles_data", str(season)]))
     else:  # the automatic refreshes rebuild it only when nflverse has published new snap/charting data (HEAD checks, no download)
         steps.append(("nflverse usage (only if new data is out)", [sys.executable, "-m", "app.engine.roles_data", "--if-stale", str(season)]))
-    _refresh.update(state="running", started=time.time(), finished=None, log=[], quick=quick)
+    _refresh.update(state="running", started=time.time(), finished=None, log=[], quick=quick, full=full, step=None)
     ok = True
     for label, cmd in steps:
+        _refresh["step"] = label
         t0 = time.time()
         try:
-            r = subprocess.run(cmd, cwd=d.ROOT, capture_output=True, text=True, timeout=600)
-            good = r.returncode == 0
-            tail = (r.stdout + r.stderr).strip().splitlines()[-2:]
+            r = subprocess.run(cmd, cwd=d.ROOT, capture_output=True, text=True, timeout=1800 if full else 600)
+            # weekly_run exits 0 even when a step fails; it marks those lines [FAIL]
+            fails = [x for x in r.stdout.splitlines() if x.startswith("[FAIL]")]
+            good = r.returncode == 0 and not fails
+            tail = fails[:3] or (r.stdout + r.stderr).strip().splitlines()[-2:]
         except subprocess.TimeoutExpired:
             good, tail = False, ["timed out"]
         ok &= good
@@ -206,18 +223,19 @@ def _run_refresh(season: int, week: int, quick: bool = False) -> None:
         changes.capture()
     except Exception:
         pass
-    _refresh.update(state="done" if ok else "failed", finished=time.time())
+    _refresh.update(state="done" if ok else "failed", finished=time.time(), step=None)
     start_warm()  # recompute the slow views on the new data before you click into them
 
 
 @app.post("/api/refresh")
-def start_refresh(quick: bool = False):
-    """quick=true pulls rosters and projections only (what the automatic refreshes use)."""
+def start_refresh(quick: bool = False, full: bool = False):
+    """quick=true pulls rosters and projections only (what the automatic refreshes use).
+    full=true runs tools/weekly_run.py (all sources, ledger, season odds; ~25 FantasyPros API calls)."""
     if _refresh["state"] == "running":
         return _refresh
     inp = d.load()
-    threading.Thread(target=_run_refresh, args=(inp.season, inp.week, quick), daemon=True).start()
-    return {**_refresh, "state": "running", "quick": quick}
+    threading.Thread(target=_run_refresh, args=(inp.season, inp.week, quick, full), daemon=True).start()
+    return {**_refresh, "state": "running", "quick": quick, "full": full, "fp": _fp_budget()}
 
 
 @app.get("/api/changes")
@@ -228,7 +246,7 @@ def changes_digest(since: Optional[int] = None):
 
 @app.get("/api/refresh")
 def refresh_status():
-    return _refresh
+    return {**_refresh, "fp": _fp_budget()}
 
 
 class TradeIn(BaseModel):

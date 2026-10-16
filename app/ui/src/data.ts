@@ -5,7 +5,9 @@ export const ENGINE = "http://127.0.0.1:8765";
 export const ENGINE_VERSION = 3;
 
 export type Source = "engine" | "sample" | "starting";
-export interface RefreshState { state: "idle" | "running" | "done" | "failed"; quick?: boolean; log?: { step: string; ok: boolean; seconds: number }[] }
+/** FantasyPros API calls spent today (UTC day), from the client's own ledger. The client stops at limit - reserve. */
+export interface FpBudget { day: string; used: number; limit: number; reserve: number }
+export interface RefreshState { state: "idle" | "running" | "done" | "failed"; quick?: boolean; full?: boolean; step?: string | null; fp?: FpBudget; log?: { step: string; ok: boolean; seconds: number; tail?: string[] }[] }
 
 async function getJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const r = await fetch(url, init);
@@ -34,6 +36,7 @@ export function useSnapshot(team = 3) {
       // An engine left running from an older Desk lacks newer fields: borrow them from the sample.
       if (old && sample.current) { s.ratio_q ??= sample.current.ratio_q; s.team_colors ??= sample.current.team_colors; }
       setSnap(s); setSource("engine");
+      getJSON<RefreshState>(`${ENGINE}/api/refresh`).then((r) => setRefresh((x) => ({ ...x, fp: r.fp }))).catch(() => { /* older engine */ });
       setError(old ? "An older Desk engine is still running. Quit Desk and start it again with app/run.sh to update it." : null);
       return true;
     } catch { return false; }
@@ -56,10 +59,10 @@ export function useSnapshot(team = 3) {
     return () => { stop = true; };
   }, [tryEngine]);
 
-  const startRefresh = useCallback(async (quick = false) => {
+  const startRefresh = useCallback(async (quick = false, full = false) => {
     if (source !== "engine") return;
     try {
-      setRefresh(await getJSON<RefreshState>(`${ENGINE}/api/refresh${quick ? "?quick=true" : ""}`, { method: "POST" }));
+      setRefresh(await getJSON<RefreshState>(`${ENGINE}/api/refresh${quick ? "?quick=true" : full ? "?full=true" : ""}`, { method: "POST" }));
       const poll = setInterval(async () => {
         const s = await getJSON<RefreshState>(`${ENGINE}/api/refresh`);
         setRefresh(s);
