@@ -88,3 +88,86 @@ rush) are mostly already in v2 through nflverse snaps, targets and opportunity. 
 consistent sign, and at +0.002-0.003 rank corr it is too small to justify a new data dependency.
 Caveats: rates are raw, not shrunk toward a position mean, and missing values are median-imputed. Shrinkage might
 help the grades slightly, but deltas this close to zero make a real gain unlikely.
+
+# Follow-up: low-history rows and a gradient-boosted check (`backtest/pff_stats_followup.py`)
+
+Same rows, folds, metrics and leakage guard as above (features from weeks < W; future_played >= 3; est_ppg > 0).
+d_rc = change in mean per-season within-week Spearman; "up" = held-out seasons (of 5) where it improved.
+Reference scale for a real gain: ECR on top of est_ppg, +0.008 to +0.019.
+
+## 1. Low-history subsets
+Rows: n <= 3 games observed before W (QB 1499, RB 2742, WR 4033, TE 2257); W <= 5 (QB 919, RB 2102, WR 3115,
+TE 1780); rookies, draft_year == season (QB 352, RB 1157, WR 1675, TE 817). Each cell is OLS fit either on the
+subset only ("subset") or on all rows and scored on the subset ("all"). Base = live blend (est_ppg + 1/3 ECR);
+est_ppg-base results are in history/backtest/multi/pff_followup_subsets.csv and tell the same story.
+
+| subset | fit | pos | base rc | all PFF d_rc (up) | best group | best d_rc (up) | groups > 0 |
+|---|---|---|---|---|---|---|---|
+| n<=3 | all | QB | 0.537 | -0.055 (3) | rush_pg | +0.003 (3) | 1/6 |
+| n<=3 | all | RB | 0.591 | -0.012 (2) | tgt_share | +0.000 (3) | 1/8 |
+| n<=3 | all | WR | 0.561 | -0.003 (1) | route_share | **+0.019 (5)** | 1/7 |
+| n<=3 | all | TE | 0.540 | -0.102 (1) | tgt_share | -0.006 (1) | 0/7 |
+| n<=3 | subset | QB | 0.539 | -0.064 (2) | rush_pg | -0.005 (1) | 0/6 |
+| n<=3 | subset | RB | 0.591 | -0.016 (3) | tgt_share | +0.000 (2) | 1/8 |
+| n<=3 | subset | WR | 0.561 | -0.003 (2) | route_share | **+0.015 (4)** | 2/7 |
+| n<=3 | subset | TE | 0.540 | -0.050 (1) | yprr_l3 | -0.005 (3) | 0/7 |
+| W<=5 | all | QB | 0.732 | -0.014 (1) | grade | +0.006 (3) | 4/6 |
+| W<=5 | all | RB | 0.809 | -0.003 (1) | grade | +0.001 (4) | 2/8 |
+| W<=5 | all | WR | 0.812 | -0.003 (1) | route_share | -0.000 (3) | 0/7 |
+| W<=5 | all | TE | 0.808 | -0.016 (0) | yprr | -0.001 (2) | 0/7 |
+| W<=5 | subset | QB | 0.733 | -0.017 (1) | grade | +0.002 (3) | 2/6 |
+| W<=5 | subset | RB | 0.809 | -0.004 (1) | grade | +0.001 (3) | 1/8 |
+| W<=5 | subset | WR | 0.812 | -0.004 (1) | route_share | -0.001 (3) | 0/7 |
+| W<=5 | subset | TE | 0.808 | -0.012 (2) | tgt_share | +0.001 (4) | 1/7 |
+| rookie | all | QB | 0.596 | -0.037 (3) | grade | +0.035 (2) | 6/6 |
+| rookie | all | RB | 0.751 | +0.000 (2) | yprr | +0.004 (2) | 3/8 |
+| rookie | all | WR | 0.799 | -0.010 (1) | tgt_share | -0.000 (2) | 0/7 |
+| rookie | all | TE | 0.692 | -0.012 (2) | tgt_share | +0.004 (4) | 3/7 |
+| rookie | subset | QB | 0.596 | -0.207 (0) | pass_grade | +0.046 (2) | 5/6 |
+| rookie | subset | RB | 0.751 | -0.020 (1) | yprr | +0.003 (3) | 1/8 |
+| rookie | subset | WR | 0.799 | -0.007 (2) | grade | +0.003 (3) | 2/7 |
+| rookie | subset | TE | 0.692 | -0.028 (2) | yprr | +0.002 (3) | 0/7 |
+
+WR route share on n <= 3 rows, by season (live, fit all): +0.016 +0.006 +0.027 +0.034 +0.013. Rookie QB gains are
+one season (+0.178 in 2022) on ~70 rows a year; noise. Everything else sits inside +-0.01 or is negative.
+
+## 2. Gradient boosting (HistGradientBoostingRegressor per position)
+max_depth 3, lr 0.05, min_samples_leaf 50, l2 1.0; iterations (<= 400, floor 20) chosen on the last training season,
+then refit on all training seasons; weights = future_played; NaNs passed through natively. (a) est_ppg + ECR rank,
+(b) (a) + all position-relevant PFF features (season-to-date and last-3). "live" = LOSO OLS on the live blend.
+
+| rows | pos | a - live d_rc (up) | b - a d_rc (up) | b - live d_rc (up) | b - live d_mae |
+|---|---|---|---|---|---|
+| all | QB | +0.009 (3) | -0.008 (1) | +0.001 (2) | +0.047 |
+| all | RB | -0.004 (1) | -0.004 (1) | -0.008 (1) | +0.081 |
+| all | WR | -0.001 (2) | +0.001 (4) | +0.000 (2) | +0.063 |
+| all | TE | -0.003 (2) | **+0.012 (5)** | **+0.009 (4)** | +0.009 |
+| n<=3 | QB | +0.023 (3) | +0.002 (2) | +0.025 (3) | +0.109 |
+| n<=3 | RB | +0.006 (3) | -0.032 (1) | -0.026 (2) | +0.128 |
+| n<=3 | WR | +0.015 (4) | +0.002 (2) | +0.018 (3) | +0.108 |
+| n<=3 | TE | -0.033 (1) | +0.056 (4) | **+0.024 (5)** | +0.015 |
+| W<=5 | QB | +0.016 (2) | -0.014 (1) | +0.002 (2) | +0.219 |
+| W<=5 | RB | -0.006 (1) | -0.004 (1) | -0.009 (2) | +0.135 |
+| W<=5 | WR | +0.000 (2) | +0.001 (3) | +0.001 (2) | +0.100 |
+| W<=5 | TE | -0.002 (2) | +0.015 (4) | +0.014 (4) | +0.036 |
+| rookie | QB | +0.014 (4) | +0.005 (4) | +0.019 (3) | -0.061 |
+| rookie | RB | -0.008 (1) | +0.007 (3) | -0.000 (3) | +0.021 |
+| rookie | WR | -0.006 (1) | -0.001 (3) | -0.007 (1) | +0.163 |
+| rookie | TE | -0.001 (3) | +0.005 (3) | +0.004 (3) | +0.065 |
+
+TE (b) - (a), all rows, by season: +0.012 +0.003 +0.017 +0.017 +0.012. TE (b) - live, n <= 3: +0.024 +0.028 +0.025
++0.029 +0.013. GBM MAE is worse than the linear live blend almost everywhere (it orders a bit differently, levels
+are less calibrated).
+
+Held-out permutation importance in (b), mean drop in rank corr (folds > 0 of 5): TE route_share_l3 0.024 (5),
+TE route_share 0.014 (5), QB adot 0.010 (5), RB rush_share 0.008 (5), TE rec_grade 0.008 (5), WR route_share_l3
+0.005 (5), QB pass_grade_off 0.005 (4), WR tgt_share 0.004 (4). Full list: pff_followup_gbm_importance.csv.
+
+## Follow-up verdict
+Two things reach the ECR scale, and both are route share for pass catchers:
+- WR route share on low-history rows (n <= 3), linear: +0.015 to +0.019, 4-5 of 5 seasons.
+- TE with PFF features in a GBM: +0.009 over live overall (4/5), +0.024 on n <= 3 (5/5), driven by route share.
+Grades, efficiency rates, QB and RB features, early-season and rookie subsets: noise. Caveat: this scanned ~400
+cells, so a couple of 4-5/5 results are expected by chance; route share holding up in both the linear and the GBM
+test, and in the original run, makes it the one signal worth a targeted test (route share as a low-n WR/TE term,
+ideally from a free source), not PFF as a whole.
