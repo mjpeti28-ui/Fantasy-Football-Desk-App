@@ -291,6 +291,9 @@ export default function App() {
   const loadingScreen: Partial<Record<Screen, boolean>> = source === "engine"
     ? { waivers: !wboard && !wErr, league: !live && !liveErr, shifts: !shifts && !shErr, matchups: !mx && !mxErr } : {};
   const stale = (snap.data_age.rosters && (now - snap.data_age.rosters) / 3600 > STALE_H) || false;
+  const failedSteps = refresh.state === "failed" ? (refresh.log ?? []).filter((l) => !l.ok) : [];
+  // FantasyPros free tier: the client stops at limit - reserve calls per UTC day; a full refresh spends ~25
+  const fp = refresh.fp, fpLeft = fp ? fp.limit - fp.reserve - fp.used : null, fpLow = fpLeft !== null && fpLeft < 25;
   const teams = [...snap.power.teams].sort((a, b) => b.pf - a.pf);
   const selPlayer = sel?.kind === "player" ? by.get(sel.id) : undefined;
   const selTeam = sel?.kind === "team" ? snap.power.teams.find((t) => t.id === sel.id) : snap.power.teams.find((t) => t.id === tw.team_id);
@@ -334,6 +337,7 @@ export default function App() {
     { id: "go-gameday", group: "Go to", label: "Game day", hint: "My Team, by kickoff", run: () => { setScreen("team"); setMode("gameday"); setFileNav(null); } },
     ...(cmpIds.length ? [{ id: "go-compare", group: "Go to" as const, label: `Compare (${cmpIds.length})`, run: () => openCompare() }] : []),
     { id: "refresh", group: "Actions", label: "Refresh data from ESPN", hint: "rosters, projections, usage", run: () => void startRefresh() },
+    { id: "refresh-full", group: "Actions", label: "Full refresh", hint: `weekly routine · FantasyPros ${fp ? `${fp.used}/${fp.limit} calls today` : "~25 calls"}`, run: () => void startRefresh(false, true) },
     { id: "fs", group: "Actions", label: "Full screen", hint: "⇧⌘F", run: () => void toggleFullscreen().then(flash) },
     ...(cmpIds.length ? [{ id: "cmp-clear", group: "Actions" as const, label: "Clear compare", run: () => setCmpIds([]) }] : []),
     ...snap.power.teams.flatMap((t) => [
@@ -366,8 +370,10 @@ export default function App() {
           </>}
         </div>
         <div className="right">
-          <span className={`stamp ${stale ? "warn" : ""}`} title="Age of the last ESPN roster pull">
-            {source !== "engine" ? (source === "starting" ? "Starting engine…" : "Sample data") : refresh.state === "running" ? (refresh.quick ? "Checking ESPN…" : "Refreshing…")
+          <span className={`stamp ${stale || failedSteps.length ? "warn" : ""}`}
+            title={failedSteps.length ? failedSteps.map((l) => `${l.step}: ${(l.tail ?? []).join(" | ")}`).join("\n") : "Age of the last ESPN roster pull"}>
+            {source !== "engine" ? (source === "starting" ? "Starting engine…" : "Sample data") : refresh.state === "running" ? (refresh.quick ? "Checking ESPN…" : refresh.full ? `Full refresh: ${refresh.step ?? "starting"}…` : "Refreshing…")
+              : failedSteps.length ? `Refresh failed: ${failedSteps.map((l) => l.step).join(", ")}`
               : warmStep ? `Precomputing ${warmStep.label.toLowerCase()}…` : `Rosters ${age(now, snap.data_age.rosters)} · projections ${age(now, snap.data_age.espn_proj)}`}
           </span>
           <button className="tbtn chg-btn" type="button" onClick={() => { if (chgOpen) { setChgOpen(false); if (chg?.to) setSeen(chg.to); } else setChgOpen(true); }} disabled={!chg} title="Injury tags, projections and roster moves since you last looked">
@@ -375,6 +381,11 @@ export default function App() {
           <button className="tbtn" type="button" onClick={() => setPalOpen(true)} title="Find a player, team or command">Find <kbd>⌘K</kbd></button>
           <button className="tbtn" type="button" onClick={() => void startRefresh()} disabled={source !== "engine" || refresh.state === "running"}
             title={`Pull rosters, projections and usage now. Automatic quick refreshes: every ${autoEvery(Date.now()) >= 60 ? `${autoEvery(Date.now()) / 60} hours` : `${autoEvery(Date.now())} minutes`} right now.`}>Refresh</button>
+          <button className="tbtn" type="button" onClick={() => void startRefresh(false, true)} disabled={source !== "engine" || refresh.state === "running"}
+            title={`Run the whole weekly routine: every source (ESPN, FantasyPros, nflverse), ledger and season odds. Takes several minutes and uses ~25 FantasyPros API calls${fpLeft !== null ? `; ${fpLeft} usable left today` : ""}.`}>Full refresh</button>
+          {fp && <span className={`stamp ${fpLow ? "warn" : ""}`}
+            title={`FantasyPros API calls today (UTC day ${fp.day}): ${fp.used} of ${fp.limit}. Desk stops at ${fp.limit - fp.reserve} to keep ${fp.reserve} in reserve.${fpLow ? " Not enough left for another full refresh today; the FantasyPros step will fail but the rest still runs." : ""}`}>
+            FP API {fp.used}/{fp.limit}</span>}
           <button className="tbtn icon" type="button" onClick={() => void toggleFullscreen().then(flash)} title="Full screen (⇧⌘F)" aria-label="Toggle full screen">
             <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M1.5 4.5v-3h3M8.5 1.5h3v3M11.5 8.5v3h-3M4.5 11.5h-3v-3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>

@@ -280,6 +280,7 @@ def main(argv=None) -> int:
     except Exception as e:  # noqa: BLE001
         print(f"[FAIL] timing check: {e}")
     run("health check", ["tools/health_check.py"])
+    _archive_ledger()  # a rerun later in the week (e.g. Desk's Full refresh) keeps the earlier forecasts
     ctx, tvals, odds = ledger_step()
     briefing(ctx, tvals, odds)
     return 0
