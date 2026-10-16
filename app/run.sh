@@ -56,7 +56,14 @@ aside() {  # move $1 to $1.icloud-old (or a dated name if that's taken); prints 
 
 # ---- Python env, outside the repo ----
 setup_python() {
-  [ -f "$LOCAL/venv/.desk-ok" ] && return 0
+  if [ -f "$LOCAL/venv/.desk-ok" ]; then
+    # top up the env when app/requirements-desk.txt changed since it was built (e.g. a pull added a package)
+    [ app/requirements-desk.txt -nt "$LOCAL/venv/.desk-ok" ] || return 0
+    echo "updating Desk's Python env (app/requirements-desk.txt changed)…"
+    "$LOCAL/venv/bin/python" -m pip install -q --disable-pip-version-check -r app/requirements-desk.txt \
+      && touch "$LOCAL/venv/.desk-ok"
+    return 0
+  fi
   local base=""
   if [ -x .venv/bin/python ]; then base=$(.venv/bin/python -c 'import sys; print(sys._base_executable)' 2>/dev/null || true); fi
   if [ -z "$base" ] || [ ! -x "$base" ]; then
