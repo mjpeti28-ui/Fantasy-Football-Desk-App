@@ -23,6 +23,15 @@ def test_build_ros_rows_keeps_ranks_and_labels_next_week_points():
     rows = fetch_pff.build_ros_rows({"RB": payload})
     assert [r["Name"] for r in rows] == ["Kenneth Walker III", "Jahmyr Gibbs", "Bijan Robinson"]
     assert [r["Position Rank"] for r in rows] == [1, 2, 3]
-    assert rows[2]["Rank"] == 5 and rows[2]["Next Week"] == 6 and rows[2]["Next Week Points"] == 19.88
+    assert rows[2]["Flex Rank"] == 5 and rows[2]["Next Week"] == 6 and rows[2]["Next Week Points"] == 19.88
     assert rows[1]["Next Week Points"] is None
     assert set(rows[0]) == set(fetch_pff.ROS_FIELDS)
+
+
+def test_build_ros_rows_puts_flex_board_before_qb_and_k():
+    qb = {"currentGameWeek": 6, "rankings": [dict(_entry(1, "Josh", "Allen", "BUF", 7, 1, 1, None), position="QB")]}
+    k = {"currentGameWeek": 6, "rankings": [dict(_entry(2, "Brandon", "Aubrey", "DAL", 10, 1, 1, None), position="K")]}
+    rb = {"currentGameWeek": 6, "rankings": [_entry(3, "Kenneth", "Walker III", "KC", 5, 1, 1, None)]}
+    rows = fetch_pff.build_ros_rows({"QB": qb, "RB": rb, "K": k})
+    assert [r["Name"] for r in rows] == ["Kenneth Walker III", "Josh Allen", "Brandon Aubrey"]
+    assert rows[1]["Flex Rank"] is None

@@ -45,8 +45,11 @@ HEADERS = {
     "User-Agent": "PFF-Fantasy-Ranking/pff-client",
 }
 
-ROS_POSITIONS = ("QB", "RB", "WR", "TE", "K", "DST")
-ROS_REQUIRED = {"QB", "RB", "WR", "TE"}  # K/DST param spellings are unverified
+# position -> query spellings to try. "DST" is rejected (400, 2026-10-16); the others are guesses.
+ROS_POSITIONS = {"QB": ("QB",), "RB": ("RB",), "WR": ("WR",), "TE": ("TE",), "K": ("K",), "DST": ("D", "DEF", "DST")}
+ROS_REQUIRED = {"QB", "RB", "WR", "TE"}
+# rank.current is the shared flex board for these; for QB/K it just repeats the position rank
+FLEX = {"RB", "WR", "TE"}
 
 # PFF labels team defenses "D"; the rest of this project calls them "DST".
 POSITION_ALIASES = {"D": "DST"}
@@ -89,7 +92,7 @@ def fetch_ros(position: str, scoring: str = "ppr", timeout: float = 60.0) -> Dic
 
 
 def build_ros_rows(payloads: Dict[str, Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Flatten per-position ROS boards. ``rank.current`` is PFF's cross-position rank."""
+    """Flatten per-position ROS boards, flex positions first by PFF's flex rank."""
 
     rows: List[Dict[str, Any]] = []
     for position, payload in payloads.items():
@@ -98,7 +101,7 @@ def build_ros_rows(payloads: Dict[str, Dict[str, Any]]) -> List[Dict[str, Any]]:
             pos = POSITION_ALIASES.get(entry.get("position"), entry.get("position")) or position
             rows.append(
                 {
-                    "Rank": _nested(entry, "rank", "current"),
+                    "Flex Rank": _nested(entry, "rank", "current") if pos in FLEX else None,
                     "Position": pos,
                     "Name": _full_name(entry),
                     "Team": entry.get("teamAbbreviation"),
@@ -112,12 +115,14 @@ def build_ros_rows(payloads: Dict[str, Dict[str, Any]]) -> List[Dict[str, Any]]:
                 }
             )
     rows = [r for r in rows if r["Position Rank"] is not None and r["Name"]]
-    rows.sort(key=lambda r: (r["Rank"] is None, r["Rank"] or 0, r["Position"], r["Position Rank"]))
+    order = list(ROS_POSITIONS)
+    rows.sort(key=lambda r: (r["Flex Rank"] is None, r["Flex Rank"] or 0, order.index(r["Position"]) if r["Position"] in order else 99,
+                             r["Position Rank"]))
     return rows
 
 
 ROS_FIELDS = [
-    "Rank", "Position", "Name", "Team", "Position Rank", "Bye Week", "PFF ID",
+    "Flex Rank", "Position", "Name", "Team", "Position Rank", "Bye Week", "PFF ID",
     "Next Week", "Next Week Points", "Next Week Points Low", "Next Week Points High",
 ]
 
@@ -135,13 +140,17 @@ def run_ros(args: argparse.Namespace) -> int:
     from datetime import datetime, timezone
 
     payloads: Dict[str, Dict[str, Any]] = {}
-    for pos in ROS_POSITIONS:
-        try:
-            payloads[pos] = fetch_ros(pos)
-        except Exception as exc:  # noqa: BLE001
-            if pos in ROS_REQUIRED:
-                raise
-            print(f"  skipped {pos}: {exc}")
+    for pos, spellings in ROS_POSITIONS.items():
+        for i, spelling in enumerate(spellings):
+            try:
+                payloads[pos] = fetch_ros(spelling)
+                break
+            except Exception as exc:  # noqa: BLE001
+                if i < len(spellings) - 1:
+                    continue
+                if pos in ROS_REQUIRED:
+                    raise
+                print(f"  skipped {pos} (tried {', '.join(spellings)}): {exc}")
     rows = build_ros_rows(payloads)
     counts = Counter(r["Position"] for r in rows)
     week = next(iter(payloads.values())).get("currentGameWeek")
