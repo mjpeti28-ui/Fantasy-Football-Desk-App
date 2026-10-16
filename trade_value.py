@@ -112,6 +112,8 @@ def why(ctx: Context, pid: int) -> str:
     s = " / ".join(parts)
     band = f" (+/-{TYPICAL_MISS_PPG:.0f})" if r["position"] in SKILL else ""  # band measured on skill players only
     s += f" -> {r['est_ppg']:.1f} ppg{band}, plays ~{100 * float(r['avail']):.0f}%"
+    if r["position"] in ctx.replacement:  # what a waiver pickup at his position would give instead
+        s += f"; waiver {r['position']} ~{ctx.replacement[r['position']]:.1f}"
     if str(r.get("status", "active")) != "active":
         s += f" [{r['status']}]"
     return s
@@ -272,6 +274,7 @@ def find(ctx: Context, team: int, *, shapes=("1-1", "2-1", "1-2"), sims: int = 4
             "your_gain": me["delta_total"], "your_gain_calibrated": me["delta_total_calibrated"],
             "your_gain_playoffs": me["delta_playoffs"], "p_right": me["p_direction_right"],
             "their_gain": them["delta_total"], "trust": edge_label(me["delta_total"]),
+            "why": " | ".join(f"{n}: {w}" for n, w in me["why"].items()),
         })
         if len(out) >= top:
             break

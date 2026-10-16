@@ -179,7 +179,9 @@ export function Trades(p: Props) {
     const d = odds?.teams[t]?.delta, a = odds?.teams[t]?.after, nz = (odds?.noise_pp ?? 1.1) / 100;
     const cell = (k: "top2" | "playoffs" | "seed1") => d && a ? (
       <span><b className="num">{pct(a[k])}</b> <em className={Math.abs(d[k]) < 2 * nz ? "flat" : d[k] > 0 ? "up" : "down"}>{Math.abs(d[k]) < 2 * nz ? "≈" : `${d[k] > 0 ? "+" : "−"}${Math.round(Math.abs(d[k]) * 100)}`}</em></span>) : <span className="dim">–</span>;
-    return <div className={`orow ${cls}`}><span className="who">{label}</span>{cell("seed1")}{cell("top2")}{cell("playoffs")}</div>;
+    const sm = d?.seed_med != null && a?.seed_med != null ? (
+      <span><b className="num">{a.seed_med}</b> <em className={d.seed_med === 0 ? "flat" : d.seed_med < 0 ? "up" : "down"}>{d.seed_med === 0 ? "≈" : `${d.seed_med < 0 ? "↑" : "↓"}${Math.abs(d.seed_med)}`}</em></span>) : <span className="dim">–</span>;
+    return <div className={`orow ${cls}`}><span className="who">{label}</span>{cell("seed1")}{cell("top2")}{cell("playoffs")}{sm}</div>;
   };
 
   return (
@@ -214,10 +216,10 @@ export function Trades(p: Props) {
                 </div>
                 {(m.would_drop.length > 0 || mt.would_drop.length > 0) && <p className="dim drops">Roster limits: {m.would_drop.length ? `you'd drop ${m.would_drop.join(", ")}` : ""}{m.would_drop.length && mt.would_drop.length ? "; " : ""}{mt.would_drop.length ? `${pname} would drop ${mt.would_drop.join(", ")}` : ""}.</p>}
                 <div className="odds">
-                  <div className="orow head"><span className="who">After trade</span><span>#1 seed</span><span>Top-2</span><span>Playoffs</span></div>
+                  <div className="orow head"><span className="who">After trade</span><span>#1 seed</span><span>Top-2</span><span>Playoffs</span><span>Median seed</span></div>
                   {oddsRow(me, "You", "me")}
                   {oddsRow(partner, pname, "them")}
-                  <p className="dim">{oddsBusy ? "Simulating 2,000 seasons… (about 10 seconds the first time)" : odds ? "Same simulated seasons as the League screen, so changes come from the trade. ≈ means inside noise." : ""}</p>
+                  <p className="dim">{oddsBusy ? "Simulating 2,000 seasons… (about 10 seconds the first time)" : odds ? `Same simulated seasons as the League screen, so changes come from the trade. ≈ means inside noise.${odds.week != null && odds.week < 6 ? " Early season: seed and playoff odds only gain real skill around week 6 in backtests, so read these loosely." : ""}` : ""}</p>
                 </div>
                 <div className="ins-acts">
                   <button className="tbtn" type="button" onClick={() => p.onCopy?.(markdown())}>Copy for Claude</button>
@@ -321,7 +323,7 @@ export function IdeasPanel({ partner, pname, engineUp, onLoad }: { partner: numb
       {st?.state === "done" && (st.rows ?? []).length === 0 && <p className="ins-note">No deal helps both sides by our numbers.</p>}
       <div className="ilist">
         {(st?.rows ?? []).map((r, i) => (
-          <button key={i} type="button" className="idea" onClick={() => onLoad(r.partner, r.give_ids, r.get_ids)} disabled={r.give_ids.some((x) => x == null) || r.get_ids.some((x) => x == null)}>
+          <button key={i} type="button" className="idea" title={r.why} onClick={() => onLoad(r.partner, r.give_ids, r.get_ids)} disabled={r.give_ids.some((x) => x == null) || r.get_ids.some((x) => x == null)}>
             <span className="w">{r.with}</span>
             <span className="g"><b>{r.give}</b> → <b>{r.get}</b></span>
             <span className="n"><span className="num you">{signed(r.your_gain_calibrated)}</span> you · <span className="num them">{signed(r.their_gain)}</span> them · {pct(r.p_right)} · <span className={`conf ${r.trust === "noise" ? "noise" : r.trust === "thin edge" ? "thin" : "yes"}`}>{r.trust}</span></span>

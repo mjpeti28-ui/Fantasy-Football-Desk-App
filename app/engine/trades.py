@@ -1,6 +1,7 @@
 """Trades screen: partner history, two-view evaluation, season-odds deltas, idea search."""
 from __future__ import annotations
 
+import itertools
 import threading
 import time
 from typing import Dict, List, Optional
@@ -71,11 +72,17 @@ def odds(partner: int, give: List[int], get: List[int], sims: int = 2000) -> dic
     after = dict(ctx.rosters)
     after[ME] = tv._after(ctx, ctx.rosters[ME], give, get)
     after[partner] = tv._after(ctx, ctx.rosters[partner], get, give)
-    base = league.base(sims)
+    base = dict(league.base(sims))  # copy: the league cache is shared
+    ex: dict = {}
     with league._lock:
-        res = league.simulate_crn({}, sims, rosters=after)
-    keys = ("seed1", "top2", "playoffs", "title", "reg_pts")
-    return {"sims": sims, "noise_pp": round(100 * 0.5 / sims ** 0.5, 1),
+        res = league.simulate_crn({}, sims, rosters=after, extras=ex)
+    med = lambda dist: next(k + 1 for k, c in enumerate(itertools.accumulate(dist)) if c >= 0.5)  # median seed, 1 = best
+    sd0, sd1 = league._cache[("extras", sims)]["seed_dist"], ex["seed_dist"]
+    keys = ("seed1", "top2", "playoffs", "title", "reg_pts", "seed_med")
+    for t in (ME, partner):
+        base[t] = {**base[t], "seed_med": med(sd0[t])}
+        res[t] = {**res[t], "seed_med": med(sd1[t])}
+    return {"sims": sims, "noise_pp": round(100 * 0.5 / sims ** 0.5, 1), "week": ctx.week,
             "teams": {t: {"before": base[t], "after": res[t], "delta": {k: round(res[t][k] - base[t][k], 4) for k in keys}}
                       for t in (ME, partner)}}
 

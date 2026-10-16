@@ -122,6 +122,7 @@ def _build(top: int, keep: Iterable[int] = ()) -> dict:
     rostered = {i for ids in ctx.rosters.values() for i in ids}
     pool = t[~t.index.isin(rostered) & t["position"].isin(POS)].copy()
     pool["ros"] = v.expected_ros_points(pool, ctx.week, v.FANTASY_LAST_WEEK)
+    pool["p_start"], pool["p_boom"] = v.hit_probability(pool, "start"), v.hit_probability(pool, "boom")
     tags = _tags()
     pool["tag"] = pool.index.map(lambda i: tags.get(int(i), ""))
     med = pool.groupby("position")["ros"].transform("median")
@@ -153,6 +154,8 @@ def _build(top: int, keep: Iterable[int] = ()) -> dict:
                 "id": pid, "name": str(r["name"]), "pos": pos, "team": nfl.get(pid),
                 "headshot": headshot(pid, pos, nfl.get(pid)), "espn_wk": round(float(r.get("espn_now") or 0), 1),
                 "est_ppg": round(float(r["est_ppg"]), 2), "avail": round(float(r["avail"]), 3), "ros": round(float(r["ros"]), 1),
+                "p_start": None if pd.isna(r["p_start"]) else round(float(r["p_start"]), 3),
+                "p_boom": None if pd.isna(r["p_boom"]) else round(float(r["p_boom"]), 3),
                 "ecr_rank": None if pd.isna(r.get("ecr_rank")) else int(r["ecr_rank"]), "tag": r["tag"] or "",
                 "why": tv.why(ctx, pid) if pid in ctx.tbl.index else "",
                 "gain": round(float(best[0] - base), 1), "drop_id": int(best[1]), "drop_name": str(t.at[best[1], "name"]),

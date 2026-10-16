@@ -132,11 +132,12 @@ export interface TradeSide {
   p_direction_right: number; edge_label: string; why: Record<string, string>;
 }
 export interface TradeEval { model: { week: number; teams: Record<string, TradeSide> }; espn: { week: number; teams: Record<string, TradeSide> } }
-export interface TradeOdds { sims: number; noise_pp: number; teams: Record<string, { before: LiveOdds; after: LiveOdds; delta: LiveOdds }> }
+export type OddsSide = LiveOdds & { seed_med?: number };
+export interface TradeOdds { sims: number; noise_pp: number; week?: number; teams: Record<string, { before: OddsSide; after: OddsSide; delta: OddsSide }> }
 export interface TradeHistory { sent: number; accepted: number; declined: number; canceled: number }
 export interface IdeaRow {
   with: string; give: string; get: string; you_drop: string; your_gain: number; your_gain_calibrated: number;
-  your_gain_playoffs: number; p_right: number; their_gain: number; trust: string; partner: number; give_ids: number[]; get_ids: number[];
+  your_gain_playoffs: number; p_right: number; their_gain: number; trust: string; why?: string; partner: number; give_ids: number[]; get_ids: number[];
 }
 export interface IdeasState { state: "idle" | "running" | "done" | "failed"; partner: number | null; started: number | null; rows: IdeaRow[]; error: string | null }
 
@@ -144,6 +145,7 @@ export interface Usage { weeks: number[]; targets: (number | null)[]; carries: (
 export interface WaiverRow {
   id: number; name: string; pos: Pos; team: string | null; headshot: string | null;
   espn_wk: number | null; est_ppg: number | null; avail: number | null; ros: number | null; ecr_rank: number | null;
+  p_start?: number | null; p_boom?: number | null;
   tag: string; why: string; gain: number | null; drop_id: number | null; drop_name: string | null; usage: Usage | null;
 }
 export interface DepthRow { id: number; name: string; est_ppg: number | null; avail: number | null; ir: boolean; team: string | null; usage: Usage | null; drop_cost?: number | null; kept?: boolean }
