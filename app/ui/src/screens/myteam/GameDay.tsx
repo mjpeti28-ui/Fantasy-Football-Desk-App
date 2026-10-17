@@ -1,7 +1,7 @@
 import { useFile } from "../../components/FileContext";
 import { useMemo } from "react";
 import type { Game, Player, TeamWeek } from "../../types";
-import { clock, f1, lastName } from "../../format";
+import { clock, f1, lastName, teamShort } from "../../format";
 import { isDead } from "../../components/bits";
 import type { LiveBoard, LivePlayer } from "../live/Live";
 import { STARTERS, type Plan, slotOf } from "./lineup";
@@ -55,8 +55,8 @@ export function GameDay({ tw, plan, onSelect, selected, live }: { tw: TeamWeek; 
     <button key={`${who}${r.id}`} type="button" className={`gl ${who} ${started ? l!.state : ""} ${selected === r.id ? "sel" : ""}`} onClick={() => who !== "them" && onSelect(r.id)} onDoubleClick={() => who !== "them" && openFile(r.id)} disabled={who === "them"}
       title={started ? `${l!.state === "post" ? "Final" : "So far"}: ${f1(l!.pts)} points. Projected ${f1(r.proj)} before kickoff.` : undefined}>
       <span className="nm">{lastName(r.name)}</span><span className="pt num">{f1(started ? l!.pts : r.proj)}</span>
-      <span className="gm">{started && <span className="pj">{l!.state === "post" ? "final" : "so far"} · proj {f1(r.proj)} · </span>}{who === "res" ? "bench · " : r.slot ? `${r.slot} · ` : ""}{r.team} {r.game.home ? "vs" : "@"} {r.game.opp}
-        {r.game.implied_total != null && <span className="vegas" title={`Vegas: ${r.team} implied ${r.game.implied_total} of a ${r.game.game_total} total`}> · {r.game.implied_total}</span>}</span>
+      <span className="gm">{started && <span className="pj">{l!.state === "post" ? "final" : "so far"} · proj {f1(r.proj)} · </span>}{who === "res" ? "bench · " : r.slot ? `${r.slot} · ` : ""}{r.team} {r.game.home ? "vs" : "@"} {r.game.opp}</span>
+      {r.game.implied_total != null && <span className="gm vegas" title={`Vegas: ${r.team} implied ${r.game.implied_total} of a ${r.game.game_total} total`}>team total {r.game.implied_total}</span>}
     </button>
     );
   };
@@ -96,7 +96,7 @@ export function GameDay({ tw, plan, onSelect, selected, live }: { tw: TeamWeek; 
               <div className="when"><span className="d">{g.day} {g.date?.slice(5).replace("-", "/")}{badge && <i className={`wst ${badge}`}>{badge === "live" ? "Live" : "Final"}</i>}</span><span className="t num">{clock(g.time)}</span>
                 <span className="gs">{(() => { const gs = new Map<string, number | null>(); for (const r of [...m, ...t, ...res.map((p) => ({ team: p.team, game: p.game! }))]) { const nm = r.game.home ? `${r.game.opp}@${r.team}` : `${r.team}@${r.game.opp}`; gs.set(nm, r.game.game_total ?? null); } return [...gs].map(([nm, tot]) => <span key={nm}>{nm}{tot != null ? <em> {tot}</em> : null}</span>); })()}</span></div>
               {m.length > 0 && <><div className="lane">You · {f1(m.reduce((a, r) => a + r.proj, 0))}</div>{m.map((r) => line(r, "me"))}</>}
-              {t.length > 0 && <><div className="lane">{tw.matchup?.opp_name} · {f1(t.reduce((a, r) => a + r.proj, 0))}</div>{t.map((r) => line(r, "them"))}</>}
+              {t.length > 0 && <><div className="lane">{teamShort(tw.matchup?.opp_name ?? "", [])} · {f1(t.reduce((a, r) => a + r.proj, 0))}</div>{t.map((r) => line(r, "them"))}</>}
               {res.length > 0 && <><div className="lane">Late swap</div>{res.map((p) => <div key={p.id} className="swapbox">{line({ id: p.id, name: p.name, pos: p.pos, team: p.team, proj: p.espn_week ?? 0, game: p.game! }, "res")}</div>)}</>}
             </section>
           );
@@ -114,7 +114,7 @@ export function GameDay({ tw, plan, onSelect, selected, live }: { tw: TeamWeek; 
             return <><text x={x(cum.length - 1) + 8} y={ya} className="me-t">{f1(cm)} you</text><text x={x(cum.length - 1) + 8} y={yb} className="them-t">{f1(ct)} them</text></>;
           })()}
           {wins.map((w, i) => { const g = [...mine, ...theirs].find((r) => key(r.game) === w)?.game; return g ? <text key={w} x={x(i)} y={H - 3} textAnchor="middle">{g.day} {clock(g.time)}</text> : null; })}
-          {half >= 0 && <text x={x(half)} y={y(cum[half][0]) - 10} textAnchor="middle" className="me-t">half your points kicked off</text>}
+          {half >= 0 && <><line x1={x(half)} x2={x(half)} y1={T - 6} y2={y(cum[half][0]) - 5} className="half" /><text x={x(half) + 6} y={T - 8} className="me-t">half your points kicked off by here</text></>}
         </svg>
         <figcaption><span className="k me" />You, projected points kicked off so far <span className="k them" />{tw.matchup?.opp_name}</figcaption>
       </figure>

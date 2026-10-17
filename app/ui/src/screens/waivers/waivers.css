@@ -17,7 +17,8 @@
 .waivers .spine { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--pc); opacity: .35; border-radius: 1px; }
 .waivers .repl { position: absolute; left: 8%; right: 8%; border-top: 1.5px dashed var(--ink-3); }
 .waivers .lane .dot { position: absolute; left: 50%; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border-radius: 50%; }
-.waivers .lane .lab { position: absolute; transform: translateY(-50%); font-size: 11.5px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(50% - 9px); }
+.waivers .lane .lab { position: absolute; transform: translateY(-50%); font-size: 11.5px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(50% - 9px);
+  background: var(--win); padding: 0 2px; border-radius: 2px; z-index: 1; } /* sits over the dashed replacement line */
 .waivers .lab em { font-style: normal; font-variant-numeric: tabular-nums; color: var(--ink-2); }
 .waivers .mine .dot { background: var(--you); box-shadow: 0 0 0 2px var(--win); z-index: 2; }
 .waivers .mine .lab { left: calc(50% + 10px); color: var(--ink); }
@@ -38,7 +39,7 @@
 .waivers .k-repl { width: 16px !important; height: 0 !important; border-radius: 0 !important; border-top: 1.5px dashed var(--ink-3); }
 
 .waivers .wv-list { display: grid; gap: 10px; }
-.waivers .wv-tools { display: flex; align-items: center; gap: 14px; }
+.waivers .wv-tools { display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; }
 .waivers .wv-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .waivers .wv-table th { font: 600 11px/1 var(--sys); color: var(--ink-2); text-align: left; padding: 6px 5px; border-bottom: 1px solid var(--line); white-space: nowrap; }
 .waivers .wv-table td { padding: 5px 5px; border-bottom: 1px solid var(--line); vertical-align: middle; white-space: nowrap; }
@@ -53,7 +54,8 @@
 .waivers .who .tag { font-style: normal; color: #c98a0c; }
 .waivers .pchip { font: 700 10px/1 var(--content); font-style: normal; padding: 3px 0; width: 30px; text-align: center; border-radius: 3px; flex: none; }
 .waivers .use { display: inline-flex; align-items: flex-end; gap: 8px; }
-.waivers .use small { color: var(--ink-2); font-size: 11px; }
+.waivers .use small { color: var(--ink-2); font-size: 11px; line-height: 1.25; display: flex; flex-direction: column; }
+.waivers .use small .nw { white-space: nowrap; }
 .waivers .wv-spark { display: inline-flex; align-items: flex-end; gap: 2px; height: 16px; }
 .waivers .wv-spark i { width: 5px; border-radius: 1px; display: block; }
 .waivers .wv-spark i.none { background: var(--ink-3); opacity: .5; }

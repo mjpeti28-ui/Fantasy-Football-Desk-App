@@ -10,10 +10,10 @@
 .trades .tr-empty { color: var(--t-ink2); margin: 8px 0; }
 
 .trades .partners { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 6px; }
-.trades .pc { text-align: left; border: 1px solid var(--t-rule); background: var(--win); border-radius: 8px; padding: 7px 10px; display: grid; gap: 2px; cursor: pointer; position: relative; color: var(--t-ink); }
+.trades .pc { text-align: left; border: 1px solid var(--t-rule); background: var(--win); border-radius: 8px; padding: 7px 10px; display: grid; gap: 2px; align-content: start; cursor: pointer; position: relative; color: var(--t-ink); font: 12px var(--sys); }
 .trades .pc:hover { border-color: var(--t-ink2); }
 .trades .pc.on { border-color: var(--them); box-shadow: inset 0 0 0 1px var(--them); }
-.trades .pc b { font: 700 13px/1.2 var(--content); font-variation-settings: "wdth" 85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 26px; }
+.trades .pc b { font: 700 13px/1.2 var(--content); font-variation-settings: "wdth" 85; padding-right: 26px; }
 .trades .pc .h { font-size: 11.5px; color: var(--t-ink2); font-variation-settings: "wdth" 95; }
 .trades .pc .h.good, .trades .facts .h.good { color: var(--above); } .pc .h.bad, .facts .h.bad { color: var(--below); }
 .trades .pc .fit { position: absolute; top: 6px; right: 7px; font: 700 9.5px/1 var(--content); letter-spacing: .08em; text-transform: uppercase; color: var(--you); border: 1px solid var(--you); border-radius: 3px; padding: 2px 3px; }
@@ -137,7 +137,7 @@
 .trades .dg-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
 @media (max-width: 1200px) { .trades .dg-two { grid-template-columns: minmax(0, 1fr); } }
 .trades .dg h5 { margin: 0 0 6px; font: 700 12px/1 var(--content); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
-.trades .dg-row { all: unset; box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1fr) 46px 46px 46px 50px 82px; gap: 8px; align-items: center; width: 100%; padding: 5px 6px; border-radius: 6px; font: 12.5px var(--sys); cursor: pointer; }
+.trades .dg-row { all: unset; box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1fr) 42px 42px 42px 46px; gap: 8px; align-items: center; width: 100%; padding: 5px 6px; position: relative; border-radius: 6px; font: 12.5px var(--sys); cursor: pointer; }
 .trades .dg-row:disabled { cursor: default; }
 .trades .dg-row:not(.hd):not(:disabled):hover { background: var(--hover); }
 .trades .dg-row.hd { font: 600 10.5px var(--sys); color: var(--ink-2); cursor: default; padding-bottom: 2px; }
@@ -148,5 +148,5 @@
 .trades .dg-row .dg-why::before { content: "Likely: "; color: var(--ink-3); }
 .trades .dg-row .num { text-align: right; font-variant-numeric: tabular-nums; }
 .trades .dg-row .gap { font-weight: 650; color: var(--ink-2); }
-.trades .dg-row .go { color: var(--you); font-size: 12px; text-align: right; opacity: 0; }
+.trades .dg-row .go { position: absolute; right: 6px; bottom: 4px; color: var(--you); font-size: 11.5px; opacity: 0; } /* on hover, in the "Likely" line's row */
 .trades .dg-row:hover .go { opacity: 1; }

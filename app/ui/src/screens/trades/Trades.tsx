@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { AFlag, APlayer, Analytics, IdeasState, JDraft, LeagueAnalysis, LeagueLive, PowerTeam, RosterRow, TradeEval, TradeHistory, TradeOdds } from "../../types";
 import { Ev, EvFor, FlagChip } from "../../components/Analytics";
-import { f1, pct, signed } from "../../format";
+import { f1, pct, signed, teamShort, tightName } from "../../format";
 import { tradeApi } from "../../data";
 import { useFile } from "../../components/FileContext";
 import { Face } from "../../components/bits";
@@ -64,7 +64,7 @@ function Roster({ rows, picked, onToggle, title, side, colors, flags }: { rows: 
               title={`${r.name}: ${f1(r.est_ppg)} ppg rest of season, plays ${pct(r.avail)}`}>
               <span className="fw"><Face p={{ headshot: r.headshot, pos: r.pos, name: r.name }} className="round" />
                 {(() => { const fl = rowFlag(flags?.get(r.id)); return fl ? <i className={`tfb ${fl.tone} ${fl.label}`} title={`${fl.short}: ${fl.text}`} aria-label={fl.short}>{fl.tone === "up" ? "↑" : "↓"}</i> : null; })()}</span>
-              <span className="nm">{r.name}</span>
+              <span className="nm" title={r.name}>{tightName(r.name)}</span>
               <i className={`pchip ${r.pos === "WR" ? "wr" : ""}`} style={{ background: POS_VAR[r.pos] }}>{r.pos === "DST" ? "D/ST" : r.pos}</i>
               <span className="v num">{f1(r.est_ppg)}</span>
               <span className="mk" aria-hidden="true">{on ? (side === "me" ? "→" : "←") : "+"}</span>
@@ -200,7 +200,7 @@ export function Trades(p: Props) {
               <div className="side me"><span className="lab">You send</span>
                 {deal.give.length ? deal.give.map((id) => <span key={id} className="pill">{byId.get(id)?.name}<button type="button" aria-label="Remove" onClick={() => toggle("give")(id)}>×</button></span>) : <span className="ph">Click your players</span>}</div>
               <div className="swap" aria-hidden="true">⇄</div>
-              <div className="side them"><span className="lab">{pname} sends</span>
+              <div className="side them"><span className="lab" title={`${pname} sends`}>{teamShort(pname, teams.map((t) => t.name))} sends</span>
                 {deal.get.length ? deal.get.map((id) => <span key={id} className="pill">{byId.get(id)?.name}<button type="button" aria-label="Remove" onClick={() => toggle("get")(id)}>×</button></span>) : <span className="ph">Click their players</span>}</div>
             </div>
             {err && <p className="tr-off">{err}</p>}
@@ -382,7 +382,7 @@ function Disagree({ me, teams, an, setDeal }: Props) {
   const row = (x: APlayer, mine: boolean) => (
     <button key={x.id} type="button" className="dg-row" disabled={mine} onClick={() => !mine && setDeal({ partner: x.owner, give: [], get: [x.id] })}
       title={`${x.name}: ${f1(x.ppg)} ppg so far, model ${f1(x.est_ppg)} rest of season, usage ${f1(x.xfp)}`}>
-      <span className="nm"><b>{x.name}</b><small>{x.pos} · {mine ? "yours" : name(x.owner)}</small></span>
+      <span className="nm"><b title={x.name}>{tightName(x.name, 16)}</b><small>{x.pos} · {mine ? "yours" : name(x.owner)}</small></span>
       <span className="num">{f1(x.ppg)}</span><span className="num">{f1(x.xfp)}</span><span className="num"><b>{f1(x.est_ppg)}</b></span>
       <span className={`num gap ${gap(x) > 0 ? "up" : "down"}`}>{signed(gap(x))}</span>
       {!mine && <span className="go">Open desk →</span>}

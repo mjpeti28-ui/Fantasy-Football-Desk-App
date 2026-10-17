@@ -8,8 +8,8 @@
 @media (prefers-color-scheme: dark) {
   .board { --b-bg: #1b1d1c; --b-dot: rgba(255,255,255,.05); --b-tile: #2a2d2b; --b-ink: #eef0ec; --b-ink2: #a3aaa4; --b-cell: #303331; --b-po: #2d3140; --b-score: #0e100f; }
 }
-.board h5 { margin: 0 0 8px; font: 700 12px/1 var(--content); font-variation-settings: "wdth" 72; letter-spacing: .12em; text-transform: uppercase; color: var(--b-ink2); display: flex; gap: 10px; align-items: baseline; }
-.board h5 span { letter-spacing: .02em; text-transform: none; font-weight: 500; font-variation-settings: "wdth" 90; }
+.board h5 { margin: 0 0 8px; font: 700 12px/1 var(--content); font-variation-settings: "wdth" 72; letter-spacing: .12em; text-transform: uppercase; color: var(--b-ink2); display: flex; flex-wrap: wrap; gap: 10px; row-gap: 4px; align-items: baseline; white-space: nowrap; }
+.board h5 span { white-space: normal; letter-spacing: .02em; text-transform: none; font-weight: 500; font-variation-settings: "wdth" 90; }
 
 .board .score { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto; gap: 18px; align-items: center; background: var(--b-score); color: #f2f1ec; border-radius: 8px; padding: 12px 20px; }
 .board .score > div { display: grid; gap: 2px; min-width: 0; }

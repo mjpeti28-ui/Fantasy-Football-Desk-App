@@ -18,13 +18,14 @@
 .gameday .gl.sel { background: var(--you-soft); }
 .gameday .gl .nm { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gameday .gl .pt { font: 600 13px/1.3 var(--mono); }
-.gameday .gl .gm { grid-column: 1 / -1; color: var(--g-ink2); font-size: 11.5px; }
+.gameday .gl .gm { grid-column: 1 / -1; color: var(--g-ink2); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gameday .gl.me .nm, .gameday .gl.me .pt, .gameday .gl.res .nm, .gameday .gl.res .pt { color: var(--you); }
 .gameday .gl.them .nm, .gameday .gl.them .pt { color: var(--them); font-weight: 500; }
 .gameday .swapbox { border: 1px dashed var(--you); border-radius: 5px; padding: 2px 6px; }
 .gameday .cum { margin: 0; display: grid; gap: 6px; }
 .gameday .cum text { font: 600 11px var(--mono); fill: var(--g-ink2); }
 .gameday .cum .grid { stroke: var(--g-line); }
+.gameday .cum .half { stroke: var(--you); stroke-dasharray: 2 3; }
 .gameday .cum .me-line { fill: none; stroke: var(--you); stroke-width: 2.5; }
 .gameday .cum .them-line { fill: none; stroke: var(--them); stroke-width: 2; }
 .gameday .cum .me-dot { fill: var(--you); stroke: var(--g-bg); stroke-width: 2; }

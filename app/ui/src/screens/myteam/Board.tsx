@@ -146,7 +146,7 @@ export function Board({ tw, plan, setPlan, selected, onSelect, ratioQ, colorMode
         <span className="fw"><Face p={p} className="round" /></span>
         <span className="n">{lastName(p.name)}<TrendGlyph r={roles?.players[String(p.id)]} /></span>
         <span className="p"><Proj p={p} tip={drag ? undefined : tip(p)} /></span>
-        <span className="s">{pal && <i className={`pchip ${p.pos === "WR" ? "wr" : ""}`}>{p.pos === "DST" ? "D/ST" : p.pos}</i>}{label} · {gameLabel(p.game)}{p.game && !p.game.bye ? ` ${p.game.day}` : ""}</span>
+        <span className="s">{pal && <i className={`pchip ${p.pos === "WR" ? "wr" : ""}`}>{p.pos === "DST" ? "D/ST" : p.pos}</i>}{label === "BN" ? "" : `${label} · `}{gameLabel(p.game)}{p.game && !p.game.bye ? ` ${p.game.day}` : ""}</span>
       </div>
     );
   };

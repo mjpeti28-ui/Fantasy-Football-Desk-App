@@ -1,6 +1,6 @@
 /* League: almanac table (job: survey). Hairline rules, condensed numbers, one shared scale for
    the weekly small multiples. You = cobalt edge, this week's opponent = plum edge. */
-.league td.nm { max-width: 168px; overflow: hidden; text-overflow: ellipsis; }
+.league td.nm { max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .league { --l-bg: var(--win); --l-ink: var(--ink); --l-ink2: var(--ink-2); --l-rule: var(--line); --l-bar: #8b8f95; --l-meter: var(--field);
   background: var(--l-bg); color: var(--l-ink); min-height: 100%; padding: 22px 26px 30px; display: grid; gap: 14px; align-content: start;
   grid-template-columns: minmax(0, 1fr); font-family: var(--content); font-variation-settings: "wdth" 88; }

@@ -107,7 +107,7 @@
 .fp-head .scale em { font-style: normal; }
 .fp-grp h6 { margin: 4px 0 2px; font: 650 10.5px var(--sys); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
 .fp-row { padding: 4px 0; border-bottom: 1px solid var(--line); font-size: 12.5px; cursor: help; }
-.fp-row .lab { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fp-row .lab { line-height: 1.25; } /* wraps rather than cutting long metric names */
 .fp-row .track { position: relative; height: 16px; }
 .fp-row .track::before { content: ""; position: absolute; left: 0; right: 0; top: 7.5px; height: 1px; background: var(--line); }
 .fp-row .mid { position: absolute; left: 50%; top: 3px; height: 10px; width: 1px; background: var(--ink-3); opacity: .6; }

@@ -1,12 +1,12 @@
 import { useState } from "react";
 import type { LeagueAnalysis, Pos, PowerTeam } from "../../types";
-import { f1, pct, signed } from "../../format";
+import { f1, pct, signed, teamShort } from "../../format";
 import "./analysis.css";
 
 const POS_VAR: Record<string, string> = { QB: "var(--qb)", RB: "var(--rb)", WR: "var(--wr)", TE: "var(--te)", K: "var(--k)", DST: "var(--dst)" };
 const POS_LABEL: Record<string, string> = { QB: "QB", RB: "RB", WR: "WR", TE: "TE", K: "K", DST: "D/ST" };
 const SKILL: Pos[] = ["QB", "RB", "WR", "TE"];
-const short = (n: string) => (n.length > 14 ? n.split(" ").slice(0, 2).join(" ").slice(0, 14) : n);
+const short = (n: string, teams: PowerTeam[]) => teamShort(n, teams.map((t) => t.name));
 
 interface Props { a: LeagueAnalysis; teams: PowerTeam[]; order: number[]; myId: number; oppId: number | null; onSelect: (id: number) => void; onTrade?: (id: number) => void }
 
@@ -44,7 +44,7 @@ function Strength({ a, teams, order, myId, oppId, onSelect, onTrade }: Props) {
                 const totMean = pos.reduce((s, p) => s + mean[p], 0);
                 return (
                   <tr key={t} className={role(t, myId, oppId)} onClick={() => onSelect(t)}>
-                    <th className="tn">{short(name(t))}</th>
+                    <th className="tn">{short(name(t), teams)}</th>
                     {pos.map((p) => {
                       const v = dev(t, p), alpha = Math.min(1, Math.abs(v) / span);
                       const streams = a.stream_rate[t][p] >= 0.3;
@@ -86,13 +86,13 @@ function Seeds({ a, teams, order, myId, oppId, onSelect }: Props) {
   return (
     <section className="an-card">
       <header><h4>Where each team finishes</h4><p>Chance of each final seed. Seeding is by total points; 1–2 face the 7–8 seeds, 9–10 miss.</p></header>
-      <div className="seeds" style={{ gridTemplateColumns: `minmax(0, 1.25fr) repeat(${n}, minmax(0, 1fr))` }}>
+      <div className="seeds" style={{ gridTemplateColumns: `78px repeat(${n}, minmax(0, 1fr))` }}>
         <span />
         {Array.from({ length: n }, (_, k) => <span key={k} className={`sh ${k === 1 ? "cut2" : ""} ${k === cut - 1 ? "cutp" : ""}`}>{k + 1}</span>)}
         {order.map((t) => {
           const d = a.seed_dist[t], r = role(t, myId, oppId);
           return [
-            <button key={`n${t}`} type="button" className={`tn ${r}`} onClick={() => onSelect(t)}>{short(teams.find((x) => x.id === t)!.name)}</button>,
+            <button key={`n${t}`} type="button" className={`tn ${r}`} onClick={() => onSelect(t)}>{short(teams.find((x) => x.id === t)!.name, teams)}</button>,
             ...d.map((p, k) => (
               <span key={`${t}-${k}`} className={`cell ${r} ${k === 1 ? "cut2" : ""} ${k === cut - 1 ? "cutp" : ""}`} style={{ ["--a" as string]: Math.min(1, p * 2.2).toFixed(2) }}
                 title={`${teams.find((x) => x.id === t)!.name}: seed ${k + 1}, ${pct(p)}`}>{p >= 0.1 ? Math.round(p * 100) : ""}</span>
@@ -107,12 +107,12 @@ function Seeds({ a, teams, order, myId, oppId, onSelect }: Props) {
 
 /* 3 ─ luck vs strength */
 function Scatter({ a, teams, order, myId, oppId, onSelect }: Props) {
-  const W = 420, H = 300, L = 46, R = 16, T = 18, B = 40;
+  const W = 420, H = 326, L = 46, R = 16, T = 30, B = 60; // quadrant captions sit in the margins, clear of the dots
   const regIdx = a.weeks.map((w, i) => (w <= a.reg_end ? i : -1)).filter((i) => i >= 0);
   const pts = order.map((t) => {
     const tm = teams.find((x) => x.id === t)!;
     const strength = regIdx.reduce((s, i) => s + a.week_pts[t][i], 0) / regIdx.length;
-    return { t, name: short(tm.name), x: strength, y: (tm.luck ?? 0) / Math.max(1, tm.weekly.length) };
+    return { t, name: short(tm.name, teams), x: strength, y: (tm.luck ?? 0) / Math.max(1, tm.weekly.length) };
   });
   const [x0, x1] = [Math.min(...pts.map((p) => p.x)) - 2, Math.max(...pts.map((p) => p.x)) + 2];
   const ym = Math.max(...pts.map((p) => Math.abs(p.y)), 5) * 1.15;
@@ -131,10 +131,10 @@ function Scatter({ a, teams, order, myId, oppId, onSelect }: Props) {
         {[-Math.round(ym * 0.66), 0, Math.round(ym * 0.66)].map((v) => <text key={v} x={L - 8} y={Y(v) + 4} textAnchor="end" className="tk">{v > 0 ? `+${v}` : v}</text>)}
         <text x={(L + W - R) / 2} y={H - 6} textAnchor="middle" className="lab">projected points per week, rest of regular season</text>
         <text x={12} y={(T + H - B) / 2} textAnchor="middle" className="lab" transform={`rotate(-90 12 ${(T + H - B) / 2})`}>above projection per week so far</text>
-        <text x={W - R - 4} y={T + 10} textAnchor="end" className="q">strong and lucky</text>
-        <text x={W - R - 4} y={H - B - 6} textAnchor="end" className="q">strong, unlucky</text>
-        <text x={L + 4} y={T + 10} className="q">lucky, weaker</text>
-        <text x={L + 4} y={H - B - 6} className="q">weaker, unlucky</text>
+        <text x={W - R - 4} y={T - 12} textAnchor="end" className="q">strong and lucky ↗</text>
+        <text x={W - R - 4} y={H - B + 32} textAnchor="end" className="q">strong, unlucky ↘</text>
+        <text x={L + 4} y={T - 12} className="q">↖ lucky, weaker</text>
+        <text x={L + 4} y={H - B + 32} className="q">↙ weaker, unlucky</text>
         {(() => { // nudge labels that would overlap: same side, close in x, within 12px in y
           const placed: { x: number; y: number; right: boolean }[] = [];
           for (const p of [...pts].sort((a, b) => Y(a.y) - Y(b.y))) {
@@ -189,7 +189,7 @@ function Race({ a, teams, order, myId, oppId, onSelect }: Props) {
   // end labels, nudged apart
   const ends = [...rel].map(([t, ys]) => ({ t, y: Y(ys[ys.length - 1]), v: ys[ys.length - 1] })).sort((p, q) => p.y - q.y);
   for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 13) ends[i].y = ends[i - 1].y + 13;
-  const nameOf = (t: number) => short(teams.find((x) => x.id === t)!.name);
+  const nameOf = (t: number) => short(teams.find((x) => x.id === t)!.name, teams);
   const fin = [...rel].map(([t, ys]) => ({ t, v: ys[ys.length - 1], now: ys[played - 1] ?? 0 })).sort((p, q) => q.v - p.v);
   const me = fin.find((f) => f.t === myId), myRank = fin.findIndex((f) => f.t === myId) + 1;
   const third = fin[2], second = fin[1];
@@ -243,7 +243,7 @@ function Calendar({ a, teams, order, myId, oppId, onSelect }: Props) {
         {order.map((t) => {
           const r = role(t, myId, oppId);
           return [
-            <button key={`n${t}`} type="button" className={`tn ${r}`} onClick={() => onSelect(t)}>{short(teams.find((x) => x.id === t)!.name)}</button>,
+            <button key={`n${t}`} type="button" className={`tn ${r}`} onClick={() => onSelect(t)}>{short(teams.find((x) => x.id === t)!.name, teams)}</button>,
             ...a.week_pts[t].map((v, i) => {
               const z = (v - lo) / Math.max(1, hi - lo);
               return <span key={`${t}-${i}`} className={`c ${a.weeks[i] > a.reg_end ? "po" : ""} ${t === myId && i === worst ? "worst" : ""}`}
@@ -268,7 +268,7 @@ function Composition({ a, teams, order, myId, oppId, onSelect }: Props) {
           const so = a.pos_so_far[t] ?? {}, tot = pos.reduce((s, p) => s + (so[p] ?? 0), 0) || 1, r = role(t, myId, oppId);
           return (
             <div key={t} className={`crow ${r}`} onClick={() => onSelect(t)}>
-              <span className="tn">{short(teams.find((x) => x.id === t)!.name)}</span>
+              <span className="tn">{short(teams.find((x) => x.id === t)!.name, teams)}</span>
               <span className="stack">
                 {pos.map((p) => {
                   const share = (so[p] ?? 0) / tot;

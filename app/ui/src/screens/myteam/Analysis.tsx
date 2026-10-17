@@ -70,7 +70,7 @@ export function MyAnalysis({ tw, a, lg, err, selected, onSelect }: Props) {
                     <th className="nm">{lastName(p.name)}</th>
                     <td><TierStrip w={p.weekly} pos={p.pos} /></td>
                     <td className="num">{p.starts}/{p.games}</td><td className="num">{p.smashes || ""}</td><td className="num">{p.duds || ""}</td>
-                    <td>{sw ? <FlagChip f={sw} /> : <span className="dim num" title="Coefficient of variation: weekly sd ÷ average">{p.cv != null ? p.cv.toFixed(2) : "–"}</span>}</td>
+                    <td className="sw"><span className="dim num" title="Coefficient of variation: weekly sd ÷ average">{p.cv != null ? p.cv.toFixed(2) : "–"}</span>{sw && <> <FlagChip f={sw} /></>}</td>
                   </tr>
                 );
               })}
@@ -93,7 +93,7 @@ export function MyAnalysis({ tw, a, lg, err, selected, onSelect }: Props) {
         <div className="mta-scroll">
           <table className="mta-pct">
             <thead><tr><th />
-              {PCT_COLS.map((c) => <th key={c.k} title={evTip(M[c.k])}>{c.label}<br /><EvFor m={M} k={c.k} /></th>)}
+              {PCT_COLS.map((c) => <th key={c.k} title={evTip(M[c.k])}>{c.label}{M[c.k] && M[c.k].label !== "priced" && <><br /><EvFor m={M} k={c.k} /></>}</th>)}
             </tr></thead>
             <tbody>
               {rows.map((p) => (
@@ -106,7 +106,7 @@ export function MyAnalysis({ tw, a, lg, err, selected, onSelect }: Props) {
             </tbody>
           </table>
         </div>
-        <p className="mta-cap">Darker = higher, with no good or bad meaning (high swing is neither). These rank where he stands; whether a column predicts anything is its chip.</p>
+        <p className="mta-cap">Darker = higher, with no good or bad meaning (high swing is neither). These rank where he stands. Every column is already in the model unless it carries a chip saying otherwise.</p>
       </section>
 
       <div className="mta-two">
