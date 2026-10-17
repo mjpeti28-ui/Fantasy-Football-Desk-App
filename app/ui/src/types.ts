@@ -291,6 +291,7 @@ export interface APlayer {
   xfp_tr: number | null; snap_tr: number | null; tsh_tr: number | null; opp_tr: number | null; est_tr: number | null;
   pct: Record<string, number | null>; duds: number; smashes: number; starts: number;
   weekly: AWeek[]; flags: AFlag[];
+  breakout: { prev_ppg: number; gain: number; usage_pct: number; eff_pct: number } | null;
 }
 export interface Analytics {
   season: number; through_week: number; week: number; n_teams: number;
@@ -302,7 +303,7 @@ export interface Analytics {
   sched_ev: { fpa_playoffs: AEst | null; pass_playoffs: AEst | null; run_playoffs: AEst | null; pass_next4: AEst | null; run_next4: AEst | null; label: ALabel };
 }
 export interface ALeagueCell { team_id: number; week: number; pts: number; opt: number; proj: number; drafted: number; missed: number[]; z: number; rank: number; eff: number; left: number; luck: number }
-export interface ALeagueTeam { id: number; name: string; pts: number; opt: number; proj: number; left: number; luck: number; drafted: number; sd: number; best: number; worst: number; top3: number; eff: number; opt_rank: number; pts_rank: number }
+export interface ALeagueTeam { id: number; name: string; pts: number; opt: number; proj: number; left: number; espn: number; vs_espn: number; flip_won: number; flip_lost: number; luck: number; drafted: number; sd: number; best: number; worst: number; top3: number; eff: number; opt_rank: number; pts_rank: number }
 export interface ADraftPick { id: number; name: string; pos: Pos; team_id: number; round: number; overall: number; pos_pick: number; pos_rank_now: number | null; pts: number | null; keeper: boolean }
 export interface ALeague {
   season: number; through_week: number; n_teams: number; teams: ALeagueTeam[]; cells: ALeagueCell[]; draft: ADraftPick[];

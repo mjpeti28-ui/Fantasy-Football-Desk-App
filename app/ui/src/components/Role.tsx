@@ -18,8 +18,8 @@ export function holdText(t: RoleTrend): string {
     : `Changes like this held ${h}% of the time over the next two games.`;
   if (t.next_vs_espn != null && t.next_lo != null && t.next_hi != null) {
     s += t.next_lo > 0 || t.next_hi < 0
-      ? ` Next week, tagged players scored ${t.next_vs_espn > 0 ? "+" : ""}${t.next_vs_espn.toFixed(1)} vs ESPN's projection: ESPN ${t.next_vs_espn < 0 ? "overrates" : "underrates"} this.`
-      : " ESPN's next projection already reflects it.";
+      ? ` Over the next 4 games, tagged players scored ${t.next_vs_espn > 0 ? "+" : ""}${t.next_vs_espn.toFixed(1)} vs ESPN's projection per game: ESPN ${t.next_vs_espn < 0 ? "overrates" : "underrates"} this.`
+      : " ESPN's projections over the next 4 games already reflect it.";
   }
   return s;
 }
