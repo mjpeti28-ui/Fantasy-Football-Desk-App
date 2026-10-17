@@ -446,7 +446,7 @@ export function PlayerFileView({ file, err, loading, nameHint, myTeam, colors, d
           </section>
           <div className="pf-two">
             <section id="pf-map">
-              <h2>Role map <small>{f.role.style ? `${f.role.style.name} · ${Math.round(f.role.style.p * 100)}%` : ""}</small></h2>
+              <h2>Role map <small>{f.role.style ? `${f.role.style.name} · ${Math.round(f.role.style.p * 100)}%` : ""}{f.role.route_sh ? ` · routes on ${f.role.route_sh.v}% of dropbacks (PFF)` : ""}</small></h2>
               <StyleMix f={f} />
               <RoleMap f={f} myTeam={myTeam} onOpen={onOpen} />
             </section>

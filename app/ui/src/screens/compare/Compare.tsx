@@ -63,6 +63,7 @@ function groups(files: PF[], ratioQ?: Record<string, number[]>, an?: Analytics |
     { label: "Style", cell: (f) => f.role.style ? <span className="sty"><span className="mix">{Object.entries(f.role.style.probs).sort((a, b) => b[1] - a[1]).map(([k, v], i) =>
       <i key={k} style={{ width: `${v * 100}%`, ...(i === 0 ? { background: POS_VAR[f.pos] } : {}) }} title={`${k} ${Math.round(v * 100)}%`} />)}</span>{f.role.style.name} <small className="dim">{Math.round(f.role.style.p * 100)}%</small></span> : "–" },
     { label: "Volume tier", cell: (f) => <span>{f.role.tier}</span> },
+    { label: "Route share (PFF)", val: (f) => f.role.route_sh?.v ?? null, better: "hi", tie: 5, cell: (f) => f.role.route_sh ? <span className="num">{f.role.route_sh.v}% <small className="dim">{f.role.route_sh.rank} of {f.role.route_sh.of}</small></span> : <span className="dim">–</span> },
     { label: "Traits", cell: (f) => <span className="tr">{f.role.traits.length ? f.role.traits.map((t) => <i key={t.label} title={t.text}>{t.label}</i>) : <span className="dim">–</span>}</span> },
     { label: "Latest change", cell: (f) => { const t = f.role.trends.find((x) => !x.season) ?? f.role.trends[0]; return t ? <span className="chg" title={holdText(t)}><b>{t.label}</b> <small className="dim">{t.hold != null ? `held ${pct(t.hold)}` : ""}</small></span> : <span className="dim">none flagged</span>; } },
   ];
