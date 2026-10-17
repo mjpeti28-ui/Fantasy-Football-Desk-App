@@ -156,7 +156,7 @@ def _line(team: str, season: int) -> list[dict]:
     o = O[(O["abbr"] == team) & O["position"].isin(OL)].copy()
     slots = [c for c in ("snap_counts_lt", "snap_counts_lg", "snap_counts_ce", "snap_counts_rg", "snap_counts_rt") if c in o]
     o["snaps"] = o[slots].fillna(0).sum(axis=1) if slots else 0
-    o = o.sort_values("snaps", ascending=False).head(6)
+    o = o.sort_values("snaps", ascending=False).head(5)  # the five who played most; a rotating sixth is left out
     out = []
     for _i, r in o.iterrows():
         at = max(slots, key=lambda c: r[c] or 0)[len("snap_counts_"):].upper().replace("CE", "C") if slots else r.get("position")
