@@ -142,6 +142,29 @@ function Risers({ shifts, board, onSel }: { shifts: Shifts | null; board: Waiver
   );
 }
 
+function NextWeek({ board, onSel }: { board: WaiverBoard; onSel: (id: number) => void }) {
+  const { open } = useFile();
+  const n = board.next_week;
+  if (!n || !n.byes.length) return null;
+  const inList = new Set(board.candidates.map((c) => c.id));
+  return (
+    <section className="risers" aria-label={`Week ${n.week} byes`}>
+      <h3>Week {n.week}: {n.byes.map((b) => `${lastName(b.name)} (${b.pos})`).join(", ")} on bye <span>your lineup that week projects {f1(n.lineup)} · one-week adds, ignoring the drop</span></h3>
+      {n.adds.length ? (
+        <div className="rs-grid">
+          {n.adds.map((a) => (
+            <button key={a.id} type="button" className="rs" onClick={() => (inList.has(a.id) ? onSel(a.id) : open(a.id, n.adds.map((x) => x.id)))}>
+              <span className="rs-top"><i className="pchip" style={{ background: POS_VAR[a.pos], color: a.pos === "WR" ? "var(--wr-ink)" : "var(--pos-ink)" }}>{a.pos}</i><b>{a.name}</b><small>{a.team ?? "FA"}</small></span>
+              <span className="rs-bot"><em>+{f1(a.gain)} to your week {n.week} lineup</em><span className="dim">{f1(a.pts)} expected{a.tag && a.tag !== "ACTIVE" ? ` · ${a.tag.toLowerCase()}` : ""}</span></span>
+            </button>
+          ))}
+        </div>
+      ) : <p className="dim">Your bench covers every bye that week.</p>}
+      <p className="dim">Expected = our rest-of-season points per game times his chance of playing. For one week only: the season gain below is what decides whether he's worth a roster spot.</p>
+    </section>
+  );
+}
+
 export function Waivers({ board, err, sel, onSel, players, roles, shifts, onKeep, busy }: { board: WaiverBoard | null; err: string | null; sel: number | null; onSel: (id: number) => void; players: Player[]; roles: RolesBoard | null; shifts?: Shifts | null; onKeep?: (ids: number[]) => void; busy?: boolean }) {
   const [filter, setFilter] = useState<Pos | "ALL">("ALL");
   const [pick, setPick] = useState(false);
@@ -174,6 +197,7 @@ export function Waivers({ board, err, sel, onSel, players, roles, shifts, onKeep
         {POSITIONS.map((p) => <Ladder key={p} pos={p} mine={board.depth[p] ?? []} fas={board.candidates.filter((c) => c.pos === p)} repl={board.replacement[p]} top={top} sel={sel} onSel={onSel} byes={byes} first={p === "QB"} />)}
       </section>
       <p className="wv-key"><span className="k-mine" /> yours <span className="k-fa" /> best free agents <span className="k-repl" /> replacement level · height is rest-of-season points per game when playing (hover for numbers), same scale everywhere</p>
+      <NextWeek board={board} onSel={onSel} />
       <Risers shifts={shifts ?? null} board={board} onSel={onSel} />
       <section className="wv-list">
         <div className="wv-tools">
