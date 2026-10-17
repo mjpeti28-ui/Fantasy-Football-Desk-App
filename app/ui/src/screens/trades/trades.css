@@ -10,10 +10,10 @@
 .trades .tr-empty { color: var(--t-ink2); margin: 8px 0; }
 
 .trades .partners { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 6px; }
-.trades .pc { text-align: left; border: 1px solid var(--t-rule); background: var(--win); border-radius: 8px; padding: 7px 10px; display: grid; gap: 2px; cursor: pointer; position: relative; color: var(--t-ink); }
+.trades .pc { text-align: left; border: 1px solid var(--t-rule); background: var(--win); border-radius: 8px; padding: 7px 10px; display: grid; gap: 2px; align-content: start; cursor: pointer; position: relative; color: var(--t-ink); font: 12px var(--sys); }
 .trades .pc:hover { border-color: var(--t-ink2); }
 .trades .pc.on { border-color: var(--them); box-shadow: inset 0 0 0 1px var(--them); }
-.trades .pc b { font: 700 13px/1.2 var(--content); font-variation-settings: "wdth" 85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 26px; }
+.trades .pc b { font: 700 13px/1.2 var(--content); font-variation-settings: "wdth" 85; padding-right: 26px; }
 .trades .pc .h { font-size: 11.5px; color: var(--t-ink2); font-variation-settings: "wdth" 95; }
 .trades .pc .h.good, .trades .facts .h.good { color: var(--above); } .pc .h.bad, .facts .h.bad { color: var(--below); }
 .trades .pc .fit { position: absolute; top: 6px; right: 7px; font: 700 9.5px/1 var(--content); letter-spacing: .08em; text-transform: uppercase; color: var(--you); border: 1px solid var(--you); border-radius: 3px; padding: 2px 3px; }

@@ -6,6 +6,9 @@ import { CompareBtn, useFile } from "../../components/FileContext";
 import { f1, lastName, pct, signed } from "../../format";
 import { Face, POS_VAR } from "../../components/bits";
 
+/** ladder labels: last name, or the team for a defense ("49ers", not "49ers D/...") */
+const ladderName = (n: string) => (n.endsWith("D/ST") ? n.replace(/\s*D\/ST$/, "") : lastName(n));
+
 const POSITIONS: Pos[] = ["QB", "RB", "WR", "TE", "K", "DST"];
 const LADDER_H = 230;
 const LABEL_GAP = 15;
@@ -55,7 +58,7 @@ function Ladder({ pos, mine, fas, repl, top, sel, onSel, byes, first }: {
         {f.map((p, i) => (
           <button key={p.id} type="button" className={`fa ${sel === p.id ? "on" : ""}`} onClick={() => onSel(p.id)} aria-label={`${p.name}, free agent, ${f1(p.est_ppg)} per game`} title={`${p.name}: ${f1(p.est_ppg)} a game, plays ${pct(p.avail)}, season gain ${signed(p.gain)}`}>
             <i className="dot" style={{ top: y(p.est_ppg) }} />
-            <span className="lab" style={{ top: fy[i] }}>{lastName(p.name)}</span>
+            <span className="lab" style={{ top: fy[i] }}>{ladderName(p.name)}</span>
           </button>
         ))}
         {m.map((p, i) => {
@@ -63,7 +66,7 @@ function Ladder({ pos, mine, fas, repl, top, sel, onSel, byes, first }: {
           return (
             <span key={p.id} className={`mine ${shaky ? "shaky" : ""}`} title={`${p.name}: ${f1(p.est_ppg)} a game when he plays, plays ${pct(p.avail)} of the rest${p.ir ? " (IR)" : ""}${p.drop_cost != null ? `; your lineups lose about ${f1(p.drop_cost)} season points without him` : ""}`}>
               <i className="dot" style={{ top: y(p.est_ppg) }} />
-              <span className="lab" style={{ top: my[i] }}>{lastName(p.name)}{p.ir ? " IR" : shaky ? ` ${pct(p.avail)}` : ""}</span>
+              <span className="lab" style={{ top: my[i] }}>{ladderName(p.name)}{p.ir ? " IR" : shaky ? ` ${pct(p.avail)}` : ""}</span>
             </span>
           );
         })}
@@ -245,7 +248,7 @@ export function Waivers({ board, err, sel, onSel, players, roles, shifts, onKeep
                   <td className="r num">{pct(r.avail)}</td>
                   <td>{u ? <span className="use"><UsageSpark vals={u.vals} color={POS_VAR[r.pos]} /><small>{u.label} {u.vals.map((v) => (v == null ? "–" : Math.round(v))).join(" ")}{u.unit}</small></span> : <span className="dim">–</span>}</td>
                   <td className="gcol"><GainBar g={r.gain} noise={board.noise} max={gmax} /></td>
-                  <td className="drop">{r.drop_name ?? "–"}</td>
+                  <td className="drop" title={r.drop_name ?? undefined}>{r.drop_name ? lastName(r.drop_name) : "–"}</td>
                 </tr>
               );
             })}

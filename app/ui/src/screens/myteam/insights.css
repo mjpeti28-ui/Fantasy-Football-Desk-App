@@ -11,7 +11,7 @@
 .duel .k { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
 .duel .k.you { background: var(--you); } .duel .k.them { background: var(--them); }
 .duel .d-rows { display: grid; gap: 2px; }
-.duel .d-row { display: grid; grid-template-columns: minmax(0, 1fr) 34px minmax(40px, 1.2fr) 54px minmax(40px, 1.2fr) 34px minmax(0, 1fr); gap: 6px; align-items: center; height: 26px; border-radius: 5px; padding: 0 4px; }
+.duel .d-row { display: grid; grid-template-columns: minmax(84px, 1fr) 34px minmax(24px, 1fr) 54px minmax(24px, 1fr) 34px minmax(84px, 1fr); gap: 6px; align-items: center; height: 26px; border-radius: 5px; padding: 0 4px; }
 .duel .d-row.hov { background: var(--b-cell); }
 .duel .nm { font: 700 12px/1 var(--content); font-variation-settings: "wdth" 72; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .duel .nm.l { text-align: right; } .duel .v { font: 600 12px var(--sys); } .duel .v.l { text-align: right; }
