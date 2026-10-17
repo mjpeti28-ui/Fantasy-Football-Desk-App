@@ -266,3 +266,10 @@
 .mx-ah td.po { box-shadow: inset 0 0 0 1.5px var(--ink-2); }
 .mx-ah td.sum { background: none; text-align: left; font: 600 11.5px var(--sys); white-space: nowrap; padding-left: 6px; }
 .mx-ah td.sum .s { color: var(--above); margin-right: 8px; } .mx-ah td.sum .t { color: var(--below); }
+
+/* PFF matchup context (Pff.tsx): descriptive, so no tone colours; the spot he lines up most gets an inset rule */
+.mx-pff { margin-top: 4px; }
+.mx-pff .mx-cols { gap: 18px; }
+.mx-tbl.hot { box-shadow: inset 3px 0 0 var(--ink-3); }
+.mx-tbl tr.hot td { font-weight: 600; }
+.mx-pff-hot { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--ink-2); }

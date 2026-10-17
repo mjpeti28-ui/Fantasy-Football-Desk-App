@@ -34,7 +34,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from . import analytics, changes, data as d, dossier, journal, league, matchups, matchups_card, roles, shifts, snapshot, trades, waivers
+from . import analytics, changes, data as d, dossier, journal, league, matchups, matchups_card, matchups_pff, roles, shifts, snapshot, trades, waivers
 
 # ---------- warm-up: precompute the slow views in the background as soon as the engine starts ----------
 _warm: dict = {"state": "idle", "started": None, "finished": None, "steps": {}, "again": False}
@@ -206,6 +206,7 @@ def _run_refresh(season: int, week: int, quick: bool = False, full: bool = False
     # optional: PFF slot/inline alignment for the WR/TE styles (at most one call per 12h; no key or an error
     # exits 0 and the styles fall back to free data)
     steps.append(("PFF alignment (WR/TE styles)", [sys.executable, "-m", "app.engine.roles_pff", str(season)]))
+    steps.append(("PFF matchups (context)", [sys.executable, "-m", "app.engine.matchups_pff", str(season)]))
     _refresh.update(state="running", started=time.time(), finished=None, log=[], quick=quick, full=full, step=None)
     ok = True
     for label, cmd in steps:
@@ -392,6 +393,10 @@ def matchups_defense(abbr: str):
     out = matchups.defense_view(abbr)
     if out is None:
         raise HTTPException(404, "unknown team")
+    try:
+        out["pff"] = matchups_pff.defense(abbr, matchups.current_season())
+    except Exception:  # noqa: BLE001 -- optional PFF context
+        out["pff"] = None
     return _json(out)
 
 
@@ -403,6 +408,10 @@ def matchups_player(espn_id: int, opp: Optional[str] = None, team: int = 3):
     if out is None:
         raise HTTPException(404, "no matchup data for this player")
     out["card"] = matchups_card.build(out, snap)
+    try:
+        out["pff"] = matchups_pff.player(out, int(snap["season"]))
+    except Exception:  # noqa: BLE001 -- optional PFF context
+        out["pff"] = None
     return _json(out)
 
 
