@@ -18,7 +18,10 @@ weekly projection already prices in the full real move for snap_up (0.95 [0.81,1
 snap_down, and then backs off (its week-1 bump is 1.15-1.5x its week-4 level). Flagged free agents beat ESPN by only
 +0.15 [-0.06,+0.35] pts/game (snap_up). Where ESPN errs, it over-reacts: after a target-share spike without more
 snaps, players score 0.31 [0.07,0.53] pts/game below ESPN vs untagged (rostered: 0.43; share_up rostered: 0.82
-[0.31,1.32]). ESPN under-moves on share drops (prices 36%), and correctly so: those players also beat ESPN by +0.20.
+[0.31,1.32]). Placebos (500x): vs random untagged weeks of the same player-season p<0.002 for all three; vs untagged
+weeks with the same recent-points jump (is it just ESPN chasing hot games?) share_spike p=0.006 (rostered 0.006),
+share_up rostered p<0.002 -- those jump-matched weeks sit at -0.01..-0.08, so the effect is specific to share bumps.
+With 15 tag x pool cells, share_up rostered survives Bonferroni; share_spike is borderline (0.006 vs 0.0033). ESPN under-moves on share drops (prices 36%), and correctly so: those players also beat ESPN by +0.20.
 
   python3 backtest/lead_time.py
 """
@@ -92,7 +95,8 @@ def season(y: int) -> pd.DataFrame:
             fp = np.array([pr.get((e, int(w)), np.nan) for w in fut], float)
             fa = np.array([pts.get((e, int(w)), 0.0) for w in fut], float)
             out.append({"season": y, "week": W, "espn_id": e, "pos": pos, "tag": t, "fa": (e, W) not in rost,
-                        "base_ppg": float(np.mean([pts.get((e, int(w)), 0.0) for w in bw])), "base_proj": float(np.mean(bp)),
+                        "base_ppg": float(np.mean([pts.get((e, int(w)), 0.0) for w in bw])),
+                        "rec_ppg": float(np.mean([pts.get((e, int(w)), 0.0) for w in wk[i - 1:i + 1]])), "base_proj": float(np.mean(bp)),
                         "fut_ppg": float(fa.mean()), "p1": fp[0], "p4": fp[min(3, len(fp) - 1)], "resid": float(np.nanmean(fa - fp)),
                         "n_fut": len(fut)})
     return pd.DataFrame(out)
@@ -126,6 +130,36 @@ def main() -> None:
             ed = boot(g, lambda d: d["edge"].mean())
             print(f"{t:12} {pool:10} {len(g):5}  {g['real'].mean():+6.2f}    {g['m1'].mean():+6.2f}   {pi[0]:5.2f} [{pi[1]:5.2f},{pi[2]:5.2f}]   "
                   f"{cu[0]:5.2f} [{cu[1]:4.2f},{cu[2]:4.2f}]   {ed[0]:+5.2f} [{ed[1]:+5.2f},{ed[2]:+5.2f}]")
+    print()
+    allp = pd.Series(True, index=E.index)
+    placebo(E, "share_spike", allp)
+    placebo(E, "share_spike", ~E["fa"])
+    placebo(E, "share_up", ~E["fa"])
+
+
+def placebo(E: pd.DataFrame, t: str, pool, n: int = 500) -> None:
+    """(a) each event swapped for a random untagged week of the same player-season; (b) each event swapped for a
+    random untagged week (any player, same position) with a similar recent-points jump (same jump decile)."""
+    g = E[(E["tag"] == t) & pool].copy()
+    U = E[E["tag"] == "none"].copy()
+    U["ps"] = U["espn_id"].astype(str) + "_" + U["season"].astype(str)
+    g["ps"] = g["espn_id"].astype(str) + "_" + g["season"].astype(str)
+    obs = g["edge"].mean()
+    by_ps = U.groupby("ps")["edge"].apply(np.array)
+    ga = g[g["ps"].isin(by_ps.index)]
+    pools = [by_ps[k] for k in ga["ps"]]
+    a = np.array([np.mean([RNG.choice(x) for x in pools]) for _ in range(n)])
+    E2 = pd.concat([g, U])
+    E2["jump"] = E2["rec_ppg"] - E2["base_ppg"]
+    E2["dec"] = pd.qcut(E2["jump"], 10, labels=False, duplicates="drop")
+    gd, Ud = E2.iloc[:len(g)], E2.iloc[len(g):]
+    cells = Ud.groupby(["pos", "dec"])["edge"].apply(np.array)
+    keys = [k for k in zip(gd["pos"], gd["dec"]) if k in cells.index]
+    b = np.array([np.mean([RNG.choice(cells[k]) for k in keys]) for _ in range(n)])
+    pa = float((a <= ga["edge"].mean()).mean()) if obs < 0 else float((a >= ga["edge"].mean()).mean())
+    pb = float((b <= obs).mean()) if obs < 0 else float((b >= obs).mean())
+    print(f"placebo {t:11} n={len(g)}: observed {obs:+.2f} | (a) same player-season untagged weeks: mean {a.mean():+.2f}, "
+          f"one-sided p={pa:.3f} (n={len(ga)}) | (b) untagged weeks with the same recent-points jump: mean {b.mean():+.2f}, one-sided p={pb:.3f}")
 
 
 if __name__ == "__main__":
