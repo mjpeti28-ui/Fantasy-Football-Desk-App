@@ -388,10 +388,23 @@ def profiles(cur_w: pd.DataFrame, prev_w: pd.DataFrame | None, model: dict, name
     for g, d in cur_w.sort_values("week").groupby("gsis"):
         c = cur.loc[g] if g in cur.index else None
         p = prev.loc[g] if (len(prev) and g in prev.index and prev.loc[g]["games"] >= 3) else None
-        out[g], _ = profile_one(model, g, d, c, p, ctx, names, last_week)
+        out[g], fp = profile_one(model, g, d, c, p, ctx, names, last_week)
+        out[g]["fp"] = fp_compact(fp)
         out[g]["route_sh"] = route_info(rs, cur, g)
         out[g]["pff"] = pff_info(c)
     return out
+
+
+def fp_compact(fp: list[dict]) -> dict:
+    """Fingerprint for the Lab: key -> [raw, noise-adjusted estimate, reliability 0-1]."""
+    r = lambda v, n=4: None if v is None else round(float(v), n)
+    return {m["key"]: [r(m["raw"]), r(m["est"]), r(m["rel"], 2)] for m in fp}
+
+
+def fp_meta(model: dict) -> dict:
+    """Per position: label, format, group and games until half signal for each fingerprint metric."""
+    return {pos: {k: {"label": lab, "fmt": f, "group": grp, "stab": round(float(model["stab"][pos][k]["M"]), 1)}
+                  for k, (lab, f, grp) in ms.items() if k in model["stab"].get(pos, {})} for pos, ms in METRICS.items()}
 
 
 def pff_info(c) -> dict | None:
@@ -458,7 +471,7 @@ def board(refresh: bool = False) -> dict:
            "styles": {p: {"names": m["names"], "yoy_same": m["yoy_same"], "early_acc": m.get("early_acc")} for p, m in model["style"].items()},
            "styles_free": {p: {"names": m["names"], "yoy_same": m["yoy_same"], "early_acc": m.get("early_acc")} for p, m in model.get("style_free", {}).items()},
            "pff_through": int(pff[0]["pff_through"].max()) if len(pff[0]) else None,
-           "fit_seasons": model["seasons"], "players": {}}
+           "fit_seasons": model["seasons"], "fp_meta": fp_meta(model), "players": {}}
     for g, prof in P.items():
         if g in espn.index:
             out["players"][str(int(espn[g]))] = {**prof, "name": names.get(g)}

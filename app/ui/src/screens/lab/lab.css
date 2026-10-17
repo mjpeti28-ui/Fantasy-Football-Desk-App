@@ -1,9 +1,11 @@
 /* P — Lab (job: explore). An instrument bench: hairline grid, Overpass Mono readouts, Archivo at 100.
    You = cobalt, this week's opponent = plum, other rosters grey, free agents hollow rings. */
-.lab-screen { --lab-other: color-mix(in srgb, var(--ink-2) 55%, transparent); background: var(--win); color: var(--ink); min-height: 100%;
+.lab-screen { --lab-other: color-mix(in srgb, var(--ink-2) 55%, transparent);
+  --cl0: #2f6fdf; --cl1: #e07a2a; --cl2: #2a9d6f; --cl3: #b04a9c; --cl4: #c9a227; --cl5: #6b5bd6; --cl6: #d64545; --cl7: #2aa3b5;
+  --grad-lo: #c9d7ef; --grad-hi: #c2410c; --cor-pos: #2f6fdf; --cor-neg: #d64545; background: var(--win); color: var(--ink); min-height: 100%;
   padding: 20px 24px 28px; display: grid; gap: 12px; align-content: start; grid-template-columns: minmax(0, 1fr); font-family: var(--content); font-variation-settings: "wdth" 100; }
 .lab-empty { margin: 40px auto; color: var(--ink-2); }
-.lab-hd { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+.lab-hd { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; gap: 14px; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
 .lab-hd h2 { margin: 0; font: 800 26px/1 var(--content); font-variation-settings: "wdth" 100; letter-spacing: -.01em; }
 .lab-hd p { margin: 0; font: 12.5px/1.4 var(--sys); color: var(--ink-2); }
 .lab-presets { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -56,3 +58,60 @@
 .lab-out .nm small { font-weight: 400; color: var(--ink-2); margin-left: 6px; }
 .lab-out .num { font: 600 12px var(--mono); color: var(--ink-2); }
 .lab-side .note { margin: 0; font-size: 11.5px; line-height: 1.45; }
+
+/* views, population controls */
+.lab-views button { font-weight: 600; }
+.lab-ctl .chk { font: 12px var(--sys); color: var(--ink); gap: 5px; }
+.lab-ctl .lbl { font: 600 11px var(--mono); color: var(--ink-2); }
+.lab-presets .clear { border-style: dashed; color: var(--ink-2); }
+.lab-plot .pt.you { stroke: var(--you); stroke-width: 2.5; } .lab-plot .pt.them { stroke: var(--them); stroke-width: 2.5; }
+.lab-plot .pt.cl.fa { fill-opacity: .45; stroke: var(--win); stroke-width: 1.5; }
+.lab-axes .grad { display: inline-block; width: 64px; height: 8px; border-radius: 4px; vertical-align: 0; margin-left: 8px; background: linear-gradient(90deg, var(--grad-lo), var(--grad-hi)); }
+.lab-screen .sw { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 0; flex: none; }
+
+/* clusters */
+.cl-ctl { display: grid; gap: 8px; }
+.cl-pick { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.cl-grp { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.cl-grp .gl { font: 600 10.5px var(--mono); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); margin-right: 2px; }
+.cl-grp button { font: 12px var(--sys); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--win); color: var(--ink); cursor: pointer; }
+.cl-grp button.nz { border-style: dashed; }
+.cl-grp button[aria-pressed="true"] { background: var(--ink); color: var(--win); border-color: var(--ink); }
+.cl-view { display: grid; gap: 14px; }
+.cl-view .lab-plot { width: 100%; }
+.cl-view .nbl { stroke: var(--ink); stroke-width: 1; opacity: .35; }
+.cl-view .pt.nb { stroke: var(--ink); stroke-width: 2; }
+.cl-k { display: flex; align-items: flex-end; gap: 6px; padding: 8px 4px 0; font: 11px var(--sys); }
+.cl-k .dim { align-self: center; margin-right: 6px; }
+.cl-k .kb { display: grid; justify-items: center; gap: 2px; width: 18px; font: 600 10.5px var(--mono); color: var(--ink-2); }
+.cl-k .kb i { display: block; width: 10px; background: var(--line); border-radius: 2px 2px 0 0; }
+.cl-k .kb.on i { background: var(--ink); } .cl-k .kb.on { color: var(--ink); }
+.cl-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.cl-card { display: grid; gap: 6px; align-content: start; padding: 10px 12px; border: 1px solid var(--line); border-top: 3px solid; border-radius: 10px; font: 12.5px var(--sys); }
+.cl-card .cn { font: 700 13.5px/1.25 var(--content); display: flex; align-items: baseline; }
+.cl-cen { width: 100%; border-collapse: collapse; font-size: 12px; }
+.cl-cen td { padding: 2px 0; } .cl-cen td:first-child { color: var(--ink-2); white-space: nowrap; padding-right: 8px; }
+.cl-cen td.num { font: 600 11.5px var(--mono); text-align: right; padding-right: 10px; white-space: nowrap; }
+.cl-cen td.zb { position: relative; width: 42%; height: 12px; }
+.cl-cen .mid { position: absolute; left: 50%; top: 1px; bottom: 1px; border-left: 1px solid var(--ink-3); }
+.cl-cen .bar { position: absolute; top: 3px; height: 7px; border-radius: 2px; }
+.cl-cen .bar.pos { background: var(--cor-pos); } .cl-cen .bar.neg { background: var(--cor-neg); }
+.cl-mem { display: flex; flex-wrap: wrap; gap: 4px; }
+.cl-mem button { font: 11.5px var(--sys); padding: 2px 7px; border-radius: 999px; border: 1px solid var(--line); background: var(--win); color: var(--ink); cursor: pointer; }
+.cl-mem button.me { border-color: var(--you); color: var(--you); font-weight: 700; }
+.cl-mem button.opp { border-color: var(--them); color: var(--them); }
+.cl-mem button.fa { border-style: dashed; }
+.cl-mem button.on { background: var(--ink); color: var(--win); }
+.cl-mem .more { color: var(--ink-2); }
+.cl-nb { display: grid; gap: 6px; max-width: 520px; font: 12.5px var(--sys); }
+.cl-nb h5 { margin: 0; font: 700 11px/1 var(--content); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.cl-nb .lab-out .nm { display: flex; align-items: baseline; }
+.lab-screen .note, .cl-note { margin: 0; font-size: 11.5px; line-height: 1.45; max-width: 860px; }
+
+/* correlations */
+.lab-plot .cr-l { fill: var(--ink-2); font: 500 10.5px var(--sys); }
+.lab-plot .cr-l.on { fill: var(--ink); font-weight: 700; }
+.lab-plot .cr-c { fill: var(--field); cursor: pointer; }
+.lab-plot .cr-c.diag { fill: var(--line); cursor: default; }
+.lab-plot .cr-c:hover { stroke: var(--ink); stroke-width: 1.5; }
+.lab-side .cr-t { font: 600 11px var(--sys); text-transform: none; letter-spacing: 0; padding: 1px 4px; border-radius: 5px; border: 1px solid var(--line); background: var(--field); color: var(--ink); margin-left: 4px; }
