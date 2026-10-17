@@ -418,7 +418,7 @@ export default function App() {
           {screen === "team" && mode === "analysis" && <MyAnalysis tw={tw} a={source === "engine" ? an : null} lg={anLg} err={source !== "engine" ? "Start the engine to see the season analytics." : anErr}
             selected={selPlayer?.id ?? null} onSelect={(id) => setSel({ kind: "player", id })} />}
           {screen === "team" && mode !== "analysis" && (mode === "board"
-            ? <Board tw={tw} plan={plan} setPlan={setPlan} selected={selPlayer?.id ?? null} onSelect={(id) => setSel({ kind: "player", id })} ratioQ={snap.ratio_q} colorMode={colorMode} teamColors={snap.team_colors} roles={roles} dropCost={wboard?.drop_cost ?? null} onCopy={async (t) => flash((await copyText(t)) ? "Copied the moves" : "Copy failed")} />
+            ? <Board tw={tw} plan={plan} setPlan={setPlan} selected={selPlayer?.id ?? null} onSelect={(id) => setSel({ kind: "player", id })} ratioQ={snap.ratio_q} colorMode={colorMode} teamColors={snap.team_colors} roles={roles} dropCost={wboard?.drop_cost ?? null} freeAgents={wboard?.candidates ?? null} onWaivers={() => setScreen("waivers")} onCopy={async (t) => flash((await copyText(t)) ? "Copied the moves" : "Copy failed")} />
             : <GameDay tw={tw} plan={plan} live={liveB} selected={selPlayer?.id ?? null} onSelect={(id) => setSel({ kind: "player", id })} />)}
           {screen === "league" && <League alg={source === "engine" ? anLg : null} power={snap.power} myId={tw.team_id} oppId={tw.matchup?.opp_id ?? null} live={live} liveErr={liveErr}
             engineUp={source === "engine"} whatif={whatif} scenario={scenario} busy={busy} selected={leagueSel}

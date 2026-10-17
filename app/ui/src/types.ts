@@ -52,6 +52,9 @@ export interface Matchup {
   opp_proj: number;
   p_win: number;
   margin_sd: number;
+  opp_best?: number;
+  p_win_best?: number;
+  opp_holes?: string[];
   opp_starters: OppStarter[];
 }
 
