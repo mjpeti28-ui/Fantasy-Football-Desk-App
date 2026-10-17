@@ -429,7 +429,7 @@ export default function App() {
           {screen === "shifts" && <ShiftsScreen data={source === "engine" ? shifts : null} err={source !== "engine" ? "Start the engine to see league-wide usage shifts." : shErr} myTeam={tw.team_id}
             onCopy={async (md) => flash((await copyText(md)) ? "Copied as Markdown" : "Copy failed")} inCompare={(id) => cmpIds.includes(id)} onCompare={toggleCompare} />}
           {screen === "matchups" && <MatchupsScreen an={source === "engine" ? an : null} data={source === "engine" ? mx : null} err={source !== "engine" ? "Start the engine to see matchups." : mxErr} roles={roles} copyRef={mxCopy} tw={tw} ratioQ={snap.ratio_q} />}
-          {screen === "lab" && <LabScreen a={source === "engine" ? an : null} err={source !== "engine" ? "Start the engine to use the Lab." : anErr} tw={tw} teams={snap.power.teams}
+          {screen === "lab" && <LabScreen a={source === "engine" ? an : null} err={source !== "engine" ? "Start the engine to use the Lab." : anErr} tw={tw} teams={snap.power.teams} roles={roles}
             onCopy={async (md) => flash((await copyText(md)) ? "Copied as Markdown" : "Copy failed")} />}
           {screen === "live" && <LiveScreen data={source === "engine" ? liveB : null} err={source !== "engine" ? "Start the engine to follow live games." : liveE} />}
           {screen === "journal" && <Journal journal={journal} err={jErr} engineUp={source === "engine"} onAdd={saveLog} onLog={setLogDraft}

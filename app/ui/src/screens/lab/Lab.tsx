@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import type { ALabel, APlayer, Analytics, TeamWeek } from "../../types";
-import { f1, signed } from "../../format";
+import type { ALabel, APlayer, Analytics, RoleProfile, RolesBoard, TeamWeek } from "../../types";
+import { f1, lastName, signed } from "../../format";
 import { POS_VAR } from "../../components/bits";
 import { useFile } from "../../components/FileContext";
 import { Ev, evTip, useWidth } from "../../components/Analytics";
@@ -12,7 +12,7 @@ import "./lab.css";
    you = cobalt, this week's opponent = plum, other rosters grey, free agents hollow. */
 
 type Fmt = "num" | "pct" | "pp" | "sgn" | "rank";
-interface Stat { k: string; label: string; short: string; fmt: Fmt; get: (p: APlayer) => number | null; ev?: string; fixed?: ALabel; note?: string }
+interface Stat { k: string; label: string; short: string; fmt: Fmt; get: (p: APlayer, r?: RoleProfile) => number | null; ev?: string; fixed?: ALabel; note?: string }
 const pctOf = (x: number | null) => (x == null ? null : 100 * x);
 const STATS: Stat[] = [
   { k: "ppg", label: "Points per game", short: "Pts/g", fmt: "num", get: (p) => p.ppg, ev: "ppg" },
@@ -33,6 +33,11 @@ const STATS: Stat[] = [
   { k: "snap_tr", label: "Snap share, last 3 minus season (pts)", short: "Snap trend", fmt: "pp", get: (p) => pctOf(p.snap_tr), ev: "snap_tr" },
   { k: "xfp_tr", label: "Usage xFP, last 3 minus season", short: "Usage trend", fmt: "sgn", get: (p) => p.xfp_tr, ev: "xfp_tr" },
   { k: "est_tr", label: "Model value, 3-week change", short: "Value move", fmt: "sgn", get: (p) => p.est_tr, ev: "est_tr" },
+  { k: "route_sh", label: "Route share (PFF)", short: "Route share", fmt: "pct", get: (_p, r) => r?.route_sh?.v ?? null, fixed: "descriptive", note: "Routes run ÷ his team's dropbacks, WR/TE. The one PFF stat that held up in 2021–25 backtests, mainly for players with 3 or fewer games; not a model input." },
+  { k: "slot", label: "Slot rate (PFF), % of pass snaps", short: "Slot %", fmt: "pct", get: (_p, r) => r?.pff?.slot ?? null, fixed: "descriptive", note: "WR/TE alignment. Describes the role; it didn't improve the model." },
+  { k: "inline", label: "Inline rate (PFF), % of pass snaps", short: "Inline %", fmt: "pct", get: (_p, r) => r?.pff?.inline ?? null, fixed: "descriptive", note: "Mostly a TE stat: in-line next to the tackle vs flexed out." },
+  { k: "adot", label: "Average depth of target (PFF), yards", short: "aDOT", fmt: "num", get: (_p, r) => r?.pff?.adot ?? null, fixed: "descriptive", note: "How far downfield his targets go. Describes the role, not a predictor." },
+  { k: "yprr", label: "Yards per route run (PFF)", short: "YPRR", fmt: "num", get: (_p, r) => r?.pff?.yprr ?? null, fixed: "noise", note: "Efficiency. In 2021–25 backtests PFF efficiency stats added nothing over usage." },
   { k: "ecr", label: "Experts' rank at position", short: "ECR", fmt: "rank", get: (p) => p.ecr_rank, fixed: "descriptive", note: "FantasyPros consensus; the model already blends it in." },
 ];
 const SBY = new Map(STATS.map((s) => [s.k, s]));
@@ -44,11 +49,12 @@ const PRESETS: { label: string; x: string; y: string; why: string }[] = [
   { label: "Snaps moving", x: "snap_tr", y: "est_tr", why: "The two small edges: snap-share trend and model value moves, each worth a fraction of a point a game." },
   { label: "Volume vs swing", x: "opp", y: "cv", why: "Swing falls as volume rises. Swing repeats a little but doesn't predict points." },
   { label: "Startable vs swing", x: "start", y: "cv", why: "Same average, different shapes: steady starters vs boom-bust ones." },
+  { label: "Routes vs targets", x: "route_sh", y: "tsh", why: "WR/TE. Right and low = running routes without being targeted yet; left and high = targets on a part-time role. Descriptive." },
 ];
 const POS = ["All", "QB", "RB", "WR", "TE"] as const;
 type Who = "all" | "rostered" | "fa" | "mine";
 
-export function LabScreen({ a, err, tw, teams, onCopy }: { a: Analytics | null; err: string | null; tw: TeamWeek; teams: { id: number; name: string }[]; onCopy: (md: string) => void }) {
+export function LabScreen({ a, err, tw, teams, roles, onCopy }: { a: Analytics | null; err: string | null; tw: TeamWeek; teams: { id: number; name: string }[]; roles?: RolesBoard | null; onCopy: (md: string) => void }) {
   const { open } = useFile();
   const [xk, setXk] = useState(() => { try { return localStorage.getItem("desk.lab.x") ?? "xfp"; } catch { return "xfp"; } });
   const [yk, setYk] = useState(() => { try { return localStorage.getItem("desk.lab.y") ?? "ppg"; } catch { return "ppg"; } });
@@ -67,8 +73,8 @@ export function LabScreen({ a, err, tw, teams, onCopy }: { a: Analytics | null; 
   const pts = useMemo(() => {
     if (!a) return [];
     return a.players.filter((p) => (pos === "All" || p.pos === pos) && p.games >= 2 && (who === "all" || (who === "fa" ? p.owner == null : who === "mine" ? p.owner === me : p.owner != null)))
-      .map((p) => ({ p, x: X.get(p), y: Y.get(p) })).filter((d): d is { p: APlayer; x: number; y: number } => d.x != null && d.y != null && Number.isFinite(d.x) && Number.isFinite(d.y));
-  }, [a, pos, who, xk, yk, me, X, Y]);
+      .map((p) => { const r = roles?.players[String(p.id)]; return { p, x: X.get(p, r), y: Y.get(p, r) }; }).filter((d): d is { p: APlayer; x: number; y: number } => d.x != null && d.y != null && Number.isFinite(d.x) && Number.isFinite(d.y));
+  }, [a, pos, who, xk, yk, me, X, Y, roles]);
 
   const fit = useMemo(() => {
     const n = pts.length;
@@ -154,7 +160,7 @@ export function LabScreen({ a, err, tw, teams, onCopy }: { a: Analytics | null; 
             })}
             {pts.filter((d) => named.has(d.p.id)).map((d) => {
               const right = sx(d.x) < W - 150;
-              return <text key={`n${d.p.id}`} className="nm" x={sx(d.x) + (right ? 9 : -9)} y={sy(d.y) - 7} textAnchor={right ? "start" : "end"}>{d.p.name.split(" ").slice(-1)[0]}</text>;
+              return <text key={`n${d.p.id}`} className="nm" x={sx(d.x) + (right ? 9 : -9)} y={sy(d.y) - 7} textAnchor={right ? "start" : "end"}>{lastName(d.p.name)}</text>;
             })}
           </svg>
           {hp && <div className="lab-tip" style={{ left: Math.min(sx(hp.x) + 14, W - 230), top: Math.max(sy(hp.y) - 10, 30) }}>
@@ -170,7 +176,7 @@ export function LabScreen({ a, err, tw, teams, onCopy }: { a: Analytics | null; 
           </div>
         </div>
         <aside className="lab-side">
-          {sp ? <SelCard p={sp} X={X} Y={Y} fit={fit} a={a} onOpen={() => open(sp.id, [sp.id])} teamName={teamName} />
+          {sp ? <SelCard p={sp} r={roles?.players[String(sp.id)]} X={X} Y={Y} fit={fit} a={a} onOpen={() => open(sp.id, [sp.id])} teamName={teamName} />
             : <p className="dim">Click a dot to pin a player here; double-click to open his file.</p>}
           <h5>Furthest from the line</h5>
           <ol className="lab-out">
@@ -188,8 +194,8 @@ export function LabScreen({ a, err, tw, teams, onCopy }: { a: Analytics | null; 
   );
 }
 
-function SelCard({ p, X, Y, fit, a, onOpen, teamName }: { p: APlayer; X: Stat; Y: Stat; fit: { b: number; c: number } | null; a: Analytics; onOpen: () => void; teamName: (t: number | null) => string }) {
-  const x = X.get(p), y = Y.get(p);
+function SelCard({ p, r, X, Y, fit, a, onOpen, teamName }: { p: APlayer; r?: RoleProfile; X: Stat; Y: Stat; fit: { b: number; c: number } | null; a: Analytics; onOpen: () => void; teamName: (t: number | null) => string }) {
+  const x = X.get(p, r), y = Y.get(p, r);
   return (
     <div className="lab-sel">
       <b>{p.name}</b><span className="dim">{p.pos} · {p.team ?? "FA"} · {teamName(p.owner)} · {p.games} games</span>

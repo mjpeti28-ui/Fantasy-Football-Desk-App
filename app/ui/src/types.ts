@@ -197,6 +197,8 @@ export interface RoleProfile {
   style: RoleStyle | null; traits: RoleTrait[]; trends: RoleTrend[];
   /** WR/TE: PFF routes run / team dropbacks in his games, season to date, with his rank at the position */
   route_sh?: { v: number; rank: number; of: number } | null;
+  /** WR/TE: PFF slot and inline rates (% of pass snaps), average depth of target, yards per route run */
+  pff?: { slot: number | null; inline: number | null; adot: number | null; yprr: number | null } | null;
   series: { weeks: number[]; snap: number[]; share: (number | null)[]; rz: (number | null)[]; share_label: string } | null;
 }
 export interface RolesBoard {

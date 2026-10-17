@@ -30,6 +30,7 @@ API = "https://api.pff.com/v1/facet/"
 MAX_AGE = 12 * 3600  # re-pull the season-to-date window at most twice a day
 POS = {"WR": "WR", "TE": "TE", "HB": "RB", "FB": "RB"}
 FEATS = ["slot_rate", "inline_rate", "route_rate"]
+EXTRA = ["pff_routes", "pff_adot", "pff_yprr"]  # shown in the app (route share, Lab axes); not style or model inputs
 
 
 def window_path(season: int, lo: int, hi: int, cache: Path | None = None) -> Path:
@@ -77,7 +78,9 @@ def load_counts(p: Path) -> pd.DataFrame:
     d["pos"] = d["position"].map(POS)
     cols = ["player_game_count", "slot_snaps", "inline_snaps", "wide_snaps", "routes", "pass_plays", "targets"]
     d[cols] = d[cols].apply(pd.to_numeric, errors="coerce").fillna(0)
-    return d.dropna(subset=["pos"])[["player_id", "player", "pos", "team"] + cols]
+    rate = [c for c in ("avg_depth_of_target", "yprr") if c in d.columns]  # window rates: not summable across windows
+    d[rate] = d[rate].apply(pd.to_numeric, errors="coerce")
+    return d.dropna(subset=["pos"])[["player_id", "player", "pos", "team"] + cols + rate]
 
 
 def rates(d: pd.DataFrame) -> pd.DataFrame:
@@ -137,7 +140,7 @@ _MEMO: dict = {}
 
 def season_features(season: int, weekly: pd.DataFrame | None, ids: pd.DataFrame | None = None) -> pd.DataFrame:
     """Rates per gsis from the widest cached w01-* window of the season (empty frame if none or on any error)."""
-    empty = pd.DataFrame(columns=FEATS + ["pff_through", "pff_games", "pff_routes"])
+    empty = pd.DataFrame(columns=FEATS + ["pff_through", "pff_games"] + EXTRA)
     try:
         p = latest_window(season)
         if p is None or weekly is None or not len(weekly):
@@ -149,7 +152,8 @@ def season_features(season: int, weekly: pd.DataFrame | None, ids: pd.DataFrame 
         c["gsis"] = c["player_id"].map(match(c, weekly, ids))
         c = c.dropna(subset=["gsis"]).drop_duplicates("gsis").set_index("gsis")
         c = c[c["pass_plays"] > 0]
-        out = c[FEATS].assign(pff_through=int(p.stem.split("-")[1]), pff_games=c["player_game_count"], pff_routes=c["routes"])
+        out = c[FEATS].assign(pff_through=int(p.stem.split("-")[1]), pff_games=c["player_game_count"], pff_routes=c["routes"],
+                              pff_adot=c.get("avg_depth_of_target", np.nan), pff_yprr=c.get("yprr", np.nan))
         _MEMO[key] = out
         return out
     except Exception:
@@ -158,7 +162,7 @@ def season_features(season: int, weekly: pd.DataFrame | None, ids: pd.DataFrame 
 
 def join(agg: pd.DataFrame, feats: pd.DataFrame) -> pd.DataFrame:
     """Adds the PFF rates to an aggregate indexed by gsis (NaN where PFF has no row)."""
-    cols = FEATS + ["pff_routes"]
+    cols = FEATS + EXTRA
     agg = agg.drop(columns=[c for c in cols if c in agg.columns])
     if feats is None or not len(feats):
         return agg.assign(**{c: np.nan for c in cols})
