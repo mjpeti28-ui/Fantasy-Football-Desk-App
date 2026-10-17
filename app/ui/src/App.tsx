@@ -10,7 +10,7 @@ import { PlayerInspector, TeamInspector } from "./components/Inspector";
 import { Board } from "./screens/myteam/Board";
 import { GameDay } from "./screens/myteam/GameDay";
 import { type Plan, STARTERS, canPlay, move, planFrom, planMarkdown, planPoints, rival, slotOf } from "./screens/myteam/lineup";
-import { H2H } from "./components/bits";
+import { H2H, isDead } from "./components/bits";
 import { pBeats } from "./odds";
 import type { ColorMode } from "./teamColor";
 
@@ -473,6 +473,17 @@ export default function App() {
         ratioQ={snap.ratio_q} candidates={roles ? Object.entries(roles.players).map(([k, v]) => ({ id: Number(k), name: v.name, pos: v.pos, team: v.team })) : []}
         onAdd={(id) => setCmpIds((xs) => (xs.includes(id) || xs.length >= 4 ? xs : [...xs, id]))} onRemove={(id) => setCmpIds((xs) => xs.filter((x) => x !== id))}
         onClose={() => setCmpOpen(false)} onOpen={(id) => { setCmpOpen(false); openFile(id, cmpIds); }}
+        suggest={(id, pos) => {
+          const ref = tw.players.find((x) => x.id === id)?.espn_week;
+          return [
+            // your players at his position, nearest projection first: the lineup call he's usually part of
+            ...tw.players.filter((p) => p.pos === pos && p.id !== id && !isDead(p))
+              .sort((a, b) => (ref == null ? (b.espn_week ?? 0) - (a.espn_week ?? 0) : Math.abs((a.espn_week ?? 0) - ref) - Math.abs((b.espn_week ?? 0) - ref)))
+              .slice(0, 2).map((p) => ({ id: p.id, name: p.name, why: `your ${pos}` })),
+            ...(wboard?.candidates ?? []).filter((c) => c.pos === pos && c.id !== id).sort((a, b) => (b.ros ?? 0) - (a.ros ?? 0))
+              .slice(0, 2).map((c) => ({ id: c.id, name: c.name, why: "free agent" })),
+          ];
+        }}
         onCopy={async (md) => flash((await copyText(md)) ? "Copied as Markdown" : "Copy failed")} />}
       {!cmpOpen && !fileNav && <CompareTray items={cmpIds.map((id) => ({ id, name: roles?.players[String(id)]?.name ?? by.get(id)?.name ?? cmpFiles.find((f) => f.id === id)?.name ?? `#${id}` }))}
         onRemove={(id) => setCmpIds((xs) => xs.filter((x) => x !== id))} onOpen={() => setCmpOpen(true)} onClear={() => setCmpIds([])} />}
