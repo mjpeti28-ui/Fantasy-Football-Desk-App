@@ -38,6 +38,7 @@ export function FileAnalytics({ ar, a }: { ar: APlayer | undefined; a: Analytics
   ];
   return (
     <div className="pf-an">
+      {ar.breakout && <p className="pf-cap">Breakout: <b>{ar.breakout.usage_pct}% usage</b> (usually sticks) / <b>{ar.breakout.eff_pct}% efficiency</b> (usually fades). Up {f1(ar.breakout.gain)} ppg on last season's {f1(ar.breakout.prev_ppg)}; in 2021–25 about two-thirds of a usage gain carried over and under half of an efficiency gain.</p>}
       {ar.flags.length > 0 && <ul className="pf-an-flags">{ar.flags.map((fl) => <li key={fl.key}><FlagChip f={fl} /><Ev l={fl.label} tip={evTip(M[fl.metric])} /><span>{fl.text}</span></li>)}</ul>}
       <div className="pf-an-grid">
         <div className="pf-an-card">

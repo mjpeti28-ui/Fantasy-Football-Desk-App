@@ -219,6 +219,22 @@ def players(season: int = 2026) -> dict:
     return out
 
 
+def _breakout(r, Sp: pd.DataFrame, i: int, done: int):
+    """PPG well above last season (wk >= 4, 3+ games now, 6+ then): split the gain into usage (nflverse expected
+    points, xfp) and efficiency (points over expected, fpoe). In 2021-25 ~60-70% of a usage gain carried over,
+    under half of an efficiency gain (backtest/stabilization.py)."""
+    if done < 4 or r["n"] < 3 or i not in Sp.index or Sp.at[i, "n"] < 6 or pd.isna(r["xfp"]) or pd.isna(Sp.at[i, "xfp"]):
+        return None
+    pv = Sp.at[i, "ppg"]
+    if r["ppg"] - pv < max(3.0, 0.2 * pv):
+        return None
+    du, de = r["xfp"] - Sp.at[i, "xfp"], r["fpoe"] - Sp.at[i, "fpoe"]
+    if du + de <= 0:
+        return None
+    u = min(1.0, max(0.0, du / (du + de)))
+    return {"prev_ppg": _r(pv, 1), "gain": _r(r["ppg"] - pv, 1), "usage_pct": round(100 * u), "eff_pct": round(100 * (1 - u))}
+
+
 def _players(season: int) -> dict:
     from . import data as d
     inp = d.load(season)
@@ -232,6 +248,10 @@ def _players(season: int) -> dict:
     S["est_tr"] = (S["est_ppg"] - prev.reindex(S.index)) if len(prev) else np.nan
     last = P.sort_values("week").drop_duplicates("espn_id", keep="last").set_index("espn_id")
     S["pos"], S["name"], S["pro_team_id"] = last["position"], last["name"], last["pro_team_id"]
+    try:  # last season, for the breakout split
+        Sp = summarize(weekly(season - 1))
+    except Exception:
+        Sp = pd.DataFrame(columns=["n", "ppg", "xfp", "fpoe"])
     ab = dict(zip(inp.pro_teams["pro_team_id"], inp.pro_teams["abbrev"]))
     ro = inp.rosters[inp.rosters["week"] == inp.rosters["week"].max()]
     owner = dict(zip(ro["espn_id"].astype(int), ro["team_id"].astype(int)))
@@ -334,7 +354,7 @@ def _players(season: int) -> dict:
             "pct": {k: _r(pct[k].get(i), 0) for k in PCT_KEYS},
             "duds": int(round((r["dud"] or 0) * n)), "smashes": int(round((r["smash"] or 0) * n)),
             "starts": int(round((r["start"] or 0) * n)),
-            "weekly": wk, "flags": flags,
+            "weekly": wk, "flags": flags, "breakout": _breakout(r, Sp, i, done),
         })
     t = tiers(nt)
     # NFL schedule from the next unplayed week through 17 (nflverse abbreviations), for schedule-ahead views
@@ -371,7 +391,7 @@ def _league(season: int) -> dict:
     """Team-by-week table: points, best possible lineup, ESPN's projection of the starters used, and
     where each team's starting points came from (its own draft picks vs players it added)."""
     from . import data as d
-    from .views import best_lineup
+    from .views import best_lineup, _opponent
     inp = d.load(season)
     done = complete_week(season, inp.week - 1)
     pw = inp.players_weekly[inp.players_weekly["kind"] == "actual"][["espn_id", "week", "points"]]
@@ -389,10 +409,12 @@ def _league(season: int) -> dict:
             r = R[R["team_id"] == t]
             if r.empty:
                 continue
-            rows = [{"id": int(i), "pos": p, "pts": pts_of.get((int(i), w), 0.0)}
+            rows = [{"id": int(i), "pos": p, "pts": pts_of.get((int(i), w), 0.0), "proj": proj_of.get((int(i), w), 0.0)}
                     for i, p, s in zip(r["espn_id"], r["position"], r["lineup_slot"]) if s != "IR"]
             best = best_lineup(rows, key="pts")
             opt = sum(next(z["pts"] for z in rows if z["id"] == i) for i in best.values())
+            # the lineup ESPN's projections would have started, scored with what actually happened
+            espn = sum(next(z["pts"] for z in rows if z["id"] == i) for i in best_lineup(rows, key="proj").values())
             st = r[~r["lineup_slot"].isin(["BE", "IR"])]
             got = sum(pts_of.get((int(i), w), 0.0) for i in st["espn_id"])
             proj = sum(proj_of.get((int(i), w), 0.0) for i in st["espn_id"])
@@ -400,6 +422,7 @@ def _league(season: int) -> dict:
             missed = sorted(((z["pts"], z["id"]) for z in rows if z["id"] in best.values() and z["id"] not in set(st["espn_id"].astype(int))),
                             reverse=True)
             cells.append({"team_id": t, "week": w, "pts": round(got, 2), "opt": round(opt, 2), "proj": round(proj, 2),
+                          "espn": round(espn, 2), "opp": _opponent(inp, t, w),
                           "drafted": round(own, 2), "missed": [int(i) for _, i in missed[:2]]})
     C = pd.DataFrame(cells)
     if C.empty:
@@ -410,7 +433,15 @@ def _league(season: int) -> dict:
     C["eff"] = C["pts"] / C["opt"].where(C["opt"] > 0)
     C["left"] = C["opt"] - C["pts"]
     C["luck"] = C["pts"] - C["proj"]
+    C["vs_espn"] = C["pts"] - C["espn"]
+    # W/L the ESPN-best lineup would have flipped (opponent from the league schedule; unknown -> not counted)
+    op = C.set_index(["team_id", "week"])["pts"]
+    o = pd.Series([op.get((x, w)) if pd.notna(x) else None for x, w in zip(C["opp"], C["week"])], index=C.index, dtype=float)
+    C["flip_won"] = ((C["pts"] < o) & (C["espn"] > o)).astype(int)
+    C["flip_lost"] = ((C["pts"] > o) & (C["espn"] < o)).astype(int)
     T = C.groupby("team_id").agg(pts=("pts", "sum"), opt=("opt", "sum"), proj=("proj", "sum"), left=("left", "sum"),
+                                 espn=("espn", "sum"), vs_espn=("vs_espn", "sum"), flip_won=("flip_won", "sum"),
+                                 flip_lost=("flip_lost", "sum"),
                                  luck=("luck", "sum"), drafted=("drafted", "sum"), sd=("pts", "std"), best=("pts", "max"),
                                  worst=("pts", "min"), top3=("rank", lambda x: int((x <= 3).sum())), eff=("eff", "mean"))
     T["opt_rank"] = T["opt"].rank(ascending=False, method="min").astype(int)

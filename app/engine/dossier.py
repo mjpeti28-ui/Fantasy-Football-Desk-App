@@ -148,9 +148,9 @@ def _read(pos, name, prof, fp, comps, est_ppg, model, games, espn_wk, logs):
             espn_note = ""
             if e is not None and t.get("next_lo") is not None:
                 if t["next_lo"] > 0 or t["next_hi"] < 0:
-                    espn_note = f" Players with this tag scored {e:+.1f} vs ESPN's projection the next week (2021–25), a real gap."
+                    espn_note = f" Players with this tag scored {e:+.1f} a game vs ESPN's projection over the next 4 games (2021–25), a real gap."
                 else:
-                    espn_note = " ESPN's projection already accounts for it: tagged players scored about as projected the next week."
+                    espn_note = " ESPN's projection already accounts for it: tagged players scored about as projected over the next 4 games."
             out.append({"kind": "change", "anchor": "usage", "text": f"{t['label']}: {t['text']} Changes like this held {round(t['hold'] * 100)}% of the time.{espn_note}"})
             break
     if comps:

@@ -187,6 +187,7 @@ function TeamWeeksIn({ tw, lg, W0 }: { tw: TeamWeek; lg: ALeague; W0: number }) 
       </svg></div>
       <p className="mta-leg"><span><i className="k got" />Scored</span><span><i className="k opt" />Left on the bench</span><span><i className="k proj" />ESPN's projection of your starters</span><span className="dim">#n = your rank that week</span></p>
       <p className="d-read">You left <b>{f1(t.left)}</b> on the bench (the {ordinal(leftRank)}-most of {lg.n_teams} teams) and beat ESPN's projection of your starters by <b>{signed(t.luck)}</b>. Seeding is by total points, so both count, but neither has carried forward in past seasons.</p>
+      <p className="d-read">vs ESPN-best lineup: <b>{signed(t.vs_espn)}</b> pts. Starting the highest ESPN projections on your roster would have scored {f1(t.espn)}{t.flip_won + t.flip_lost > 0 && <> and flipped {t.flip_won} loss{t.flip_won === 1 ? "" : "es"} to wins and {t.flip_lost} win{t.flip_lost === 1 ? "" : "s"} to losses</>}. Every manager here trailed it in 2021–25 (1.2 pts a week on average).</p>
     </>
   );
 }

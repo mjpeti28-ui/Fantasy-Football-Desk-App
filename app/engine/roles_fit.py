@@ -140,7 +140,7 @@ def trend_holds(w: pd.DataFrame):
                    and all(snaps.get((season, team, pos, x, m), 0) == 0 for x in rw)]
             fw = wk[i:i + 2]
             still = bool(out) and all(snaps.get((season, team, pos, x, m), 0) == 0 for m in out for x in fw)
-            rows.append(dict(pos=pos, gsis=g, season=season, next_week=int(wk[i]), d=sn[i - 2:i].mean() - sn[:i - 2].mean(),
+            rows.append(dict(pos=pos, gsis=g, season=season, next_week=int(wk[i]), next4=tuple(int(x) for x in wk[i:i + 4]), d=sn[i - 2:i].mean() - sn[:i - 2].mean(),
                              f=(sn[i:i + 2].mean() - sn[:i - 2].mean()) if i + 2 <= len(d) else np.nan,
                              sd=np.nanmean(sh[i - 2:i]) - np.nanmean(sh[:i - 2]),
                              sf=(np.nanmean(sh[i:i + 2]) - np.nanmean(sh[:i - 2])) if i + 2 <= len(d) else np.nan, out=bool(out), still=still))
@@ -169,7 +169,8 @@ def trend_cal(t):
 
 
 def trend_vs_espn(t, actuals: Path, ids: pd.DataFrame):
-    """Next game's points minus ESPN's projection, tagged players vs untagged (2021+)."""
+    """Points minus ESPN's projection over the next 4 games, tagged players vs untagged (2021+). CI: 5-95% of a
+    player bootstrap. (A placebo for the share tags is in backtest/lead_time.py.)"""
     g2e = ids.dropna(subset=["gsis_id", "espn_id"]).drop_duplicates("gsis_id").set_index("gsis_id")["espn_id"].astype(int)
     E = []
     for y in range(2021, 2026):
@@ -183,9 +184,13 @@ def trend_vs_espn(t, actuals: Path, ids: pd.DataFrame):
     if not E:
         return {}
     E = pd.concat(E)
+    E = E[E.espn_proj > 0]
+    gr = (E.points - E.espn_proj).groupby([E.season, E.espn_id, E.week]).first().to_dict()
     x = t[t.season >= 2021].copy(); x["espn_id"] = x.gsis.map(g2e)
-    x = x.merge(E, left_on=["season", "next_week", "espn_id"], right_on=["season", "week", "espn_id"])
-    x = x[x.espn_proj > 0]; x["res"] = x.points - x.espn_proj
+    x = x.dropna(subset=["espn_id"])
+    x["res"] = [np.mean(v) if (v := [gr[(s, int(e), w)] for w in n4 if (s, int(e), w) in gr]) else np.nan
+                for s, e, n4 in zip(x.season, x.espn_id, x.next4)]
+    x = x.dropna(subset=["res"])
     rng = np.random.default_rng(0); res = {}
     for pos, y in x.groupby("pos"):
         mk = masks(y); none = y[mk["none"]]
@@ -202,9 +207,11 @@ def trend_vs_espn(t, actuals: Path, ids: pd.DataFrame):
             for _ in range(300):
                 s1 = np.concatenate([iz[a] for a in rng.choice(gs, len(gs))]); s2 = np.concatenate([inn[a] for a in rng.choice(gn, len(gn))])
                 diffs.append(s1.mean() - s2.mean())
-            res[pos][k] = {"rel": round(float(z.res.mean() - none.res.mean()), 2), "lo": round(float(np.percentile(diffs, 5)), 2),
-                           "hi": round(float(np.percentile(diffs, 95)), 2), "n": int(len(z)), "beat": round(float((z.res > 0).mean()), 3)}
-            print(f"  vs ESPN {pos} {k:20s} n={len(z):5d} rel {res[pos][k]['rel']:+.2f} [{res[pos][k]['lo']:+.2f},{res[pos][k]['hi']:+.2f}]")
+            rel = float(z.res.mean() - none.res.mean())
+            res[pos][k] = {"rel": round(rel, 2), "lo": round(float(np.percentile(diffs, 5)), 2),
+                           "hi": round(float(np.percentile(diffs, 95)), 2), "n": int(len(z)), "beat": round(float((z.res > 0).mean()), 3),
+                           "games": 4}
+            print(f"  vs ESPN next 4 {pos} {k:20s} n={len(z):5d} rel {rel:+.2f} [{res[pos][k]['lo']:+.2f},{res[pos][k]['hi']:+.2f}]")
     return res
 
 
@@ -441,5 +448,13 @@ def main(cache: Path, actuals: Path | None):
 if __name__ == "__main__":
     if sys.argv[1] == "--pff":  # python -m app.engine.roles_fit --pff <roles_cache> <pff_cache>
         fit_pff_styles(Path(sys.argv[2]), Path(sys.argv[3]))
+    elif sys.argv[1] == "--trend-pts":  # python -m app.engine.roles_fit --trend-pts <roles_cache> <actuals_dir>: refresh only trend_pts
+        c = Path(sys.argv[2])
+        w = pd.concat([pd.read_csv(c / str(y) / "roles_weekly.csv") for y in SEASONS], ignore_index=True)
+        model = json.loads((HERE / "roles_model.json").read_text())
+        ids = c / "ids.csv" if (c / "ids.csv").exists() else HERE.parents[1] / "history" / "nflverse" / "ids.csv"
+        model["trend_pts"] = trend_vs_espn(trend_holds(w), Path(sys.argv[3]), pd.read_csv(ids))
+        (HERE / "roles_model.json").write_text(json.dumps(model, separators=(",", ":")))
+        print("wrote trend_pts to", HERE / "roles_model.json")
     else:
         main(Path(sys.argv[1]), Path(sys.argv[2]) if len(sys.argv) > 2 else None)

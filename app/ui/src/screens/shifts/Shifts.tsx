@@ -191,7 +191,7 @@ function why(w: ShiftWin, win: Win): string {
   let s = w.cause?.length && w.hold_if_still_out != null
     ? `Held ${Math.round(w.hold * 100)}%; ${Math.round(w.hold_if_still_out * 100)}% while ${w.cause.join(", ")} stays out.`
     : `${win === "season" ? "Early-season changes like this" : "Changes like this"} held ${Math.round(w.hold * 100)}% of the time.`;
-  if (w.espn) s += w.espn.lo > 0 || w.espn.hi < 0 ? ` Next week they scored ${signed(w.espn.rel)} vs ESPN's projection.` : " ESPN's next projection already reflects it.";
+  if (w.espn) s += w.espn.lo > 0 || w.espn.hi < 0 ? ` Over the next 4 games they scored ${signed(w.espn.rel)} a game vs ESPN's projection.` : " ESPN's projections over the next 4 games already reflect it.";
   return s;
 }
 
@@ -311,7 +311,7 @@ export function ShiftsScreen({ data, err, myTeam, onCopy, inCompare, onCompare }
               <button key={z.key} type="button" className={`zg ${z.tone} ${zoneSel === z.key ? "on" : ""}`} onClick={() => setZoneSel(zoneSel === z.key ? null : z.key)}>
                 <span className="zt"><i />{z.label} <small>{n} now</small></span>
                 <span className="hb"><i style={{ width: `${(st?.hold ?? 0) * 100}%` }} /></span>
-                <span className="zs">{st ? `kept half its size ${Math.round(st.hold * 100)}% of the time` : "–"}{st?.espn != null && win === "recent" ? (st.espnReal ? `; ESPN misses it by ${signed(st.espn)} next week` : "; ESPN already prices it") : ""}</span>
+                <span className="zs">{st ? `kept half its size ${Math.round(st.hold * 100)}% of the time` : "–"}{st?.espn != null && win === "recent" ? (st.espnReal ? `; ESPN misses it by ${signed(st.espn)} a game over the next 4` : "; ESPN already prices it") : ""}</span>
               </button>
             );
           })}

@@ -5,7 +5,7 @@ import { f1, pct, signed } from "../../format";
 import { Analysis } from "./Analysis";
 import "./league.css";
 
-type SortKey = "proj" | "pf" | "top2" | "playoffs" | "luck" | "bench";
+type SortKey = "proj" | "pf" | "top2" | "playoffs" | "luck" | "bench" | "vsespn";
 type OddsKey = "seed1" | "top2" | "playoffs" | "title";
 
 interface Props {
@@ -63,6 +63,7 @@ export function League(p: Props) {
     const key: Record<SortKey, (t: PowerTeam) => number> = {
       proj: (t) => odds(t)?.reg_pts ?? t.proj_final_pts ?? t.pf, pf: (t) => t.pf, luck: (t) => t.luck ?? 0,
       bench: (t) => p.alg?.teams.find((x) => x.id === t.id)?.left ?? 0,
+      vsespn: (t) => p.alg?.teams.find((x) => x.id === t.id)?.vs_espn ?? 0,
       top2: (t) => odds(t)?.top2 ?? 0, playoffs: (t) => odds(t)?.playoffs ?? 0,
     };
     return [...teams].sort((a, b) => key[sort](b) - key[sort](a));
@@ -133,6 +134,7 @@ export function League(p: Props) {
             {th(null, `Weeks 1–${p.power.through_week}`, "l", "Bars: points scored. Ticks: ESPN's projection for the lineup started (green beat it, red missed).")}
             {th("luck", "vs projection", "l", "Points scored minus projection for the lineups used. Early luck hasn't carried over in past seasons.")}
             {p.alg && th("bench", "Bench left", "r", "Points the best lineup from the same roster would have added, season so far. Didn't repeat in 2021–25 (r .11): what happened, not a habit.")}
+            {p.alg && th("vsespn", "vs ESPN-best lineup", "r", "Points scored minus what the lineup with the highest ESPN projections (same roster) actually scored, season so far. In 2021–25 every manager in this league trailed it, by 1.2 points a week on average.")}
             {th("proj", "Proj. final")}
             {th(null, "#1 seed")}
             {th("top2", "Top-2")}
@@ -152,6 +154,7 @@ export function League(p: Props) {
                   <td className="l"><Weekly t={t} max={maxWeek} /></td>
                   <td className="l"><span className="luck"><span className="lb" aria-hidden="true"><i className={L >= 0 ? "p" : "n"} style={{ width: `${w}px` }} /></span><span className={`num ${L >= 0 ? "above" : "below"}`}>{signed(L)}</span></span></td>
                   {p.alg && <td className="r num dim">{f1(p.alg.teams.find((x) => x.id === t.id)?.left ?? null)}</td>}
+                  {p.alg && <td className="r num dim">{signed(p.alg.teams.find((x) => x.id === t.id)?.vs_espn ?? null)}</td>}
                   <td className="r num">{f1(o?.reg_pts ?? null)}{d && Math.abs(d.reg_pts) >= 1 && <small className={d.reg_pts > 0 ? "above" : "below"}> {signed(d.reg_pts)}</small>}</td>
                   {oddsCell(t, "seed1", false, false)}
                   {oddsCell(t, "top2")}
