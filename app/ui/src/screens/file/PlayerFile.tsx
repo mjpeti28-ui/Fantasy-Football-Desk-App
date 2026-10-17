@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Comps, FpMetric, LogRow, PlayerFile as PF, Pos, RoleTrend } from "../../types";
-import { f1, pct, signed } from "../../format";
+import { f1, lastName, pct, signed, wholePcts } from "../../format";
 import { Face, POS_VAR, Spark } from "../../components/bits";
 import { type TeamColor, tilePalette } from "../../teamColor";
 import { holdText } from "../../components/Role";
@@ -99,7 +99,7 @@ function RoleMap({ f, myTeam, onOpen }: { f: PF; myTeam: number; onOpen: (id: nu
         {m.trail.length > 1 && <polyline className="trail" points={m.trail.map((t) => `${sx(t.x)},${sy(t.y)}`).join(" ")} style={{ stroke: POS_VAR[pos] }} />}
         {m.trail.map((t, i) => i < m.trail.length - 1 && <circle key={t.week} cx={sx(t.x)} cy={sy(t.y)} r={2.5} className="tdot" style={{ fill: POS_VAR[pos] }} />)}
         {me && <g><circle cx={sx(me.x)} cy={sy(me.y)} r={7} className="me" style={{ fill: POS_VAR[pos] }} />
-          <text x={sx(me.x) > W - 130 ? sx(me.x) - 11 : sx(me.x) + 11} y={sy(me.y) - 8} textAnchor={sx(me.x) > W - 130 ? "end" : "start"} className="mel">{f.name.split(" ").slice(-1)[0]} · wk {me.week}</text></g>}
+          <text x={sx(me.x) > W - 130 ? sx(me.x) - 11 : sx(me.x) + 11} y={sy(me.y) - 8} textAnchor={sx(me.x) > W - 130 ? "end" : "start"} className="mel">{lastName(f.name)} · wk {me.week}</text></g>}
         {hp && (
           <g className="tip" transform={`translate(${Math.min(sx(hp.x) + 10, W - 190)} ${Math.max(sy(hp.y) - 46, 4)})`}>
             <rect width={180} height={40} rx={6} />
@@ -110,7 +110,7 @@ function RoleMap({ f, myTeam, onOpen }: { f: PF; myTeam: number; onOpen: (id: nu
       </svg>
       <p className="pf-cap">
         Every {pos} with 2+ games this season, placed by the two usage traits that separate the {f.style_info.names.length} styles (dot size = {pos === "RB" ? "opportunity" : pos === "QB" ? "dropback" : "target"} share,
-        <span className="k-mine" /> on your roster). Ovals cover the middle of each style group, {(m.seasons ?? [2016, 2025])[0]}–{String((m.seasons ?? [2016, 2025])[1]).slice(2)}.{f.style_info.pff ? " Alignment (slot/inline) is PFF season to date, so his point has no weekly path." : ""} The colored path is {f.name.split(" ").slice(-1)[0]} week by week, regressed for sample size{m.last_season ? `; the ring is ${f.season - 1}` : ""}.
+        <span className="k-mine" /> on your roster). Ovals cover the middle of each style group, {(m.seasons ?? [2016, 2025])[0]}–{String((m.seasons ?? [2016, 2025])[1]).slice(2)}.{m.trail.length > 1 ? ` The colored path is ${lastName(f.name)} week by week, regressed for sample size.` : f.style_info.pff ? " Alignment (slot/inline) is PFF season to date, so his dot is the season so far, with no weekly path." : ""}{m.last_season ? ` The ring is ${f.season - 1}.` : ""}
       </p>
     </div>
   );
@@ -434,7 +434,7 @@ export function PlayerFileView({ file, err, loading, nameHint, myTeam, colors, d
             <ul>{f.read.map((r, i) => (
               <li key={i} className={r.kind}>
                 <button type="button" onClick={() => go(r.anchor)} title="Show the evidence">
-                  <span className="kd"><i aria-hidden="true">{KIND[r.kind]?.icon}</i>{KIND[r.kind]?.label}</span><span className="tx">{r.text}</span>
+                  <span className="kd">{i > 0 && f.read[i - 1].kind === r.kind ? null : <><i aria-hidden="true">{KIND[r.kind]?.icon}</i>{KIND[r.kind]?.label}</>}</span><span className="tx">{r.text}</span>
                 </button>
               </li>))}
             </ul>
@@ -482,17 +482,18 @@ function StyleMix({ f }: { f: PF }) {
   const st = f.role.style;
   if (!st) return null;
   const probs = Object.entries(st.probs).sort((a, b) => b[1] - a[1]);
+  const whole = wholePcts(probs.map(([, v]) => v));
   const G = f.season_line?.games ?? 0;
   const acc = f.style_info.early_acc?.[G < 6 ? "G3" : "G6"];
   const tr = f.style_info.transitions?.[st.name];
   return (
     <div className="pf-mix">
-      <div className="bar" role="img" aria-label={probs.map(([k, v]) => `${k} ${Math.round(v * 100)}%`).join(", ")}>
-        {probs.filter(([, v]) => v >= 0.02).map(([k, v], i) => <i key={k} className={i === 0 ? "top" : ""} style={{ width: `${v * 100}%`, ...(i === 0 ? { background: POS_VAR[f.pos] } : {}) }}><span>{v >= 0.18 ? `${k} ${Math.round(v * 100)}%` : ""}</span></i>)}
+      <div className="bar" role="img" aria-label={probs.map(([k], i) => `${k} ${whole[i]}%`).join(", ")}>
+        {probs.map(([k, v], i) => v >= 0.02 && <i key={k} className={i === 0 ? "top" : ""} style={{ width: `${v * 100}%`, ...(i === 0 ? { background: POS_VAR[f.pos] } : {}) }}><span>{v >= 0.18 ? `${k} ${whole[i]}%` : ""}</span></i>)}
       </div>
       <p className="pf-cap">
         {st.from_last_season ? "Based on last season until he has 2 games. " : ""}
-        {acc && G < 10 ? `At ${G < 6 ? "3" : "6"} games, labels like this matched the full-season call ${pct(acc.acc)} of the time (they claimed ${pct(acc.conf)}), so the bar is honest about its doubt. ` : ""}
+        {acc && G < 10 ? `Checked at ${G < 6 ? "3" : "6"} games (he has ${G}): labels like this matched the full-season call ${pct(acc.acc)} of the time (they claimed ${pct(acc.conf)}), so the bar is honest about its doubt. ` : ""}
         {tr ? `${st.name}s stay one the next year ${pct(tr[st.name])} of the time.` : ""}
       </p>
     </div>

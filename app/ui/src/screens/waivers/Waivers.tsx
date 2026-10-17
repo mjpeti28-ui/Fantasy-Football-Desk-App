@@ -246,7 +246,7 @@ export function Waivers({ board, err, sel, onSel, players, roles, shifts, onKeep
                   <td className="r num">{f1(r.est_ppg)}</td>
                   <td className="r num" title={r.p_boom != null ? `Top-half starter: ${pct(r.p_boom)}` : undefined}>{pct(r.p_start)}</td>
                   <td className="r num">{pct(r.avail)}</td>
-                  <td>{u ? <span className="use"><UsageSpark vals={u.vals} color={POS_VAR[r.pos]} /><small>{u.label} {u.vals.map((v) => (v == null ? "–" : Math.round(v))).join(" ")}{u.unit}</small></span> : <span className="dim">–</span>}</td>
+                  <td>{u ? <span className="use"><UsageSpark vals={u.vals} color={POS_VAR[r.pos]} /><small>{u.label}<span className="nw">{u.vals.map((v) => (v == null ? "–" : Math.round(v))).join(" ")}{u.unit}</span></small></span> : <span className="dim">–</span>}</td>
                   <td className="gcol"><GainBar g={r.gain} noise={board.noise} max={gmax} /></td>
                   <td className="drop" title={r.drop_name ?? undefined}>{r.drop_name ? lastName(r.drop_name) : "–"}</td>
                 </tr>

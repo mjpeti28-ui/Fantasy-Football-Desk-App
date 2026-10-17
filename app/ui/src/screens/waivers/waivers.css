@@ -54,7 +54,8 @@
 .waivers .who .tag { font-style: normal; color: #c98a0c; }
 .waivers .pchip { font: 700 10px/1 var(--content); font-style: normal; padding: 3px 0; width: 30px; text-align: center; border-radius: 3px; flex: none; }
 .waivers .use { display: inline-flex; align-items: flex-end; gap: 8px; }
-.waivers .use small { color: var(--ink-2); font-size: 11px; white-space: normal; max-width: 128px; line-height: 1.25; }
+.waivers .use small { color: var(--ink-2); font-size: 11px; line-height: 1.25; display: flex; flex-direction: column; }
+.waivers .use small .nw { white-space: nowrap; }
 .waivers .wv-spark { display: inline-flex; align-items: flex-end; gap: 2px; height: 16px; }
 .waivers .wv-spark i { width: 5px; border-radius: 1px; display: block; }
 .waivers .wv-spark i.none { background: var(--ink-3); opacity: .5; }

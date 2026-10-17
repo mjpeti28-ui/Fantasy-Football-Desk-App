@@ -21,6 +21,17 @@ export function teamShort(name: string, all: string[]): string {
   return w.slice(0, 2).join(" ");
 }
 
+/** Whole percents that add to 100 (largest remainder), so a 62/38 split never reads 62/39. */
+export function wholePcts(vals: number[]): number[] {
+  const tot = vals.reduce((a, v) => a + v, 0) || 1, raw = vals.map((v) => (100 * v) / tot), out = raw.map(Math.floor);
+  const order = raw.map((r, i) => [r - Math.floor(r), i] as const).sort((a, b) => b[0] - a[0]);
+  for (let k = 0; k < 100 - out.reduce((a, v) => a + v, 0); k++) out[order[k % order.length][1]]++;
+  return out;
+}
+
+/** "Christian Watson" -> "C. Watson" once a full name is too long for a tight row; defenses and short names stay whole. */
+export const tightName = (n: string, max = 14) => (n.length <= max || n.endsWith("D/ST") || !n.includes(" ") ? n : `${n[0]}. ${n.split(" ").slice(1).join(" ")}`);
+
 export const lastName = (n: string) => (n.endsWith("D/ST") ? n : n.split(" ").slice(1).join(" ") || n);
 
 export function clock(t?: string) {

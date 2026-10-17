@@ -104,6 +104,8 @@ export function LabScreen({ a, err, tw, teams, roles, onCopy }: { a: Analytics |
   const med = (v: number[]) => { const s = [...v].sort((p, q2) => p - q2); return s.length ? s[Math.floor(s.length / 2)] : 0; };
   const mxx = med(xs), myy = med(ys);
   const named = new Set((fit?.res ?? []).slice(0, 6).map((d) => d.p.id));
+  // also the extremes on each axis: the top dot is often the one people ask about, even when it sits on the line
+  for (const k of ["x", "y"] as const) if (pts.length) named.add(pts.reduce((a, d) => (d[k] > a[k] ? d : a)).p.id);
   const hit = q.trim().length >= 2 ? pts.filter((d) => d.p.name.toLowerCase().includes(q.trim().toLowerCase())).map((d) => d.p.id) : [];
   for (const id of hit.slice(0, 3)) named.add(id);
   if (sel != null) named.add(sel);
