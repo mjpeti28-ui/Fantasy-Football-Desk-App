@@ -241,8 +241,10 @@ export function compareMarkdown(files: PF[], mode: Mode, ratioQ?: Record<string,
   return L.join("\n");
 }
 
-export function CompareView({ files, loading, err, ratioQ, candidates, onAdd, onRemove, onClose, onOpen, onCopy, an }: {
+export function CompareView({ files, loading, err, ratioQ, candidates, onAdd, onRemove, onClose, onOpen, onCopy, an, suggest }: {
   an?: Analytics | null;
+  /** with one player open: who to put next to him (your players at his position, top free agents) */
+  suggest?: (id: number, pos: string) => { id: number; name: string; why: string }[];
   files: PF[]; loading: boolean; err: string | null; ratioQ?: Record<string, number[]>;
   candidates: { id: number; name: string; pos: string; team: string | null }[];
   onAdd: (id: number) => void; onRemove: (id: number) => void; onClose: () => void; onOpen: (id: number) => void; onCopy: (md: string) => void;
@@ -281,6 +283,9 @@ export function CompareView({ files, loading, err, ratioQ, candidates, onAdd, on
         {loading && !files.length && <p className="dim cmp-pad">Opening files…</p>}
         {files.length > 0 && <>
           <div className="cmp-verdict"><b>{verdict(files, mode, ratioQ)}</b></div>
+          {files.length === 1 && suggest && (() => { const sg = suggest(files[0].id, files[0].pos); return sg.length > 0 && (
+            <div className="cmp-suggest"><span className="dim">Compare with</span>
+              {sg.map((x) => <button key={x.id} type="button" className="tbtn" onClick={() => onAdd(x.id)}>{x.name} <small>{x.why}</small></button>)}</div>); })()}
           <div className="cmp-cols" style={{ gridTemplateColumns: cols }}>
             <span />
             {files.map((f, i) => (

@@ -52,6 +52,9 @@ export interface Matchup {
   opp_proj: number;
   p_win: number;
   margin_sd: number;
+  opp_best?: number;
+  p_win_best?: number;
+  opp_holes?: string[];
   opp_starters: OppStarter[];
 }
 
@@ -194,6 +197,8 @@ export interface RoleProfile {
   style: RoleStyle | null; traits: RoleTrait[]; trends: RoleTrend[];
   /** WR/TE: PFF routes run / team dropbacks in his games, season to date, with his rank at the position */
   route_sh?: { v: number; rank: number; of: number } | null;
+  /** WR/TE: PFF slot and inline rates (% of pass snaps), average depth of target, yards per route run */
+  pff?: { slot: number | null; inline: number | null; adot: number | null; yprr: number | null } | null;
   series: { weeks: number[]; snap: number[]; share: (number | null)[]; rz: (number | null)[]; share_label: string } | null;
 }
 export interface RolesBoard {
@@ -253,11 +258,13 @@ export interface ShiftRow {
   games: number; tier: string; style: string | null; series: { weeks: number[]; snap: number[]; share: (number | null)[]; share_label: string };
   recent: ShiftWin | null; season: ShiftWin | null; ledger: { est_ppg: number | null; avail: number | null; status: string | null } | null;
   espn_week: number | null; injury: string | null;
+  /** WR/TE PFF route share and slot rate, last two weeks vs before (needs the extra PFF window) */
+  pff?: { label: string; from_route: number; to_route: number; d_route: number; from_slot: number; to_slot: number; d_slot: number; games: number; move: boolean } | null;
 }
 export interface Shifts {
   season: number; through_week: number; partial?: boolean; week: number; rows: ShiftRow[];
   zones: Record<string, Record<string, { hold: number | null; n: number | null; espn?: { rel: number; lo: number; hi: number } | null }> & { season: Record<string, { hold: number; n: number }> }>;
-  thresholds: { snap: number; share: number; snap_with: number };
+  thresholds: { snap: number; share: number; snap_with: number; route?: number; slot?: number };
 }
 
 /* ---------- season analytics (GET /api/analytics, /api/analytics/league) ---------- */

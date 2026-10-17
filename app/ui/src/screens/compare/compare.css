@@ -17,6 +17,8 @@
 .cmp-pad { padding: 20px 28px; }
 .cmp-verdict { padding: 16px 28px 4px; font-size: 16px; max-width: 1100px; }
 .cmp-verdict b { font-weight: 650; }
+.cmp-suggest { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 28px 0; font-size: 13px; }
+.cmp-suggest small { color: var(--ink-2); margin-left: 4px; }
 
 .let { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--ink); color: var(--win); font: 700 10.5px/1 var(--sys); font-style: normal; margin-right: 6px; vertical-align: 1px; flex: none; }
 .let.big { width: 26px; height: 26px; font-size: 13px; }

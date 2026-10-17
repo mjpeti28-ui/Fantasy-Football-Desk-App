@@ -390,7 +390,16 @@ def profiles(cur_w: pd.DataFrame, prev_w: pd.DataFrame | None, model: dict, name
         p = prev.loc[g] if (len(prev) and g in prev.index and prev.loc[g]["games"] >= 3) else None
         out[g], _ = profile_one(model, g, d, c, p, ctx, names, last_week)
         out[g]["route_sh"] = route_info(rs, cur, g)
+        out[g]["pff"] = pff_info(c)
     return out
+
+
+def pff_info(c) -> dict | None:
+    """WR/TE PFF alignment and depth for the Lab axes, season to date. Descriptive; yards per route is efficiency (noise)."""
+    if c is None or c.get("pos") not in ("WR", "TE") or pd.isna(c.get("slot_rate", np.nan)):
+        return None
+    r = lambda k, n=1: None if pd.isna(c.get(k, np.nan)) else round(float(c[k]), n)
+    return {"slot": r("slot_rate", 0), "inline": r("inline_rate", 0), "adot": r("pff_adot"), "yprr": r("pff_yprr", 2)}
 
 
 # ---------- engine entry ----------

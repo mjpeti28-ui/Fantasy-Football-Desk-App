@@ -84,3 +84,16 @@ def test_role_map_uses_free_axes_for_unmatched_player():
         m = dossier._map(MODEL, "WR", cur, pd.DataFrame(), None, me, {}, {})
         assert [m["x"], m["y"]] == list(axes)
         assert [g["name"] for g in m["groups"]] == (MODEL["style"] if me == "matched" else MODEL["style_free"])["WR"]["names"]
+
+
+def test_role_moves_last_two_weeks_vs_before():
+    from app.engine import shifts as S
+    wk = pd.DataFrame([{"gsis": g, "pos": "WR", "week": w, "t_db": 40} for g in ("a", "b") for w in range(1, 7)])
+    split = pd.DataFrame({"r_routes": [76, 60], "r_slot_snaps": [10, 60], "r_pass_plays": [80, 80],
+                          "e_routes": [80, 120], "e_slot_snaps": [20, 30], "e_pass_plays": [160, 160]},
+                         index=["a", "b"]).assign(lo=5, hi=6)
+    m = S.role_moves(split, wk)
+    assert m["a"]["from_route"] == 50 and m["a"]["to_route"] == 95 and m["a"]["move"]  # 80/160 -> 76/80
+    assert m["b"]["d_route"] == 0 and m["b"]["d_slot"] == 56 and m["b"]["move"]        # slot 19% -> 75%
+    assert m["a"]["label"] == "weeks 5–6 vs 1–4"
+    assert S.role_moves(pd.DataFrame(), wk) == {}

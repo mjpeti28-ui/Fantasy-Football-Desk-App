@@ -8,7 +8,7 @@ in the same layout tools/fetch_pff_stats.py uses for the 2021-25 backtest window
 Everything here is optional. No key, no network or an API error leaves the cache as it was, and
 roles.py then types WR/TE with the free-data styles (model["style_free"]).
 
-  python -m app.engine.roles_pff 2026        # pull this season to date (+ last season once)
+  python -m app.engine.roles_pff 2026        # pull this season to date and its last two weeks (+ last season once)
 """
 from __future__ import annotations
 
@@ -30,6 +30,7 @@ API = "https://api.pff.com/v1/facet/"
 MAX_AGE = 12 * 3600  # re-pull the season-to-date window at most twice a day
 POS = {"WR": "WR", "TE": "TE", "HB": "RB", "FB": "RB"}
 FEATS = ["slot_rate", "inline_rate", "route_rate"]
+EXTRA = ["pff_routes", "pff_adot", "pff_yprr"]  # shown in the app (route share, Lab axes); not style or model inputs
 
 
 def window_path(season: int, lo: int, hi: int, cache: Path | None = None) -> Path:
@@ -77,7 +78,9 @@ def load_counts(p: Path) -> pd.DataFrame:
     d["pos"] = d["position"].map(POS)
     cols = ["player_game_count", "slot_snaps", "inline_snaps", "wide_snaps", "routes", "pass_plays", "targets"]
     d[cols] = d[cols].apply(pd.to_numeric, errors="coerce").fillna(0)
-    return d.dropna(subset=["pos"])[["player_id", "player", "pos", "team"] + cols]
+    rate = [c for c in ("avg_depth_of_target", "yprr") if c in d.columns]  # window rates: not summable across windows
+    d[rate] = d[rate].apply(pd.to_numeric, errors="coerce")
+    return d.dropna(subset=["pos"])[["player_id", "player", "pos", "team"] + cols + rate]
 
 
 def rates(d: pd.DataFrame) -> pd.DataFrame:
@@ -137,7 +140,7 @@ _MEMO: dict = {}
 
 def season_features(season: int, weekly: pd.DataFrame | None, ids: pd.DataFrame | None = None) -> pd.DataFrame:
     """Rates per gsis from the widest cached w01-* window of the season (empty frame if none or on any error)."""
-    empty = pd.DataFrame(columns=FEATS + ["pff_through", "pff_games", "pff_routes"])
+    empty = pd.DataFrame(columns=FEATS + ["pff_through", "pff_games"] + EXTRA)
     try:
         p = latest_window(season)
         if p is None or weekly is None or not len(weekly):
@@ -149,7 +152,8 @@ def season_features(season: int, weekly: pd.DataFrame | None, ids: pd.DataFrame 
         c["gsis"] = c["player_id"].map(match(c, weekly, ids))
         c = c.dropna(subset=["gsis"]).drop_duplicates("gsis").set_index("gsis")
         c = c[c["pass_plays"] > 0]
-        out = c[FEATS].assign(pff_through=int(p.stem.split("-")[1]), pff_games=c["player_game_count"], pff_routes=c["routes"])
+        out = c[FEATS].assign(pff_through=int(p.stem.split("-")[1]), pff_games=c["player_game_count"], pff_routes=c["routes"],
+                              pff_adot=c.get("avg_depth_of_target", np.nan), pff_yprr=c.get("yprr", np.nan))
         _MEMO[key] = out
         return out
     except Exception:
@@ -158,11 +162,34 @@ def season_features(season: int, weekly: pd.DataFrame | None, ids: pd.DataFrame 
 
 def join(agg: pd.DataFrame, feats: pd.DataFrame) -> pd.DataFrame:
     """Adds the PFF rates to an aggregate indexed by gsis (NaN where PFF has no row)."""
-    cols = FEATS + ["pff_routes"]
+    cols = FEATS + EXTRA
     agg = agg.drop(columns=[c for c in cols if c in agg.columns])
     if feats is None or not len(feats):
         return agg.assign(**{c: np.nan for c in cols})
     return agg.join(feats[[c for c in cols if c in feats.columns]], how="left")
+
+
+def recent_split(season: int, weekly: pd.DataFrame | None, ids: pd.DataFrame | None = None) -> pd.DataFrame:
+    """Per gsis PFF counts for the last two weeks of the season-to-date window and for the weeks before them
+    (season window minus the recent one), for Shifts' role movers. Empty unless both windows are cached."""
+    try:
+        p = latest_window(season)
+        if p is None or weekly is None or not len(weekly):
+            return pd.DataFrame()
+        hi = int(p.stem.split("-")[1])
+        q = window_path(season, hi - 1, hi)
+        if hi < 4 or not q.exists():
+            return pd.DataFrame()
+        cols = ["routes", "slot_snaps", "pass_plays"]
+        a, b = load_counts(p), load_counts(q)
+        ga, gb = match(a, weekly, ids), match(b, weekly, ids)
+        a = a.assign(gsis=a["player_id"].map(ga)).dropna(subset=["gsis"]).drop_duplicates("gsis").set_index("gsis")[cols]
+        b = b.assign(gsis=b["player_id"].map(gb)).dropna(subset=["gsis"]).drop_duplicates("gsis").set_index("gsis")[cols]
+        b = b.reindex(a.index).fillna(0)
+        e = (a - b).clip(lower=0)
+        return pd.concat([b.add_prefix("r_"), e.add_prefix("e_")], axis=1).assign(lo=hi - 1, hi=hi)
+    except Exception:
+        return pd.DataFrame()
 
 
 def main(argv=None) -> int:
@@ -177,6 +204,8 @@ def main(argv=None) -> int:
     calls = 0
     try:
         calls += fetch(season, 1, through, MAX_AGE)
+        if through >= 4:  # last two weeks on their own: Shifts' role movers (route share, slot rate)
+            calls += fetch(season, through - 1, through, MAX_AGE)
         if not window_path(season - 1, 1, 18).exists():
             calls += fetch(season - 1, 1, 18)
         print(f"PFF alignment through week {through}: {calls} API call(s)")

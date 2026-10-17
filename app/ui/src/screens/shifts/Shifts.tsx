@@ -250,6 +250,12 @@ export function ShiftsScreen({ data, err, myTeam, onCopy, inCompare, onCompare }
     return (Math.abs(B.d_snap ?? 0) + 2 * Math.abs(B.d_share ?? 0)) - (Math.abs(A.d_snap ?? 0) + 2 * Math.abs(A.d_share ?? 0));
   }), [base, win, zoneSel, dir, holds, cause, sort]);
 
+  // PFF role movers: route share or slot rate moves, last two weeks vs before (WR/TE; descriptive)
+  const movers = (data?.rows ?? []).filter((r) => r.pff?.move && (pos === "ALL" || r.pos === pos)
+    && !(who === "fa" && r.owner) && !(who === "mine" && r.owner?.team_id !== myTeam) && !(who === "others" && (!r.owner || r.owner.team_id === myTeam))
+    && !(healthy && dead(r)) && !(q && !r.name.toLowerCase().includes(q.toLowerCase())))
+    .sort((a, b) => Math.abs(b.pff!.d_route) + 0.5 * Math.abs(b.pff!.d_slot) - Math.abs(a.pff!.d_route) - 0.5 * Math.abs(a.pff!.d_slot));
+
   if (err) return <div className="shifts"><p className="sh-err">{err}</p></div>;
   if (!data) return <div className="shifts"><header className="sh-hd"><h2>Shifts</h2><p className="sub">Reading every team's usage…</p></header></div>;
   const ups = base.filter((r) => r[win]!.zone === "snap_up");
@@ -352,6 +358,29 @@ export function ShiftsScreen({ data, err, myTeam, onCopy, inCompare, onCompare }
         {!list.length && <p className="dim">No changes match these filters.</p>}
         <p className="sh-foot">Snap and share come from nflverse play-by-play and snap counts. “Held” = how often changes like this kept at least half their size over the next two games, 2016–25, by position. Spark = snap share by week, scaled to 25+. Double-click a row or click a name for the full file; tick a box to compare.</p>
       </section>
+      {win === "recent" && movers.length > 0 && (
+        <section className="sh-list sh-roles" aria-label="Role movers">
+          <div className="sh-lhd"><b>Role movers (PFF)</b><span className="dim">{movers[0].pff!.label} · route share ±{data.thresholds.route ?? 15} or slot rate ±{data.thresholds.slot ?? 20} points</span></div>
+          <table className="sh-table">
+            <thead><tr><th>Player</th><th>Route share</th><th>Slot rate</th><th className="r">Model ppg</th><th className="r">ESPN wk {data.week}</th></tr></thead>
+            <tbody>
+              {movers.slice(0, 25).map((r) => { const m = r.pff!; return (
+                <tr key={r.id} onDoubleClick={() => open(r.id, movers.map((x) => x.id))}>
+                  <td><button type="button" className="who" onClick={() => open(r.id, movers.map((x) => x.id))} title="Open player file">
+                    <Face p={{ headshot: r.headshot, pos: r.pos, name: r.name }} className="round" />
+                    <span><b>{r.name}</b><small><i className="pchip" style={{ background: POS_VAR[r.pos], color: r.pos === "WR" ? "var(--wr-ink)" : "var(--pos-ink)" }}>{r.pos}</i>
+                      {r.team ?? ""} · <span className={`own ${r.owner ? (r.owner.team_id === myTeam ? "mine" : "") : "fa"}`}>{r.owner ? (r.owner.team_id === myTeam ? "yours" : r.owner.name) : "free agent"}</span></small></span>
+                  </button></td>
+                  <td title={`${m.from_route}% → ${m.to_route}% of dropbacks`}><Dumbbell a={m.from_route} b={m.to_route} max={100} tone={m.d_route >= 0 ? "up" : "down"} /></td>
+                  <td title={`${m.from_slot}% → ${m.to_slot}% of pass snaps in the slot`}><Dumbbell a={m.from_slot} b={m.to_slot} max={100} tone={m.d_slot >= 0 ? "up" : "down"} /></td>
+                  <td className="r num">{f1(r.ledger?.est_ppg)}</td>
+                  <td className="r num">{f1(r.espn_week)}</td>
+                </tr>); })}
+            </tbody>
+          </table>
+          <p className="sh-foot">Route share = PFF routes ÷ his team's dropbacks; slot rate = share of his pass snaps in the slot. Descriptive: route share is the PFF stat that held up in 2021–25 backtests, but how often moves like these last hasn't been tested, so there's no “Held” column.</p>
+        </section>
+      )}
     </div>
   );
 }

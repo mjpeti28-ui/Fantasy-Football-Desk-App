@@ -22,10 +22,15 @@
 .board .score .mid { text-align: center; font: 700 12px/1.3 var(--content); font-variation-settings: "wdth" 72; letter-spacing: .1em; text-transform: uppercase; color: #a8ada8; }
 .board .score .wp { text-align: right; border-left: 1px solid #333836; padding-left: 18px; }
 .board .score .wp .v { font-size: 34px; color: #f2f1ec; }
+.board .score .wp .sub { display: block; }
+.board .score .wp .alt { margin-top: 2px; color: #e3b6df; cursor: help; }
+.board .score .wp .alt b { font-weight: 600; }
 
 .board .alert { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--b-tile); border-radius: 8px; padding: 10px 14px;
   border: 2px solid var(--alert); background-image: repeating-linear-gradient(135deg, transparent 0 8px, color-mix(in srgb, var(--alert) 7%, transparent) 8px 16px); }
 .board .alert-txt { font: 600 15px/1.3 var(--content); }
+.board .alert-fa { font-size: 13px; color: var(--ink-2); flex: 1; text-align: right; }
+.board .alert-fa .nw { white-space: nowrap; }
 
 .board .slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 12px; }
 .board .slot { display: grid; gap: 4px; border-radius: 8px; padding: 4px; margin: -4px; transition: background .12s; }

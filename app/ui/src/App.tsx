@@ -10,7 +10,7 @@ import { PlayerInspector, TeamInspector } from "./components/Inspector";
 import { Board } from "./screens/myteam/Board";
 import { GameDay } from "./screens/myteam/GameDay";
 import { type Plan, STARTERS, canPlay, move, planFrom, planMarkdown, planPoints, rival, slotOf } from "./screens/myteam/lineup";
-import { H2H } from "./components/bits";
+import { H2H, isDead } from "./components/bits";
 import { pBeats } from "./odds";
 import type { ColorMode } from "./teamColor";
 
@@ -387,8 +387,8 @@ export default function App() {
           ))}
           <h6>Teams · points</h6>
           {teams.map((t) => (
-            <button key={t.id} className="sitem" type="button" aria-current={sel?.kind === "team" && sel.id === t.id}
-              onClick={() => { if (screen === "league") setLeagueSel(t.id); else { setScreen("team"); setSel({ kind: "team", id: t.id }); } }}>
+            <button key={t.id} className="sitem" type="button" aria-current={screen === "league" && (leagueSel ?? tw.team_id) === t.id}
+              onClick={() => { if (t.id === tw.team_id) { setScreen("team"); setSel(null); } else { setScreen("league"); setLeagueSel(t.id); } }}>
               <span>{t.id === tw.team_id ? <span className="you-dot" /> : t.id === tw.matchup?.opp_id ? <span className="them-dot" /> : null}{t.name}</span><small>{f1(t.pf)}</small>
             </button>
           ))}
@@ -418,7 +418,7 @@ export default function App() {
           {screen === "team" && mode === "analysis" && <MyAnalysis tw={tw} a={source === "engine" ? an : null} lg={anLg} err={source !== "engine" ? "Start the engine to see the season analytics." : anErr}
             selected={selPlayer?.id ?? null} onSelect={(id) => setSel({ kind: "player", id })} />}
           {screen === "team" && mode !== "analysis" && (mode === "board"
-            ? <Board tw={tw} plan={plan} setPlan={setPlan} selected={selPlayer?.id ?? null} onSelect={(id) => setSel({ kind: "player", id })} ratioQ={snap.ratio_q} colorMode={colorMode} teamColors={snap.team_colors} roles={roles} dropCost={wboard?.drop_cost ?? null} onCopy={async (t) => flash((await copyText(t)) ? "Copied the moves" : "Copy failed")} />
+            ? <Board tw={tw} plan={plan} setPlan={setPlan} selected={selPlayer?.id ?? null} onSelect={(id) => setSel({ kind: "player", id })} ratioQ={snap.ratio_q} colorMode={colorMode} teamColors={snap.team_colors} roles={roles} dropCost={wboard?.drop_cost ?? null} freeAgents={wboard?.candidates ?? null} onWaivers={() => setScreen("waivers")} onCopy={async (t) => flash((await copyText(t)) ? "Copied the moves" : "Copy failed")} />
             : <GameDay tw={tw} plan={plan} live={liveB} selected={selPlayer?.id ?? null} onSelect={(id) => setSel({ kind: "player", id })} />)}
           {screen === "league" && <League alg={source === "engine" ? anLg : null} power={snap.power} myId={tw.team_id} oppId={tw.matchup?.opp_id ?? null} live={live} liveErr={liveErr}
             engineUp={source === "engine"} whatif={whatif} scenario={scenario} busy={busy} selected={leagueSel}
@@ -429,7 +429,7 @@ export default function App() {
           {screen === "shifts" && <ShiftsScreen data={source === "engine" ? shifts : null} err={source !== "engine" ? "Start the engine to see league-wide usage shifts." : shErr} myTeam={tw.team_id}
             onCopy={async (md) => flash((await copyText(md)) ? "Copied as Markdown" : "Copy failed")} inCompare={(id) => cmpIds.includes(id)} onCompare={toggleCompare} />}
           {screen === "matchups" && <MatchupsScreen an={source === "engine" ? an : null} data={source === "engine" ? mx : null} err={source !== "engine" ? "Start the engine to see matchups." : mxErr} roles={roles} copyRef={mxCopy} tw={tw} ratioQ={snap.ratio_q} />}
-          {screen === "lab" && <LabScreen a={source === "engine" ? an : null} err={source !== "engine" ? "Start the engine to use the Lab." : anErr} tw={tw} teams={snap.power.teams}
+          {screen === "lab" && <LabScreen a={source === "engine" ? an : null} err={source !== "engine" ? "Start the engine to use the Lab." : anErr} tw={tw} teams={snap.power.teams} roles={roles}
             onCopy={async (md) => flash((await copyText(md)) ? "Copied as Markdown" : "Copy failed")} />}
           {screen === "live" && <LiveScreen data={source === "engine" ? liveB : null} err={source !== "engine" ? "Start the engine to follow live games." : liveE} />}
           {screen === "journal" && <Journal journal={journal} err={jErr} engineUp={source === "engine"} onAdd={saveLog} onLog={setLogDraft}
@@ -473,6 +473,17 @@ export default function App() {
         ratioQ={snap.ratio_q} candidates={roles ? Object.entries(roles.players).map(([k, v]) => ({ id: Number(k), name: v.name, pos: v.pos, team: v.team })) : []}
         onAdd={(id) => setCmpIds((xs) => (xs.includes(id) || xs.length >= 4 ? xs : [...xs, id]))} onRemove={(id) => setCmpIds((xs) => xs.filter((x) => x !== id))}
         onClose={() => setCmpOpen(false)} onOpen={(id) => { setCmpOpen(false); openFile(id, cmpIds); }}
+        suggest={(id, pos) => {
+          const ref = tw.players.find((x) => x.id === id)?.espn_week;
+          return [
+            // your players at his position, nearest projection first: the lineup call he's usually part of
+            ...tw.players.filter((p) => p.pos === pos && p.id !== id && !isDead(p))
+              .sort((a, b) => (ref == null ? (b.espn_week ?? 0) - (a.espn_week ?? 0) : Math.abs((a.espn_week ?? 0) - ref) - Math.abs((b.espn_week ?? 0) - ref)))
+              .slice(0, 2).map((p) => ({ id: p.id, name: p.name, why: `your ${pos}` })),
+            ...(wboard?.candidates ?? []).filter((c) => c.pos === pos && c.id !== id).sort((a, b) => (b.ros ?? 0) - (a.ros ?? 0))
+              .slice(0, 2).map((c) => ({ id: c.id, name: c.name, why: "free agent" })),
+          ];
+        }}
         onCopy={async (md) => flash((await copyText(md)) ? "Copied as Markdown" : "Copy failed")} />}
       {!cmpOpen && !fileNav && <CompareTray items={cmpIds.map((id) => ({ id, name: roles?.players[String(id)]?.name ?? by.get(id)?.name ?? cmpFiles.find((f) => f.id === id)?.name ?? `#${id}` }))}
         onRemove={(id) => setCmpIds((xs) => xs.filter((x) => x !== id))} onOpen={() => setCmpOpen(true)} onClear={() => setCmpIds([])} />}

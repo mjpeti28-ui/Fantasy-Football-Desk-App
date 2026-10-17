@@ -167,11 +167,16 @@ def team_week(inp: d.Inputs, team_id: int = 3) -> dict:
     if opp_id is not None:
         orows = player_rows(inp, opp_id, week)
         ocur = {z["slot"]: z["id"] for z in orows if z["slot"] in STARTER_SLOTS}
-        opts = _lineup_points(orows, ocur) or _lineup_points(orows, best_lineup(orows))
+        obest = _lineup_points(orows, best_lineup(orows))
+        opts = _lineup_points(orows, ocur) or obest
         my = sug_pts
-        p = 0.5 * (1 + math.erf((my - opts) / (sd * math.sqrt(2))))
+        win = lambda o: round(0.5 * (1 + math.erf((my - o) / (sd * math.sqrt(2)))), 3)
+        oby = {z["id"]: z for z in orows}
+        holes = [oby[i]["name"] for s, i in ocur.items() if not (oby[i]["espn_week"] or 0)]
         matchup = {"opp_id": opp_id, "opp_name": inp.team_name(opp_id), "my_proj": my, "opp_proj": opts,
-                   "p_win": round(p, 3), "margin_sd": round(sd, 1),
+                   "p_win": win(opts), "margin_sd": round(sd, 1),
+                   # their best lineup from their own roster: the win chance if they fix empty or 0-point slots
+                   "opp_best": obest, "p_win_best": win(obest), "opp_holes": holes,
                    "opp_starters": [{"id": z["id"], "name": z["name"], "pos": z["pos"], "team": z["team"],
                                      "headshot": z["headshot"], "espn_week": z["espn_week"], "slot": z["slot"],
                                      "game": z["game"], "injury": z["injury"]}

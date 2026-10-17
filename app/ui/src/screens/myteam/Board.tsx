@@ -1,7 +1,7 @@
 import { TrendGlyph } from "../../components/Role";
 import { useFile } from "../../components/FileContext";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { RolesBoard, Player, TeamWeek } from "../../types";
+import type { Player, RolesBoard, TeamWeek, WaiverRow } from "../../types";
 import { f1, gameLabel, lastName, pct, phi, signed } from "../../format";
 import { Face, H2H, POS_VAR, Proj, isDead, statusOf } from "../../components/bits";
 import { pBeats } from "../../odds";
@@ -21,6 +21,9 @@ interface Props {
   colorMode: ColorMode;
   teamColors?: Record<string, TeamColor>;
   dropCost?: Record<string, number> | null;
+  /** waiver board candidates: shown on the dead-starter alert when the bench has no fix */
+  freeAgents?: WaiverRow[] | null;
+  onWaivers?: () => void;
   onCopy?: (text: string) => void;
 }
 
@@ -72,7 +75,7 @@ function usePointerDrag(onDrop: (id: number, to: Target) => void, onClick: (id: 
   return { drag, start };
 }
 
-export function Board({ tw, plan, setPlan, selected, onSelect, ratioQ, colorMode, teamColors, roles, dropCost, onCopy }: Props) {
+export function Board({ tw, plan, setPlan, selected, onSelect, ratioQ, colorMode, teamColors, roles, dropCost, freeAgents, onWaivers, onCopy }: Props) {
   const { open: openFile, compare } = useFile();
   const dark = useDark();
   const by = useMemo(() => new Map(tw.players.map((p) => [p.id, p])), [tw]);
@@ -86,6 +89,8 @@ export function Board({ tw, plan, setPlan, selected, onSelect, ratioQ, colorMode
   const pts = planPoints(plan, by);
   const m = tw.matchup;
   const pWin = m ? phi((pts - m.opp_proj) / m.margin_sd) : null;
+  // their lineup as set can carry 0-point starters (byes, outs); this is the chance if they fix them from their bench
+  const pWinBest = m?.opp_best != null && m.opp_best - m.opp_proj >= 1 ? phi((pts - m.opp_best) / m.margin_sd) : null;
   const dead = deadStarters(plan, by);
   const changed = STARTERS.filter((s) => plan[s] !== espnPlan[s]);
   const dragP = drag ? by.get(drag.id) ?? null : null;
@@ -163,6 +168,9 @@ export function Board({ tw, plan, setPlan, selected, onSelect, ratioQ, colorMode
   const startersNow = STARTERS.filter((s) => plan[s] != null).map((s) => by.get(plan[s]!)!);
   const fix = fixDead(plan, by);
   const fixGain = planPoints(fix.plan, by) - pts;
+  const unfixed = dead.filter((d) => !fix.moves.some((mv) => mv.slot === d.slot));
+  const faFor = (pos: string) => (freeAgents ?? []).filter((c) => c.pos === pos && (c.espn_wk ?? 0) > 0 && !c.tag)
+    .sort((a, b) => (b.espn_wk ?? 0) - (a.espn_wk ?? 0)).slice(0, 3);
 
   return (
     <div className={`board ${drag ? "dragging" : ""}`} data-cmode={colorMode}>
@@ -171,7 +179,8 @@ export function Board({ tw, plan, setPlan, selected, onSelect, ratioQ, colorMode
           <span className="sub">{changed.length ? <>Plan differs from ESPN in {changed.length} slot{changed.length > 1 ? "s" : ""} · ESPN lineup {f1(tw.lineup.current_pts)} · <button type="button" className="linkbtn" onClick={() => setPlan(espnPlan)}>Reset</button></> : <>Matches your ESPN lineup</>}</span></div>
         <div className="mid">Week {tw.week}<br />vs</div>
         {m && <div className="them"><span className="t">{m.opp_name}</span><span className="v num">{f1(m.opp_proj)}</span><span className="sub">their lineup as set</span></div>}
-        {pWin != null && <div className="wp"><span className="v num">{pct(pWin)}</span><span className="sub">to win</span></div>}
+        {pWin != null && <div className="wp"><span className="v num">{pct(pWin)}</span><span className="sub">to win</span>
+          {pWinBest != null && <span className="sub alt" title={`Their best lineup from their own roster projects ${f1(m!.opp_best!)}${m!.opp_holes?.length ? `. Starters at 0 now: ${m!.opp_holes.join(", ")}` : ""}.`}><b className="num">{pct(pWinBest)}</b> if they fix their lineup</span>}</div>}
       </header>
 
       {dead.length > 0 && (
@@ -179,6 +188,9 @@ export function Board({ tw, plan, setPlan, selected, onSelect, ratioQ, colorMode
           <span className="alert-txt">{dead.map((d) => `${lastName(d.p.name)} ${d.p.game?.bye ? "is on bye" : "is " + statusOf(d.p).label.toLowerCase()} at ${d.slot}`).join("; ")}.</span>
           {fix.moves.length > 0 && <button className="tbtn pri" type="button" onClick={() => setPlan(fix.plan)}>
             {fix.moves.map((mv) => `Start ${lastName(mv.in.name)} at ${mv.slot}`).join(", ")} <span className="num">{signed(fixGain)}</span></button>}
+          {unfixed.map((d) => { const fa = faFor(d.p.pos); return fa.length > 0 && (
+            <span key={d.slot} className="alert-fa">No {d.p.pos} on your bench. Free agents this week: {fa.map((c, k) => <span key={c.id}>{k ? ", " : ""}{c.name} <span className="num">{f1(c.espn_wk)}</span></span>)}
+              {onWaivers && <span className="nw"> · <button type="button" className="linkbtn" onClick={onWaivers}>Waivers</button></span>}</span>); })}
         </div>
       )}
 
