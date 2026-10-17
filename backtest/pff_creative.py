@@ -4,7 +4,7 @@ Data: PFF caches copied from the Mac (gitignored): PFF_MAIN = main checkout .cac
 seasons 2021-25), PFF_WT = desk-pff-wt .cache/pff (v1 facet summaries, cumulative w01-NN and 3-week windows).
 League points: history/actuals/<season>/players_weekly.csv. Preseason ECR: history/nflverse/ecr.csv.
 
-  python3 backtest/pff_creative.py nextseason|roles|ranges|injury|waivers
+  python3 backtest/pff_creative.py nextseason|roles|ranges|injury|waivers|context|returns
 
 Results: pff/creative.md in the project files. Lead: QB twpRate -> next-season ppg beyond ECR; the rest is null.
 """
@@ -557,5 +557,148 @@ def waivers() -> None:
 STARTER_PPG = {"RB": 8.0, "WR": 8.0, "TE": 6.0}
 
 
+# ---------------------------------------------------------------- Round 2: in-season context x role (vs ESPN weekly proj)
+def _nfl(y: int, name: str) -> pd.DataFrame:
+    return pd.read_csv(ROOT / "history" / "nflverse" / str(y) / f"{name}.csv")
+
+
+def weekly_frame() -> pd.DataFrame:
+    """Rostered-or-startable player-weeks (ESPN proj >= 5) with residual vs ESPN, game context and PFF season-to-date role."""
+    pe = pff_map()
+    idd = ids().dropna(subset=["espn_id", "gsis_id"]).drop_duplicates("espn_id")
+    gs = dict(zip(idd["espn_id"].astype(int), idd["gsis_id"]))
+    sch = pd.read_csv(ROOT / "history" / "nflverse" / "schedules.csv")
+    sch = sch[sch["game_type"] == "REG"]
+    h = sch.assign(team=sch["home_team"], opp=sch["away_team"], margin=sch["spread_line"])
+    a = sch.assign(team=sch["away_team"], opp=sch["home_team"], margin=-sch["spread_line"])
+    g = pd.concat([h, a])[["season", "week", "team", "opp", "margin", "total_line", "wind", "roof"]]
+    g["wind"] = np.where(g["roof"].isin(["dome", "closed"]), 0, g["wind"])
+    pts = league_points()
+    out = []
+    for y in SEAS:
+        pr = pd.read_csv(ROOT / "history" / "actuals" / str(y) / "espn_weekly_proj.csv")
+        d = pts[(pts["season"] == y) & pts["played"].astype(bool)].merge(pr, on=["week", "espn_id"])
+        d = d[d["espn_proj"] >= 5].copy()
+        d["gsis_id"] = d["espn_id"].map(gs)
+        ps = _nfl(y, "player_stats")
+        d = d.merge(ps[["player_id", "week", "team", "attempts", "targets", "receiving_air_yards"]].rename(columns={"player_id": "gsis_id"}), on=["gsis_id", "week"], how="left")
+        # starting QB per team-week and whether he is the season's usual starter so far
+        q = ps[ps["position"] == "QB"].sort_values("attempts", ascending=False).drop_duplicates(["team", "week"])[["team", "week", "player_id"]].sort_values("week")
+        rows = []
+        for t, tq in q.groupby("team"):
+            seen = []
+            for _, r in tq.iterrows():
+                mode = pd.Series(seen).mode().iloc[0] if len(seen) >= 3 else None
+                rows.append((t, r["week"], r["player_id"], mode))
+                seen.append(r["player_id"])
+        q = pd.DataFrame(rows, columns=["team", "week", "qb", "usual_qb"])
+        q["backup_qb"] = (q["usual_qb"].notna() & (q["qb"] != q["usual_qb"])).astype(int)
+        q.loc[q["usual_qb"].isna(), "backup_qb"] = np.nan
+        d = d.merge(q, on=["team", "week"], how="left")
+        d = d.merge(g[g["season"] == y].drop(columns="season"), on=["team", "week"], how="left")
+        parts = []
+        for W in range(3, 18):
+            f = _win(y, 1, min(W - 1, 12))
+            r = num(wt("receiving_summary", y, f"w01-{min(W - 1, 12):02d}"))
+            f = f.merge(r[["player_id", "avg_depth_of_target", "slot_rate"]], on="player_id", how="left")
+            f["espn_id"] = f["player_id"].map(pe)
+            parts.append(f.dropna(subset=["espn_id"]).astype({"espn_id": int}).drop_duplicates("espn_id").assign(week=W))
+        f = pd.concat(parts)[["espn_id", "week", "rt_share", "ru_share", "tgt_rt", "avg_depth_of_target", "slot_rate"]]
+        d = d.merge(f, on=["espn_id", "week"], how="left").assign(season=y)
+        out.append(d)
+    d = pd.concat(out, ignore_index=True)
+    d["res"] = d["points"] - d["espn_proj"]
+    d["res_pct"] = d["res"] / d["espn_proj"]
+    return d
+
+
+def _fx(g: pd.DataFrame, x: str, y: str = "res", boots: int = 1000, center: bool = True):
+    """Slope of y on x per sd of x (centred within season-week), 95% CI by player-season cluster bootstrap."""
+    g = g.dropna(subset=[x, y])
+    X = g[x] - (g.groupby(["season", "week"])[x].transform("mean") if center else g[x].mean())
+    Y = g[y] - (g.groupby(["season", "week"])[y].transform("mean") if center else 0)
+    X, Y = X.to_numpy(float), Y.to_numpy(float)
+    sx = X.std() or 1.0
+    key = (g["season"].astype(str) + "_" + g["espn_id"].astype(str)).to_numpy()
+    uk = np.unique(key)
+    ix = {k: np.where(key == k)[0] for k in uk}
+    f = lambda i: (X[i] * Y[i]).sum() / (X[i] ** 2).sum() * sx
+    b = f(np.arange(len(X)))
+    bs = [f(np.concatenate([ix[k] for k in RNG.choice(uk, len(uk))])) for _ in range(boots)]
+    return b, np.percentile(bs, [2.5, 97.5]), len(g)
+
+
+def _mean_ci(g: pd.DataFrame, y: str = "res", boots: int = 2000):
+    key = (g["season"].astype(str) + "_" + g["espn_id"].astype(str)).to_numpy()
+    uk = np.unique(key)
+    s = g.groupby(key)[y].agg(["sum", "size"])
+    bs = []
+    for _ in range(boots):
+        k = RNG.choice(uk, len(uk))
+        bs.append(s.loc[k, "sum"].sum() / s.loc[k, "size"].sum())
+    return g[y].mean(), np.percentile(bs, [2.5, 97.5]), len(g)
+
+
+def _p(lab, r, unit="pts"):
+    b, ci, n = r
+    print(f"  {lab}: {b:+.2f} {unit} [{ci[0]:+.2f}, {ci[1]:+.2f}] n={n}")
+
+
+def context() -> None:
+    d = weekly_frame()
+    print(f"player-weeks {len(d)}; backup-QB team-weeks flagged {int(d['backup_qb'].fillna(0).sum())}")
+    print("E7 backup QB starts (residual vs ESPN, pts)")
+    for pos in ("WR", "TE", "RB", "QB"):
+        g = d[(d["position"] == pos) & (d["backup_qb"] == 1)]
+        _p(f"{pos} mean residual in backup-QB games", _mean_ci(g))
+        _p(f"{pos} normal games (reference)", _mean_ci(d[(d["position"] == pos) & (d["backup_qb"] == 0)]))
+    g = d[d["position"].isin(["WR", "TE"]) & (d["backup_qb"] == 1)]
+    _p("WR/TE in backup games: per sd of receiver aDOT (PFF)", _fx(g, "avg_depth_of_target", center=False))
+    _p("WR/TE in backup games: per sd of target/route (PFF)", _fx(g, "tgt_rt", center=False))
+    print("E8 game script x RB role")
+    r = d[d["position"] == "RB"].copy()
+    r["tilt"] = r["rt_share"] - r["ru_share"]  # pass-down lean
+    r["script_x_tilt"] = (r["margin"] - r["margin"].mean()) * (r["tilt"] - r["tilt"].mean())
+    _p("RB residual per sd of team expected margin", _fx(r, "margin"))
+    _p("RB residual per sd of pass-down tilt (route share - rush share)", _fx(r, "tilt"))
+    _p("RB residual per sd of margin x tilt", _fx(r, "script_x_tilt"))
+    for lab, m in (("underdog by 4+", r["margin"] <= -4), ("favourite by 4+", r["margin"] >= 4)):
+        h = r[m]
+        _p(f"  {lab}: per sd tilt", _fx(h, "tilt"))
+    print("E9 wind x depth")
+    w = d[d["position"].isin(["WR", "TE"])].copy()
+    w["windy"] = (w["wind"] >= 15).astype(int)
+    _p("WR/TE windy (>=15 mph) mean residual", _mean_ci(w[w["windy"] == 1]))
+    w["wind_x_adot"] = (w["wind"] - w["wind"].mean()) * (w["avg_depth_of_target"] - w["avg_depth_of_target"].mean())
+    _p("WR/TE per sd wind x aDOT", _fx(w, "wind_x_adot"))
+    _p("WR/TE windy games: per sd aDOT", _fx(w[w["windy"] == 1], "avg_depth_of_target", center=False))
+    q = d[d["position"] == "QB"]
+    _p("QB windy mean residual", _mean_ci(q[q["wind"] >= 15]))
+
+
+def returns() -> None:
+    """E10: first and second games back after missing a (non-bye) game, residual vs ESPN weekly proj."""
+    d = weekly_frame()
+    pts = league_points()
+    out = []
+    for y in SEAS:
+        a = pts[pts["season"] == y].copy()
+        by = pd.read_csv(ROOT / "history" / "actuals" / str(y) / "byes.csv")
+        a = a[a["week"] != a["pro_team_id"].map(dict(zip(by["pro_team_id"], by["bye_week"])))].sort_values(["espn_id", "week"])
+        a["pl"] = a["played"].astype(bool)
+        g = a.groupby("espn_id")["pl"]
+        a["ret"] = (a["pl"] & (g.shift() == False) & (g.transform(lambda s: s.shift().cummax()) == True)).astype(int)  # noqa: E712
+        a["ret_lag"] = a.groupby("espn_id")["ret"].shift().fillna(0)
+        out.append(a[["season", "espn_id", "week", "ret", "ret_lag"]])
+    d = d.merge(pd.concat(out), on=["season", "espn_id", "week"], how="left")
+    for pos in POS:
+        g = d[d["position"] == pos]
+        base = g[(g["ret"] == 0) & (g["ret_lag"] == 0)]["res"].mean()
+        for lab, m in (("return game", g["ret"] == 1), ("2nd game back", g["ret_lag"] == 1)):
+            mm, ci, n = _mean_ci(g[m])
+            print(f"{pos} {lab}: {mm - base:+.2f} pts vs other games [{ci[0] - base:+.2f}, {ci[1] - base:+.2f}] n={n}  by season "
+                  + " ".join(f"{s}:{g[m & (g['season'] == s)]['res'].mean() - g[(g['season'] == s) & (g['ret'] == 0) & (g['ret_lag'] == 0)]['res'].mean():+.1f}" for s in SEAS))
+
+
 if __name__ == "__main__":
-    {"nextseason": nextseason, "roles": roles, "ranges": ranges, "injury": injury, "waivers": waivers}[sys.argv[1]]()
+    {"nextseason": nextseason, "roles": roles, "ranges": ranges, "injury": injury, "waivers": waivers, "context": context, "returns": returns}[sys.argv[1]]()
