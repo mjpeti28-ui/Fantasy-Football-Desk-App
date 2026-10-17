@@ -367,15 +367,26 @@ function Disagree({ me, teams, an, setDeal }: Props) {
   const name = (t: number | null) => teams.find((x) => x.id === t)?.name ?? "free agent";
   const pool = an.players.filter((x) => x.owner != null && x.games >= 3 && x.ppg != null && x.est_ppg != null && x.pool);
   const gap = (x: APlayer) => (x.ppg ?? 0) - (x.est_ppg ?? 0);
+  // the main source of the gap, from what we can see: scoring vs usage (fades), usage itself, or the model's prior
+  const why = (x: APlayer): { t: string; tip: string } => {
+    const g = gap(x), over = x.xfp != null ? (x.ppg ?? 0) - x.xfp : null;
+    if (over != null && Math.sign(over) === Math.sign(g) && Math.abs(over) >= 0.5 * Math.abs(g))
+      return g > 0 ? { t: "scoring over usage", tip: `${f1(over)} ppg over what his usage usually produces. That mostly fades.` }
+                   : { t: "scoring under usage", tip: `${f1(-over)} ppg under what his usage usually produces. That mostly comes back.` };
+    if (x.xfp != null && Math.sign(x.xfp - (x.est_ppg ?? 0)) === Math.sign(g))
+      return { t: g > 0 ? "usage backs it" : "usage is down too", tip: `His usage is worth ${f1(x.xfp)} ppg, ${g > 0 ? "above" : "below"} the model's ${f1(x.est_ppg)}. The season may be real; the model weighs a few games lightly.` };
+    return { t: "model's prior", tip: "Neither scoring luck nor usage explains it: the model still leans on its preseason view or expects a change (injury, role)." };
+  };
   const sell = pool.filter((x) => x.owner === me && gap(x) >= 2.5).sort((a, b) => gap(b) - gap(a)).slice(0, 6);
   const buy = pool.filter((x) => x.owner !== me && gap(x) <= -2.5).sort((a, b) => gap(a) - gap(b)).slice(0, 8);
   const row = (x: APlayer, mine: boolean) => (
     <button key={x.id} type="button" className="dg-row" disabled={mine} onClick={() => !mine && setDeal({ partner: x.owner, give: [], get: [x.id] })}
       title={`${x.name}: ${f1(x.ppg)} ppg so far, model ${f1(x.est_ppg)} rest of season, usage ${f1(x.xfp)}`}>
-      <span className="nm"><b>{x.name}</b> <small>{x.pos} · {mine ? "yours" : name(x.owner)}</small></span>
+      <span className="nm"><b>{x.name}</b><small>{x.pos} · {mine ? "yours" : name(x.owner)}</small></span>
       <span className="num">{f1(x.ppg)}</span><span className="num">{f1(x.xfp)}</span><span className="num"><b>{f1(x.est_ppg)}</b></span>
       <span className={`num gap ${gap(x) > 0 ? "up" : "down"}`}>{signed(gap(x))}</span>
       {!mine && <span className="go">Open desk →</span>}
+      <span className="dg-why" title={why(x).tip}>{why(x).t}</span>
     </button>
   );
   const hd = <div className="dg-row hd"><span /><span>So far</span><span>Usage</span><span>Model</span><span>Gap</span></div>;
@@ -386,7 +397,7 @@ function Disagree({ me, teams, an, setDeal }: Props) {
         <div><h5>Yours, scoring above the model</h5>{hd}{sell.length ? sell.map((x) => row(x, true)) : <p className="dim">None of your players are 2.5+ ppg above the model.</p>}</div>
         <div><h5>Theirs, scoring below the model</h5>{hd}{buy.length ? buy.map((x) => row(x, false)) : <p className="dim">Nobody is 2.5+ ppg below the model.</p>}</div>
       </div>
-      <p className="tr-empty">A player whose points per game run ahead of the model looks better on a partner's app than on ours, and the reverse. Gaps like these mostly come from scoring over usage, which fades (about {Math.round(100 * (an.metrics.fpoe?.sticks ?? 0.09))}% carries), from injuries the model expects to heal, or from role changes it has already priced. Check the reason in the player file before you act.</p>
+      <p className="tr-empty">A player whose points per game run ahead of the model looks better on a partner's app than on ours, and the reverse. Gaps like these mostly come from scoring over usage, which fades (about {Math.round(100 * (an.metrics.fpoe?.sticks ?? 0.09))}% carries), from injuries the model expects to heal, or from role changes it has already priced. The "Likely" line under each row is read from usage; check the player file before you act.</p>
     </section>
   );
 }
