@@ -13,6 +13,10 @@ the same way with K in snaps. Rows: Desk's rostered player-weeks with an ESPN pr
 Target: actual - ESPN projection, effect as a share of the projection (as matchup_mechanisms.ols_prop), centred within
 season-week-position, 95% CI from a season-week cluster bootstrap. Also: how much ESPN's number already moves with each.
 
+Result (2026-10-17, 2023-25): nothing clears noise. Every 95% CI crosses zero except WR cov_all (-0.6% of the projection
+per sd, which ESPN already moves by the same amount); no shuffled-opponent placebo p is below 0.13 across 20 tests.
+So the Matchups screen shows PFF matchups as context only.
+
 PFF data is read from .cache/pff (gitignored, never committed); pull it with the PFF key on the Mac first.
   python3 backtest/matchup_pff.py            # prints results, writes .cache/pff/report/matchup_pff.json
   python3 backtest/matchup_pff.py schema     # prints what the cached files look like
@@ -59,7 +63,8 @@ def teams() -> dict:
     """PFF franchise_id -> nflverse abbreviation."""
     for p in sorted((CACHE / "v1_teams").rglob("*.json")):
         out = {}
-        for r in _rows(p):
+        d = json.loads(p.read_text())
+        for r in d["teams"] if isinstance(d, dict) and "teams" in d else _rows(p):
             fid = r.get("franchise_id", r.get("id"))
             ab = r.get("abbreviation") or r.get("abbr") or r.get("short_name")
             if fid is not None and ab:
@@ -235,7 +240,7 @@ def schema() -> None:
         f = next(iter(sorted(d.rglob("*.json"))), None)
         if f:
             r = _rows(f)
-            print(d.name, f.relative_to(CACHE), len(r), sorted(r[0])[:60] if r else None)
+            print(d.name, f.relative_to(CACHE), len(r), sorted(r[0])[:60] if r and isinstance(r[0], dict) else (r[:3] if r else None))
 
 
 def main() -> None:
