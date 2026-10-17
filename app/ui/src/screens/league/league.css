@@ -56,3 +56,9 @@
 .league .dl { display: inline-block; min-width: 24px; text-align: right; font: 600 11.5px var(--mono); margin-left: 6px; }
 .league .dl.up { color: var(--above); } .league .dl.down { color: var(--below); } .league .dl.flat { color: var(--noise); }
 .league .fig { margin: 0; color: var(--l-ink2); font-size: 12px; max-width: 100ch; }
+
+/* section bar: League runs several screens tall */
+.league .lg-jump { position: sticky; top: 0; z-index: 5; display: flex; gap: 4px; margin: 0 0 10px; padding: 6px 0; background: var(--l-bg); border-bottom: 1px solid var(--l-rule); }
+.league .lg-jump button { all: unset; cursor: pointer; font: 600 12px var(--sys); color: var(--ink-2); padding: 4px 10px; border-radius: 6px; }
+.league .lg-jump button:hover { background: var(--hover); color: var(--ink); }
+.league #lg-table, .league .lg-sec { scroll-margin-top: 44px; }

@@ -387,8 +387,8 @@ export default function App() {
           ))}
           <h6>Teams · points</h6>
           {teams.map((t) => (
-            <button key={t.id} className="sitem" type="button" aria-current={sel?.kind === "team" && sel.id === t.id}
-              onClick={() => { if (screen === "league") setLeagueSel(t.id); else { setScreen("team"); setSel({ kind: "team", id: t.id }); } }}>
+            <button key={t.id} className="sitem" type="button" aria-current={screen === "league" && (leagueSel ?? tw.team_id) === t.id}
+              onClick={() => { if (t.id === tw.team_id) { setScreen("team"); setSel(null); } else { setScreen("league"); setLeagueSel(t.id); } }}>
               <span>{t.id === tw.team_id ? <span className="you-dot" /> : t.id === tw.matchup?.opp_id ? <span className="them-dot" /> : null}{t.name}</span><small>{f1(t.pf)}</small>
             </button>
           ))}

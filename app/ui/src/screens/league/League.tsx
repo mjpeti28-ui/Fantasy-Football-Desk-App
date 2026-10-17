@@ -118,7 +118,12 @@ export function League(p: Props) {
         </div>
       )}
 
-      <div className="tbl">
+      <nav className="lg-jump" aria-label="League sections">
+        {([["lg-table", "Table"], ...(p.live?.analysis ? [["lg-analysis", "Analysis"]] : []), ...(p.alg ? [["lg-sofar", "Season so far"]] : [])] as [string, string][]).map(([id, l]) =>
+          <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })}>{l}</button>)}
+      </nav>
+
+      <div className="tbl" id="lg-table">
         <table>
           <thead><tr>
             {th(null, "#")}
@@ -161,9 +166,9 @@ export function League(p: Props) {
         Click a team to see its roster and test injuries. Proj. final = expected regular-season points (seeding is by points).
         {p.liveErr && ` Live odds failed: ${p.liveErr}.`} Seed and playoff odds start meaning something around week 6. Title odds are in the side panel only: three single-week playoff games make them close to a lottery.
       </p>
-      {p.live?.analysis && <Analysis a={p.live.analysis} teams={teams} order={rows.map((t) => t.id)} myId={p.myId} oppId={p.oppId} onSelect={p.onSelect} onTrade={p.onTrade} />}
+      {p.live?.analysis && <div id="lg-analysis" className="lg-sec"><Analysis a={p.live.analysis} teams={teams} order={rows.map((t) => t.id)} myId={p.myId} oppId={p.oppId} onSelect={p.onSelect} onTrade={p.onTrade} /></div>}
       {!p.live?.analysis && p.engineUp && <p className="fig">Analysis appears once the live simulation finishes.</p>}
-      {p.alg && <SoFar lg={p.alg} myId={p.myId} oppId={p.oppId} onSelect={p.onSelect} />}
+      {p.alg && <div id="lg-sofar" className="lg-sec"><SoFar lg={p.alg} myId={p.myId} oppId={p.oppId} onSelect={p.onSelect} /></div>}
     </div>
   );
 }
