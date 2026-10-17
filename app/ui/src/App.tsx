@@ -174,7 +174,7 @@ export default function App() {
         t = window.setTimeout(tick, screen === "live" ? (on ? b.poll_s * 1000 : 60_000) : (on ? 60_000 : 300_000));
       } catch (e) {
         if (stop) return;
-        setLiveE(/404/.test(String(e)) ? "The engine running now predates Live. Quit Desk and open it again once (the engine picks up the new route on start; after that Live updates itself)." : `Couldn't read the live feed: ${e}`);
+        setLiveE(/404/.test(String(e)) ? "The engine running now predates Live. Quit Desk and open it again once (the engine picks up the new route on start; after that Live updates itself)." : `Couldn't reach ESPN's live scores (${String(e).match(/"detail":"([^"]*)"/)?.[1] ?? String(e)}). Trying again every 30 seconds.`);
         t = window.setTimeout(tick, 30_000);
       }
     };

@@ -7,6 +7,8 @@ export const signed = (x: number | null | undefined) =>
 export const pct = (x: number | null | undefined) =>
   x == null ? "–" : x >= 0.995 ? ">99%" : x < 0.005 ? "<1%" : `${Math.round(x * 100)}%`;
 
+// "through week 5 (week 6 under way)" when only some of the latest week's games are in
+export const throughWeek = (w: number, partial?: boolean) => (partial ? `through week ${w - 1} (week ${w} under way)` : `through week ${w}`);
 export const lastName = (n: string) => (n.endsWith("D/ST") ? n : n.split(" ").slice(1).join(" ") || n);
 
 export function clock(t?: string) {

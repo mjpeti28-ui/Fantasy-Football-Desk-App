@@ -57,7 +57,7 @@ export function H2H({ p, other, slot, role, prob }: { p: Player; other: Player; 
         <span className="split" aria-hidden="true"><i style={{ width: `${w}%` }} /><i style={{ width: `${100 - w}%` }} /></span>
       )}
       <span className="sub">{role === "bench" ? `Best bench option for ${slot}: ${other.name}, ${f1(other.espn_week)}` : `Starter he'd replace at ${slot}: ${other.name}, ${f1(other.espn_week)}`}</span>
-      <span className="sub">ESPN {f1(p.espn_week)} this week · rest of season {f1(p.est_ppg)} ppg · plays {pct(p.avail_now)}</span>
+      <span className="sub">ESPN {f1(p.espn_week)} this week · {pct(p.avail_now)} to play · rest of season {f1(p.est_ppg)} ppg</span>
     </span>
   );
 }

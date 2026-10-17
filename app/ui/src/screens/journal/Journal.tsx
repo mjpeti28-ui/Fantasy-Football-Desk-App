@@ -151,7 +151,7 @@ export function Journal({ journal, err, engineUp, onAdd, onUpdate, onDelete, nam
         <div className="figs">
           <div><b className="num">{s.logged}</b><span>logged</span></div>
           <div><b className="num">{s.resolved}</b><span>scored</span></div>
-          <div><b className="num">{s.hit_rate == null ? "–" : pct(s.hit_rate)}</b><span>right</span></div>
+          <div><b className="num">{s.hit_rate == null ? "–" : s.resolved < 10 ? `${Math.round(s.hit_rate * s.resolved)} of ${s.resolved}` : pct(s.hit_rate)}</b><span>right</span></div>
           <p>{verdictText(journal)}</p>
         </div>
         <figure>

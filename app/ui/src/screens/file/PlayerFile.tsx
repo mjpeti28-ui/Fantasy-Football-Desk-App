@@ -328,7 +328,7 @@ function BoxScore({ f }: { f: PF }) {
       <tbody>
         {rows.map((r) => {
           const pts = r.espn_pts ?? r.ppr; const d = pts != null && r.espn_proj != null ? pts - r.espn_proj : null;
-          return <tr key={r.week} className={r.played ? "" : "dnp"}><td className="num">{r.week}</td><td>{r.played ? r.opp ?? "" : "Did not play"}</td>
+          return <tr key={r.week} className={r.played ? "" : "dnp"}><td className="num">{r.week}</td><td>{r.played ? r.opp ?? "" : r.upcoming ? "Upcoming" : "Did not play"}</td>
             {cols.map((c) => <td key={c.h} className="r num">{cell(r, c.k as string)}</td>)}
             <td className="r num"><b>{r.played ? f1(pts) : "–"}</b></td><td className="r num dim">{f1(r.espn_proj)}</td>
             <td className={`r num ${d == null ? "" : d >= 0 ? "up" : "down"}`}>{d == null || !r.played ? "" : signed(d)}</td></tr>;

@@ -1,6 +1,6 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Pos, ShiftRow, Shifts as ShiftsT, ShiftWin } from "../../types";
-import { f1, lastName, pct, signed } from "../../format";
+import { f1, lastName, pct, signed, throughWeek } from "../../format";
 import { Face, POS_VAR, Spark } from "../../components/bits";
 import { useFile } from "../../components/FileContext";
 import "./shifts.css";
@@ -196,7 +196,7 @@ function why(w: ShiftWin, win: Win): string {
 }
 
 export function shiftsMarkdown(rows: ShiftRow[], win: Win, data: ShiftsT): string {
-  const L = [`## Usage shifts, through week ${data.through_week} (${win === "recent" ? "last two games vs earlier" : "this season vs last"}) — from Desk`, "",
+  const L = [`## Usage shifts, ${throughWeek(data.through_week, data.partial)} (${win === "recent" ? "last two games vs earlier" : "this season vs last"}) — from Desk`, "",
     "| Player | Pos | Team | Rostered by | Snaps | Share | Zone | Held | Model ppg |", "|---|---|---|---|---|---|---|---|---|"];
   for (const r of rows.slice(0, 40)) {
     const w = r[win]!;
@@ -269,7 +269,7 @@ export function ShiftsScreen({ data, err, myTeam, onCopy, inCompare, onCompare }
   return (
     <div className="shifts">
       <header className="sh-hd">
-        <span className="eyebrow">Shifts · through week {data.through_week} · {winLabel}</span>
+        <span className="eyebrow">Shifts · {throughWeek(data.through_week, data.partial)} · {winLabel}</span>
         <h2>{headline}</h2>
         <p className="sub">{win === "recent" ? "Snap jumps have held about 6 times in 10; target spikes without more snaps mostly fade, and ESPN's next projection already prices most of these. Where a dot lands tells you how much to believe it."
           : "Early-season gains over last year have held about 6 in 10 times; early drops mostly come back."}</p>
