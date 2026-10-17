@@ -200,12 +200,16 @@ export interface RoleProfile {
   /** WR/TE: PFF slot and inline rates (% of pass snaps), average depth of target, yards per route run */
   pff?: { slot: number | null; inline: number | null; adot: number | null; yprr: number | null } | null;
   series: { weeks: number[]; snap: number[]; share: (number | null)[]; rz: (number | null)[]; share_label: string } | null;
+  /** fingerprint metric -> [raw this season, noise-adjusted estimate, reliability 0-1] */
+  fp?: Record<string, [number | null, number | null, number | null]>;
 }
 export interface RolesBoard {
   season: number; through_week: number; partial?: boolean; fit_seasons: [number, number];
   styles: Record<string, { names: string[]; yoy_same: number; early_acc?: Record<string, { acc: number; conf: number; n: number }> }>;
   styles_free?: Record<string, { names: string[]; yoy_same: number; early_acc?: Record<string, { acc: number; conf: number; n: number }> }>;
   pff_through?: number | null;
+  /** position -> fingerprint metric -> label, format, group, games until half signal */
+  fp_meta?: Record<string, Record<string, { label: string; fmt: "pct" | "pct100" | "num1" | "num2"; group: string; stab: number }>>;
   players: Record<string, RoleProfile>;
 }
 
