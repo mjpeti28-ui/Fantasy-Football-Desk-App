@@ -425,7 +425,9 @@ def board(refresh: bool = False) -> dict:
     pff = pff_tables(season, cur, prev, ids)
     P = profiles(cur, prev, model, names, pff)
     espn = ids.dropna(subset=["gsis_id", "espn_id"]).drop_duplicates("gsis_id").set_index("gsis_id")["espn_id"].astype(int)
-    out = {"season": season, "through_week": int(cur["week"].max()),
+    from .analytics import complete_week
+    through = int(cur["week"].max())
+    out = {"season": season, "through_week": through, "partial": complete_week(season, through) < through,
            "styles": {p: {"names": m["names"], "yoy_same": m["yoy_same"], "early_acc": m.get("early_acc")} for p, m in model["style"].items()},
            "styles_free": {p: {"names": m["names"], "yoy_same": m["yoy_same"], "early_acc": m.get("early_acc")} for p, m in model.get("style_free", {}).items()},
            "pff_through": int(pff[0]["pff_through"].max()) if len(pff[0]) else None,

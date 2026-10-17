@@ -83,7 +83,7 @@ export function LabScreen({ a, err, tw, teams, onCopy }: { a: Analytics | null; 
     return { b, c, r, n, res, sd, mx, my };
   }, [pts]);
 
-  if (!a) return <div className="lab"><p className="lab-empty">{err ?? "Building the season analytics…"}</p></div>;
+  if (!a) return <div className="lab-screen"><p className="lab-empty">{err ?? "Building the season analytics…"}</p></div>;
   const M = pos === "All" ? a.metrics : a.metrics_pos[pos] ?? a.metrics;
   const evFor = (s: Stat) => (s.fixed ? <Ev l={s.fixed} tip={s.note} /> : s.ev && M[s.ev] ? <Ev l={M[s.ev].label} tip={evTip(M[s.ev])} /> : null);
 
@@ -117,7 +117,7 @@ export function LabScreen({ a, err, tw, teams, onCopy }: { a: Analytics | null; 
   };
 
   return (
-    <div className="lab">
+    <div className="lab-screen">
       <header className="lab-hd">
         <h2>Lab</h2>
         <p>Any stat against any stat, this season through week {a.through_week}. Each axis carries what 2021–25 says about it; the line and r describe this season only.</p>

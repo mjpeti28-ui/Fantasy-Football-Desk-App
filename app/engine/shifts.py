@@ -109,7 +109,7 @@ def build(board: dict, prev_agg: pd.DataFrame, e2g: dict, owners: dict, ledger: 
         zones[pos] = {k: {"hold": t.get(k, {}).get("hold"), "n": t.get(k, {}).get("n"), "espn": e.get(k)} for k in
                       ("snap_up", "snap_up_out", "snap_up_still_out", "share_up_with_snaps", "share_spike", "snap_down", "share_drop")}
         zones[pos]["season"] = model.get("season_shift", {}).get(pos, {})
-    return {"season": board["season"], "through_week": board["through_week"], "week": week, "rows": rows, "zones": zones,
+    return {"season": board["season"], "through_week": board["through_week"], "partial": board.get("partial", False), "week": week, "rows": rows, "zones": zones,
             "thresholds": {"snap": R.SNAP_T, "share": R.SHARE_T, "snap_with": 10}}
 
 

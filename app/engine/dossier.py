@@ -28,6 +28,11 @@ def _f(x, nd=1):
         return None
 
 
+def _lc(s: str) -> str:
+    """Lowercase a style name for mid-sentence use, keeping abbreviations: "Inline TE" -> "inline TE"."""
+    return " ".join(w if len(w) > 1 and w.isupper() else w.lower() for w in s.split())
+
+
 def _age(birth, season):
     try:
         return round((pd.Timestamp(f"{season}-09-01") - pd.Timestamp(birth)).days / 365.25, 1)
@@ -115,13 +120,13 @@ def _read(pos, name, prof, fp, comps, est_ppg, model, games, espn_wk, logs):
     out, first = [], name.split(" ")[0]
     st = prof.get("style")
     if st and games < 1:
-        out.append({"kind": "role", "anchor": "map", "text": f"Hasn't played this season. Last season he was {('an ' if st['name'][0] in 'AEIOU' else 'a ')}{st['name'].lower()} "
+        out.append({"kind": "role", "anchor": "map", "text": f"Hasn't played this season. Last season he was {('an ' if st['name'][0] in 'AEIOU' else 'a ')}{_lc(st['name'])} "
                     f"({round(st['p'] * 100)}%); everything below leans on that."})
     elif st:
-        sure = "" if st["p"] >= 0.75 else f", leaning {st['alt'].lower()}" if st["alt_p"] >= 0.25 else ""
+        sure = "" if st["p"] >= 0.75 else f", or possibly {_lc(st['alt'])}" if st["alt_p"] >= 0.25 else ""
         sm = model["style_free"][pos] if not st.get("pff", True) and pos in model.get("style_free", {}) else model["style"][pos]
         acc = sm.get("early_acc", {}).get("G3" if games < 6 else "G6", {}).get("acc")
-        out.append({"kind": "role", "anchor": "map", "text": f"{prof['tier']}, {st['name'].lower()}{sure} ({round(st['p'] * 100)}% sure after {games} games"
+        out.append({"kind": "role", "anchor": "map", "text": f"{prof['tier']}, {_lc(st['name'])}{sure} ({round(st['p'] * 100)}% sure after {games} games"
                     + (f"; labels this early match the full-season call {round(acc * 100)}% of the time" if acc and games < 8 else "") + ")."})
     reliable = [m for m in fp if (m["rel"] or 0) >= 0.6 and m["pct"] is not None and m["group"] in ("Role", "Style") and m["key"] != "snap"]
     if reliable:
@@ -220,7 +225,7 @@ def build(espn_id: int, ctx: dict) -> dict | None:
                      "pass_yd": int(r.pass_yd) if r is not None else None, "pass_td": int(r.pass_td) if r is not None else None,
                      "ints": int(r.ints) if r is not None else None, "fl": int(r.fl) if r is not None else None,
                      "ppr": _f(r.ppr) if r is not None else None, "espn_pts": _f(ctx["espn_pts"].get(wk)), "espn_proj": _f(ctx["espn_proj"].get(wk)),
-                     "upcoming": wk > through})
+                     "upcoming": wk > through or (wk == through and r is None and wk not in team_weeks)})
     # comps at his current checkpoint
     comp = None
     if c is not None and games >= 2:

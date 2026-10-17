@@ -1,6 +1,7 @@
 import type { Pos, RoleProfile, RolesBoard, RoleTrend } from "../types";
 import { useFile } from "./FileContext";
 import { POS_VAR } from "./bits";
+import { throughWeek } from "../format";
 import "./role.css";
 
 const UP = new Set(["snap_up", "share_up", "bigger_role"]);
@@ -76,7 +77,7 @@ export function RoleSection({ r, board, pos, id, list }: { r?: RoleProfile | nul
     <section className="rl">
       <h6>Role {id != null && <button type="button" className="rl-open" onClick={() => open(id, list)}>Open player file ⤢</button>}</h6>
       <div className="rl-hd">
-        <b>{st ? (st.p >= 0.7 ? st.name : `${st.name}, leaning ${st.alt.toLowerCase()}`) : "Not enough usage to type"}</b>
+        <b>{st ? (st.p >= 0.7 ? st.name : `${st.name}, or possibly ${st.alt.replace(/\b(?![A-Z]{2,}\b)\w+/g, (w) => w.toLowerCase())}`) : "Not enough usage to type"}</b>
         <span className="tier">{r.tier}</span>
       </div>
       {st && (
@@ -120,7 +121,7 @@ export function RosterShifts({ players, board, onSelect, title = "Usage shifts o
     .filter((r) => r.ts.length).sort((a, b) => rank[a.ts[0].kind] - rank[b.ts[0].kind]).map(({ p, ts }) => ({ p, t: ts[0], more: ts.slice(1) }));
   return (
     <section className="rl">
-      <h6>{title} · through week {board.through_week}</h6>
+      <h6>{title} · {throughWeek(board.through_week, board.partial)}</h6>
       {!rows.length ? <p className="ins-note">No snap or role changes big enough to flag.</p> : (
         <ul className="rl-shifts">
           {rows.map(({ p, t, more }) => (

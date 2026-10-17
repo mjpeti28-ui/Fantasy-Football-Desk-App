@@ -192,7 +192,7 @@ export interface RoleProfile {
   series: { weeks: number[]; snap: number[]; share: (number | null)[]; rz: (number | null)[]; share_label: string } | null;
 }
 export interface RolesBoard {
-  season: number; through_week: number; fit_seasons: [number, number];
+  season: number; through_week: number; partial?: boolean; fit_seasons: [number, number];
   styles: Record<string, { names: string[]; yoy_same: number; early_acc?: Record<string, { acc: number; conf: number; n: number }> }>;
   styles_free?: Record<string, { names: string[]; yoy_same: number; early_acc?: Record<string, { acc: number; conf: number; n: number }> }>;
   pff_through?: number | null;
@@ -250,7 +250,7 @@ export interface ShiftRow {
   espn_week: number | null; injury: string | null;
 }
 export interface Shifts {
-  season: number; through_week: number; week: number; rows: ShiftRow[];
+  season: number; through_week: number; partial?: boolean; week: number; rows: ShiftRow[];
   zones: Record<string, Record<string, { hold: number | null; n: number | null; espn?: { rel: number; lo: number; hi: number } | null }> & { season: Record<string, { hold: number; n: number }> }>;
   thresholds: { snap: number; share: number; snap_with: number };
 }

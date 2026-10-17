@@ -93,7 +93,7 @@ export function Board({ tw, plan, setPlan, selected, onSelect, ratioQ, colorMode
 
   const tip = (p: Player) => {
     const r = rival(p, plan, by);
-    if (!r) return <span className="h2h"><b>No healthy alternative on the roster</b><span className="sub">ESPN {f1(p.espn_week)} this week · plays {pct(p.avail_now)}</span></span>;
+    if (!r) return <span className="h2h"><b>No healthy alternative on the roster</b><span className="sub">ESPN {f1(p.espn_week)} this week · {pct(p.avail_now)} to play</span></span>;
     const prob = r.role === "bench" ? pBeats(p, r.other, ratioQ) : pBeats(p, r.other, ratioQ);
     return <H2H p={p} other={r.other} slot={r.slot} role={r.role} prob={prob} />;
   };

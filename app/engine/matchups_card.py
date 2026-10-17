@@ -192,7 +192,7 @@ def build(pv: dict, snap: dict) -> dict:
                f"But a defense’s man rate is predictable to only about {lj.get('sd_expected_effect', float('nan')):.2f} targets (a game swings ±{lj.get('sd_targets_miss', float('nan')):.1f}), "
                f"and the current season has no coverage tags to update it. A real trait, not a forecast.")
         rows.append(_row("lens", "Coverage mix", f"man − zone {sg(h['tr_diff_shrunk'] * 100)} pts ({h['tr_rel'] * 100:.0f}% real)",
-                         f"man {lens['opp_man_exp'] * 100:.0f}% (typical {lens['league_man'] * 100:.0f}%)", f"{sg(lens['d_targets'], 2)} targets", "small", tip))
+                         f"man {lens['opp_man_exp'] * 100:.0f}% (typical {lens['league_man'] * 100:.0f}%)", f"{sg(lens['d_targets'], 2)} targets vs his usual", "small", tip))
     # ---- pressure (quarterbacks) ----
     if pos == "QB":
         dd = m.defense(opp)
