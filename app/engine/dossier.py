@@ -197,6 +197,7 @@ def build(espn_id: int, ctx: dict) -> dict | None:
     games = float(c["games"]) if c is not None else 0.0
     if len(d_w):
         prof, fp = R.profile_one(model, g, d_w, c, p, R._context(cur), ctx["names"], through)
+        prof["route_sh"] = R.route_info(R.route_shares(cur_agg), cur_agg, g)
     else:  # hasn't played this season: describe him from last season
         fp = R.fingerprint(model, pos, None, 0, p)
         prof = {"pos": pos, "tier": "No snaps this season", "style": R.style_of(model, pos, None, p, 0), "traits": [], "trends": [], "series": None}

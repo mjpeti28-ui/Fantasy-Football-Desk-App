@@ -192,6 +192,8 @@ export interface RoleStyle { name: string; p: number; alt: string; alt_p: number
 export interface RoleProfile {
   name: string; pos: Pos; team: string | null; games: number; tier: string;
   style: RoleStyle | null; traits: RoleTrait[]; trends: RoleTrend[];
+  /** WR/TE: PFF routes run / team dropbacks in his games, season to date, with his rank at the position */
+  route_sh?: { v: number; rank: number; of: number } | null;
   series: { weeks: number[]; snap: number[]; share: (number | null)[]; rz: (number | null)[]; share_label: string } | null;
 }
 export interface RolesBoard {

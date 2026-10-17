@@ -85,6 +85,7 @@ export function RoleSection({ r, board, pos, id, list }: { r?: RoleProfile | nul
           {probs.filter(([, v]) => v >= 0.03).map(([k, v], i) => <i key={k} className={i === 0 ? "top" : ""} style={{ width: `${v * 100}%`, ...(i === 0 ? { background: POS_VAR[pos] } : {}) }} />)}
         </div>
       )}
+      {r.route_sh && <p className="ins-note" title="Routes run (PFF) divided by his team's dropbacks in the games he played. Descriptive: it says how much of the passing game he's part of, not a forecast.">Runs a route on {r.route_sh.v}% of dropbacks · {r.route_sh.rank} of {r.route_sh.of} {posName[pos]} (PFF)</p>}
       {r.traits.length > 0 && (
         <div className="rl-traits">
           {r.traits.map((t) => <span key={t.label} className="chip" tabIndex={0} title={`${t.text}, among ${posName[pos]} ${board.fit_seasons[0]}–${String(board.fit_seasons[1]).slice(2)}. Shown only once the number is mostly signal.`}>{t.label}</span>)}

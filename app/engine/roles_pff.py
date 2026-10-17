@@ -137,7 +137,7 @@ _MEMO: dict = {}
 
 def season_features(season: int, weekly: pd.DataFrame | None, ids: pd.DataFrame | None = None) -> pd.DataFrame:
     """Rates per gsis from the widest cached w01-* window of the season (empty frame if none or on any error)."""
-    empty = pd.DataFrame(columns=FEATS + ["pff_through", "pff_games"])
+    empty = pd.DataFrame(columns=FEATS + ["pff_through", "pff_games", "pff_routes"])
     try:
         p = latest_window(season)
         if p is None or weekly is None or not len(weekly):
@@ -149,7 +149,7 @@ def season_features(season: int, weekly: pd.DataFrame | None, ids: pd.DataFrame 
         c["gsis"] = c["player_id"].map(match(c, weekly, ids))
         c = c.dropna(subset=["gsis"]).drop_duplicates("gsis").set_index("gsis")
         c = c[c["pass_plays"] > 0]
-        out = c[FEATS].assign(pff_through=int(p.stem.split("-")[1]), pff_games=c["player_game_count"])
+        out = c[FEATS].assign(pff_through=int(p.stem.split("-")[1]), pff_games=c["player_game_count"], pff_routes=c["routes"])
         _MEMO[key] = out
         return out
     except Exception:
@@ -158,10 +158,11 @@ def season_features(season: int, weekly: pd.DataFrame | None, ids: pd.DataFrame 
 
 def join(agg: pd.DataFrame, feats: pd.DataFrame) -> pd.DataFrame:
     """Adds the PFF rates to an aggregate indexed by gsis (NaN where PFF has no row)."""
-    agg = agg.drop(columns=[c for c in FEATS if c in agg.columns])
+    cols = FEATS + ["pff_routes"]
+    agg = agg.drop(columns=[c for c in cols if c in agg.columns])
     if feats is None or not len(feats):
-        return agg.assign(**{c: np.nan for c in FEATS})
-    return agg.join(feats[FEATS], how="left")
+        return agg.assign(**{c: np.nan for c in cols})
+    return agg.join(feats[[c for c in cols if c in feats.columns]], how="left")
 
 
 def main(argv=None) -> int:

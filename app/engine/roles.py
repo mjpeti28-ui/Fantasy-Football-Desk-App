@@ -362,16 +362,34 @@ def profile_one(model, g, d, c, p, ctx, names, last_week):
     return res, fp
 
 
+def route_shares(agg: pd.DataFrame) -> pd.Series:
+    """PFF routes run / his team's dropbacks in the games he played (nflverse), WR/TE with 2+ games. Descriptive:
+    the one PFF stat that held up in the 2021-25 backtests (mostly for players with few games), not a model input."""
+    if "pff_routes" not in agg.columns:
+        return pd.Series(dtype=float)
+    a = agg[agg["pos"].isin(["WR", "TE"]) & (agg["games"] >= 2) & (agg["t_db"] > 0)]
+    return (100 * a["pff_routes"] / a["t_db"]).clip(upper=100).dropna()
+
+
+def route_info(shares: pd.Series, agg: pd.DataFrame, g) -> dict | None:
+    if g not in shares.index:
+        return None
+    pos = agg.at[g, "pos"]
+    peers = shares[agg.loc[shares.index, "pos"] == pos]
+    return {"v": round(float(shares[g])), "rank": int((peers > shares[g]).sum() + 1), "of": int(len(peers))}
+
+
 def profiles(cur_w: pd.DataFrame, prev_w: pd.DataFrame | None, model: dict, names: dict, pff=(None, None)) -> dict:
     from . import roles_pff as rp
     cur = rp.join(aggregate(cur_w, ("gsis", "pos")).set_index("gsis"), pff[0])
     prev = rp.join(aggregate(prev_w, ("gsis", "pos")).set_index("gsis"), pff[1]) if prev_w is not None and len(prev_w) else pd.DataFrame()
     last_week = int(cur_w["week"].max()); ctx = _context(cur_w)
-    out = {}
+    out, rs = {}, route_shares(cur)
     for g, d in cur_w.sort_values("week").groupby("gsis"):
         c = cur.loc[g] if g in cur.index else None
         p = prev.loc[g] if (len(prev) and g in prev.index and prev.loc[g]["games"] >= 3) else None
         out[g], _ = profile_one(model, g, d, c, p, ctx, names, last_week)
+        out[g]["route_sh"] = route_info(rs, cur, g)
     return out
 
 
