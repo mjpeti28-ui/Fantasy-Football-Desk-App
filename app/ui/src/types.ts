@@ -240,7 +240,9 @@ export interface PlayerFile {
   age: number | null; draft: { year: number; round: number | null; pick: number | null } | null;
   owner: { team_id: number; name: string; injury?: string | null } | null;
   ledger: { est_ppg: number | null; avail_now: number | null; avail_ros: number | null; ecr_rank: number | null; status: string | null; bye: number | null } | null;
-  espn_week: number | null; game?: { bye: boolean; home?: boolean; opp?: string; day?: string; time?: string } | null;
+  espn_week: number | null; game?: Game | null;
+  /** returning from games his team played without him: which game back this is, and how many he missed */
+  back?: { game: 1 | 2; missed: number } | null;
   season_line: { games: number; ppr_g: number; snap: number; espn_g: number | null; rank: number | null; of: number } | null;
   last_season: { games: number; ppr_g: number; snap: number } | null;
   role: RoleProfile; fingerprint: FpMetric[];

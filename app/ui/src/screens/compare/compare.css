@@ -102,3 +102,12 @@
 .cmp-tray .chip button:hover { color: var(--alert); }
 .cmp-tray .hint { color: var(--ink-3); font-size: 11.5px; white-space: nowrap; }
 .app:has(.cmp-tray) .content, body:has(.cmp-tray) main.content { padding-bottom: 72px; }
+
+/* Matchup group: each row tagged by what the backtests say it is worth */
+.mxtag { font-style: normal; font: 600 9.5px/1 var(--sys); padding: 2px 5px; border-radius: 4px; white-space: nowrap; vertical-align: 1px; border: 1px solid var(--line); color: var(--ink-2); }
+.mxtag.priced { border-color: var(--ink-3); }
+.mxtag.small, .mxtag.context { border-style: dashed; color: var(--ink-3); }
+.mxtag.blind { border-color: var(--alert); color: var(--alert); }
+.mxread { font-size: 12.5px; line-height: 1.4; }
+.mxsub { display: block; font: 11.5px/1.35 var(--sys); margin-top: 2px; }
+.mxsub.warn-n { color: var(--alert); font-weight: 600; }
