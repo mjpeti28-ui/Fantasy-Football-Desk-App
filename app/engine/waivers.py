@@ -96,7 +96,7 @@ def save_keep(ids: Iterable[int]) -> List[int]:
 
 def board(top: int = 6) -> dict:
     keep = tuple(load_keep())
-    key = ("board", top, d.load().week, d.ages_key(), _tags_stamp(), keep)
+    key = ("board2", top, d.load().week, d.ages_key(), _tags_stamp(), keep)
     with _lock:
         if key in _cache:
             return _cache[key]
@@ -110,6 +110,33 @@ def board(top: int = 6) -> dict:
         _cache.clear()
         _cache[key] = out
         return out
+
+
+def _next_week(ctx, t, mine, pool, nfl, v, n: int = 9) -> dict | None:
+    """One-week view for next week's byes: your best lineup that week (our ppg x chance he plays, byes and IR
+    out) and how many points each free agent would add to it. Ignores the drop, which matters for the season."""
+    wk = ctx.week + 1
+    if wk > v.FANTASY_LAST_WEEK:
+        return None
+    def pts(i):
+        return 0.0 if t.at[i, "bye"] == wk else float(t.at[i, "est_ppg"]) * float(t.at[i, "avail"])
+    def lineup(ids):
+        by = {}
+        for i in ids:
+            by.setdefault(t.at[i, "position"], []).append(pts(i))
+        return v.best_lineup_points({p: sorted(x, reverse=True) for p, x in by.items()}, ctx.season.slots)
+    active = [i for i in mine if i not in ctx.ir_slot]
+    base = lineup(active)
+    adds = []
+    for i, r in pool.iterrows():
+        g = lineup(active + [i]) - base
+        if g >= 0.5:
+            adds.append({"id": int(i), "name": str(r["name"]), "pos": r["position"], "team": nfl.get(int(i)),
+                         "pts": round(pts(i), 1), "gain": round(g, 1), "tag": r["tag"] or ""})
+    adds.sort(key=lambda a: -a["gain"])
+    adds = [a for k, a in enumerate(adds) if sum(b["pos"] == a["pos"] for b in adds[:k]) < 3]  # top 3 per position
+    byes = [{"id": int(i), "name": str(t.at[i, "name"]), "pos": t.at[i, "position"]} for i in active if t.at[i, "bye"] == wk]
+    return {"week": wk, "byes": byes, "lineup": round(base, 1), "adds": adds[:n]}
 
 
 def _build(top: int, keep: Iterable[int] = ()) -> dict:
@@ -171,7 +198,7 @@ def _build(top: int, keep: Iterable[int] = ()) -> dict:
                              "avail": round(float(t.at[i, "avail"]), 3), "ir": int(i) in ctx.ir_slot, "team": nfl.get(int(i)),
                              "usage": usage.get(int(i)), "drop_cost": None if int(i) not in cost else round(cost[int(i)], 1),
                              "kept": int(i) in keep})
-    out = {"week": ctx.week, "candidates": sorted(cands, key=lambda c: -c["gain"]), "depth": depth,
+    out = {"week": ctx.week, "next_week": _next_week(ctx, t, mine, pool, nfl, v), "candidates": sorted(cands, key=lambda c: -c["gain"]), "depth": depth,
            "keep": sorted(int(i) for i in mine if int(i) in keep),
            "replacement": {p: round(float(ctx.replacement.get(p, 0.0)), 2) for p in POS},
            "left_off": [{"name": str(n), "tag": str(g)} for n, g in zip(hurt["name"], hurt["tag"])],

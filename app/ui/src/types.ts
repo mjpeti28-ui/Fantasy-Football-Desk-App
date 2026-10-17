@@ -156,6 +156,9 @@ export interface WaiverBoard {
   drop_cost?: Record<string, number>; pool_size?: Record<string, number>; computed_at?: number;
   /** ids of your players you won't drop (saved by the engine; the drop search skips them) */
   keep?: number[];
+  /** next week's byes on your roster and the free agents that add most to that one week's lineup */
+  next_week?: { week: number; byes: { id: number; name: string; pos: Pos }[]; lineup: number;
+    adds: { id: number; name: string; pos: Pos; team: string | null; pts: number; gain: number; tag: string }[] } | null;
 }
 
 export type JKind = "lineup" | "waiver" | "trade" | "note";
