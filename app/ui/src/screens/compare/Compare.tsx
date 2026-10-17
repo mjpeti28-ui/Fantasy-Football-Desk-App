@@ -5,6 +5,8 @@ import { f1, lastName, pct, signed } from "../../format";
 import { Face, POS_VAR, Spark } from "../../components/bits";
 import { pBeats } from "../../odds";
 import { holdText } from "../../components/Role";
+import { matchupsApi } from "../../data";
+import type { MxCompare } from "../matchups/types";
 import "./compare.css";
 
 /* C — Compare: a spec sheet. Players across, evidence down, the better value in each row filled —
@@ -33,8 +35,49 @@ function pRos(a: PF, b: PF): number | null {
 
 interface Row { label: string; ev?: ReactNode; hint?: string; cell: (f: PF, i: number) => ReactNode; val?: (f: PF) => number | null; better?: "hi" | "lo"; tie?: number; noisy?: (f: PF) => boolean }
 interface Group { key: string; title: string; rows: Row[] }
+type Mx = Record<number, MxCompare | null | undefined>;
 
-function groups(files: PF[], ratioQ?: Record<string, number[]>, an?: Analytics | null): Group[] {
+const TAG = { priced: "in ESPN", small: "tiny", context: "context", blind: "ESPN blind spot" } as const;
+const Tag = ({ t }: { t: keyof typeof TAG }) => <em className={`mxtag ${t}`}>{TAG[t]}</em>;
+const MX_ORDER = ["pass", "run", "allowed", "depth", "trench", "seen", "lens", "pressure", "style_run"];
+/** ESPN over-projects players coming back from missed games (2021-25, vs the same position's other games; pff/creative.md E10). */
+function backPts(f: PF): number | null {
+  const b = f.back;
+  if (!b || f.game?.bye) return null;
+  if (b.game === 2) return f.pos === "WR" ? -0.8 : null;
+  return f.pos === "WR" ? -1.3 : f.pos === "QB" ? -1.5 : f.pos === "RB" ? (b.missed >= 2 ? -1.5 : -0.7) : null;
+}
+
+function mxRows(files: PF[], mx: Mx): Row[] {
+  const out: Row[] = [];
+  const has = (f: PF) => mx[f.id];
+  out.push({ label: "The read", hint: "How tough this defense is for him, and how much of ESPN's number that is", cell: (f) => {
+    const m = has(f);
+    return m === undefined ? <span className="dim">loading…</span> : <span className="mxread">{m?.read ?? "No matchup data for him."}</span>;
+  } });
+  if (files.some((f) => f.back)) out.push({ label: "Back from missed games", ev: <Tag t="blind" />,
+    hint: "ESPN over-projects players in their first game back (WR -1.3, QB -1.5, RB -0.7, or -1.5 after 2+ missed; TE nothing) and WRs in their second (-0.8). 2021-25, 4 of 5 seasons. 'Missed' includes healthy scratches.",
+    cell: (f) => { const b = f.back, p = backPts(f);
+      if (!b) return <span className="dim">–</span>;
+      const txt = `${b.game === 1 ? "1st" : "2nd"} game back after ${b.missed} missed`;
+      return <span>{txt}<small className={p != null ? "mxsub warn-n" : "mxsub dim"}>{p != null ? `ESPN usually ~${Math.abs(p).toFixed(1)} pts high here` : "no measured ESPN miss here"}</small></span>; } });
+  if (files.some((f) => f.game?.implied_total != null)) out.push({ label: "Vegas team total", ev: <Tag t="small" />,
+    hint: "Points the betting line implies for his team. Favourites beat ESPN slightly (QB/RB about +0.4 pts per sd of margin, 2021-25); mostly already in ESPN's number.",
+    cell: (f) => { const g = f.game; if (!g || g.implied_total == null) return <span className="dim">–</span>;
+      const m = g.game_total != null ? 2 * g.implied_total - g.game_total : null;
+      return <span className="num">{g.implied_total}<small className="mxsub dim">{m == null ? "" : Math.abs(m) < 0.5 ? "pick'em" : m > 0 ? `favored by ${m.toFixed(1)}` : `underdog by ${(-m).toFixed(1)}`}{g.game_total != null ? ` · total ${g.game_total}` : ""}</small></span>; } });
+  const keys = MX_ORDER.filter((k) => files.some((f) => has(f)?.rows.some((r) => r.key === k)));
+  for (const k of keys) {
+    const r0 = files.map((f) => has(f)?.rows.find((r) => r.key === k)).find(Boolean)!;
+    out.push({ label: r0.label, ev: <Tag t={r0.tag} />, hint: r0.tip ?? undefined, cell: (f) => {
+      const r = has(f)?.rows.find((x) => x.key === k);
+      return r ? <span title={r.tip ?? undefined}>{r.text}{r.sub && <small className="mxsub dim">{r.sub}</small>}</span> : <span className="dim">–</span>;
+    } });
+  }
+  return out;
+}
+
+function groups(files: PF[], ratioQ?: Record<string, number[]>, an?: Analytics | null, mx: Mx = {}): Group[] {
   const sameType = new Set(files.map((f) => (f.pos === "QB" ? "QB" : "SKILL"))).size === 1;
   const commonFp = files.length ? files[0].fingerprint.filter((m) => files.every((f) => f.fingerprint.some((x) => x.key === m.key)) && files.every((f) => f.pos === files[0].pos || ["ppr_g", "snap", "td_g"].includes(m.key))) : [];
   const fpOf = (f: PF, k: string) => f.fingerprint.find((m) => m.key === k);
@@ -106,6 +149,7 @@ function groups(files: PF[], ratioQ?: Record<string, number[]>, an?: Analytics |
   return [
     { key: "an", title: `Usage vs results, week to week (through week ${an?.through_week ?? "–"}; chips = how much 2021–25 trusts each row)`, rows: ana },
     { key: "week", title: "This week", rows: week },
+    { key: "mx", title: "Matchup this week (describes the game; the defense is already in ESPN's number, only “ESPN blind spot” rows moved points in backtests)", rows: mxRows(files, mx) },
     { key: "ros", title: "Rest of season", rows: ros },
     { key: "role", title: "Role", rows: role },
     { key: "real", title: sameType ? "What's real (best guess, percentile vs position)" : "What's real (shared stats only: different positions)", rows: real },
@@ -256,8 +300,15 @@ export function CompareView({ files, loading, err, ratioQ, candidates, onAdd, on
     window.addEventListener("keydown", k);
     return () => window.removeEventListener("keydown", k);
   }, [onClose]);
-  const G = useMemo(() => groups(files, ratioQ, an), [files, ratioQ, an]);
-  const order = mode === "week" ? ["week", "ros", "role", "an", "real", "shape", "logi"] : ["ros", "an", "role", "real", "shape", "week", "logi"];
+  const [mx, setMx] = useState<Mx>({});
+  const ids = files.map((f) => f.id).join(",");
+  useEffect(() => {
+    let live = true;
+    for (const f of files) if (!(f.id in mx)) matchupsApi.player(f.id).then((p) => p.compare ?? null, () => null).then((c) => live && setMx((m) => ({ ...m, [f.id]: c })));
+    return () => { live = false; };
+  }, [ids]); // eslint-disable-line react-hooks/exhaustive-deps
+  const G = useMemo(() => groups(files, ratioQ, an, mx), [files, ratioQ, an, mx]);
+  const order = mode === "week" ? ["week", "mx", "ros", "role", "an", "real", "shape", "logi"] : ["ros", "an", "role", "real", "shape", "week", "mx", "logi"];
   const matches = q.length >= 2 ? candidates.filter((c) => c.name.toLowerCase().includes(q.toLowerCase()) && !files.some((f) => f.id === c.id)).slice(0, 8) : [];
   const cols = `minmax(190px, 230px) repeat(${Math.max(files.length, 1)}, minmax(0, 290px))`;
   return (
@@ -315,7 +366,8 @@ export function CompareView({ files, loading, err, ratioQ, candidates, onAdd, on
               })}
             </section>
           ))}
-          <p className="cmp-foot">Filled cells are better by more than the noise for that row (projection 1 pt, model 0.75 ppg, percentiles 10 points, rates 5–8 points); “≈ toss-up” means the gap is smaller than that, or the leader's number is still mostly noise.</p>
+          <p className="cmp-foot">Matchup tags: <Tag t="priced" /> ESPN's projection already moves with it; <Tag t="small" /> real but worth a fraction of a point; <Tag t="context" /> describes the game, tested null as a predictor once ESPN's number is known; <Tag t="blind" /> ESPN measurably misses it. Hover a row for how it was measured.</p>
+        <p className="cmp-foot">Filled cells are better by more than the noise for that row (projection 1 pt, model 0.75 ppg, percentiles 10 points, rates 5–8 points); “≈ toss-up” means the gap is smaller than that, or the leader's number is still mostly noise.</p>
         </>}
       </div>
     </div>

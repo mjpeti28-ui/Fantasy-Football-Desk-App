@@ -113,5 +113,11 @@ export interface MxPlayer {
   current: MxCurrent | MxQbCurrent | null; hist: MxHist | MxQbHist | null; lens?: MxLens | null;
   rush?: { car: number; yds: number; ypc: number; epa: number; success: number; explosive: number; td: number };
   pff?: MxPffPlayer | null;
+  compare?: MxCompare;
+}
+/** Short rows for the Compare screen. tag: priced = inside ESPN's number, small = real but tiny, context = descriptive, tested null. */
+export interface MxCompare {
+  opp: string | null; read: string | null; error?: string;
+  rows: { key: string; label: string; text: string; sub: string | null; tag: "priced" | "small" | "context"; tip: string | null }[];
 }
 export const isQb = (p: MxPlayer): p is MxPlayer & { current: MxQbCurrent | null; hist: MxQbHist | null } => p.pos === "QB";

@@ -253,3 +253,93 @@ def build(pv: dict, snap: dict) -> dict:
                  "Not in the number: injury news, teammates who are out, weather. Check those before kickoff.")
     card["bottom"] = {"tone": "go", "headline": f"Go with ESPN’s {pr['espn']:.1f}. The matchup is already in it.", "lines": lines}
     return card
+
+
+# ---------- Compare: the same card, cut into short rows ----------
+DEPTH_LABEL = {"behind": "behind the line", "short": "short (0–9 yds)", "mid": "intermediate (10–19)", "deep": "deep (20+)"}
+
+
+def _rk(u: dict | None) -> str | None:
+    return f"{ordinal(u['rank'])} of {u['of']}" if u else None
+
+
+def compare(pv: dict, card: dict, pff: dict | None) -> dict:
+    """Short rows for the Compare screen. Tags: priced (inside ESPN's number), small (real but tiny), context (descriptive, tested null as a predictor)."""
+    pos, opp, first = pv["pos"], pv.get("opp"), pv["name"].split(" ")[0]
+    out = {"opp": opp, "read": None, "rows": []}
+    rows = out["rows"]
+    add = lambda key, label, text, sub, tag, tip: rows.append({"key": key, "label": label, "text": text, "sub": sub, "tag": tag, "tip": tip})
+    bt = card.get("bottom") or {}
+    if card.get("dead") or not card.get("defense") or card.get("through"):
+        out["read"] = bt.get("headline")
+        return out
+    g, pr, priced = card["defense"], card["proj"], card.get("priced") or {}
+    parts = {p["kind"]: p for p in priced.get("parts", [])}
+    # ---- the read: which unit faces him and how much of ESPN's number it is ----
+    main = "run" if pos == "RB" and "run" in parts and abs(parts["run"]["pts"]) > abs(parts["pass"]["pts"]) else "pass"
+    gm = g[main]
+    tone = {"Tough": "a tough", "Soft": "a soft", "Middle": "an average"}[gm["label"]]
+    out["read"] = (f"{tone.capitalize()} {main} defense ({ordinal(gm['rank'])} of {gm['of']}, 1 = toughest). "
+                   f"About {sg(priced.get('pts', 0.0))} of his {pr['espn']:.1f} is the matchup, already in ESPN’s number.")
+    for kind in SPEC.get(pos, []):
+        k = KIND[kind]
+        if k in parts:
+            add(k, f"{'Pass' if k == 'pass' else 'Run'} defense", f"{g[k]['label']}, {ordinal(g[k]['rank'])} of {g[k]['of']}", f"{sg(parts[k]['pts'])} pts inside ESPN",
+                "priced", next((r["tip"] for r in card["rows"] if r["key"] == k), None))
+    dd = m.defense(opp) if opp else None
+    cur = pv.get("current") or {}
+    # ---- what this defense gives up to his position, and where he catches the ball ----
+    if dd and pos in (dd.get("allowed") or {}):
+        a = dd["allowed"][pos]
+        add("allowed", f"Allows to {pos}s", f"{a['ppr_t']:.2f} PPR per target (league {a['league_ppr_t']:.2f})",
+            f"{pos}s draw {a['share'] * 100:.0f}% of targets vs it (league {a['league_share'] * 100:.0f}%)", "context",
+            f"This season, {a['tgt']} targets to {pos}s against {opp}, pulled toward the league average so a few big games don't dominate. "
+            "Points allowed by position barely predict the next game once ESPN's number is known.")
+    if dd and cur.get("depth") and dd.get("depth"):
+        k = max(cur["depth"], key=cur["depth"].get)
+        x = dd["depth"].get(k)
+        if x and x["tgt"] >= 10:
+            add("depth", "Where he's targeted", f"{cur['depth'][k] * 100:.0f}% {DEPTH_LABEL[k]}, aDOT {cur['adot']:.1f}",
+                f"{opp} there: {x['comp'] * 100:.0f}% completions (league {x['league_comp'] * 100:.0f}%), EPA/target {sg(x['epa_t'], 2)} (league {sg(x['league_epa_t'], 2)})", "context",
+                "His most common target depth this season, and how this defense has done on throws at that depth. aDOT/YAC fit vs the defense tested null against ESPN (2023-25).")
+    # ---- PFF: the units in the trenches and the defenders he will likely see ----
+    if pff:
+        them, us = pff.get("them") or {}, pff.get("us") or {}
+        wk = f"PFF grades through week {pff['through']}" if pff.get("through") else "PFF grades"
+        if pos == "RB" and them.get("run_defense"):
+            add("trench", "Run D vs his line", f"their run D {_rk(them['run_defense'])}", f"his run blocking {_rk(us.get('run_block')) or '–'}", "context",
+                f"{wk}, snap-weighted unit grades, 1 = best. Run defense vs run blocking tested null against ESPN (2023-25).")
+        elif pos in ("QB", "WR", "TE") and them.get("pass_rush"):
+            add("trench", "Pass rush vs his line", f"their rush {_rk(them['pass_rush'])}, coverage {_rk(them.get('coverage')) or '–'}",
+                f"his pass blocking {_rk(us.get('pass_block')) or '–'}", "context",
+                f"{wk}, snap-weighted unit grades, 1 = best. Pass rush vs pass block and coverage grade tested null against ESPN (2023-25); ESPN already prices coverage.")
+        if pos in ("WR", "TE") and pff.get("likely"):
+            spot = pff["likely"]
+            al = pff.get("align") or {}
+            who = (pff.get("slot") if spot == "slot" else pff.get("outside")) or []
+            pct = al.get(spot if spot != "outside" else "wide")
+            if spot == "inline":
+                text, sub = f"inline {pct}% of pass plays", "mostly blocks or works the seams; no single defender"
+            else:
+                d0 = who[0] if who else None
+                text = f"{'slot' if spot == 'slot' else 'outside'} {pct}% of pass plays"
+                sub = (f"likely {d0['name']}: coverage grade {d0['cov_grade'] or '–'}, {d0['yds_cov'] or '–'} yds per coverage snap" if d0 else "–")
+            add("seen", "Who he'll likely see", text, sub, "context",
+                "Where he lines up (PFF) and the defender who plays that spot most for them. PFF has no shadow flag, so this is the usual matchup, not a promise. CB-vs-WR matchups tested null against ESPN.")
+        elif pos == "QB" and pff.get("rushers"):
+            r0 = pff["rushers"][0]
+            add("seen", "Top pass rusher", f"{r0['name']} ({r0['pos']})", f"{r0['pressures']} pressures, {r0['prp'] or '–'}% pressure rate", "context",
+                "The defender with the most pressures this season (PFF). Pressure matchups tested null against ESPN.")
+        elif pos == "RB" and pff.get("run"):
+            r0 = pff["run"][0]
+            add("seen", "Top run defender", f"{r0['name']} ({r0['pos']})", f"{r0['stops']} stops, run grade {r0['run_grade'] or '–'}", "context",
+                "The defender with the most run stops this season (PFF). Run-defense matchups tested null against ESPN.")
+    # ---- rows the card already wrote ----
+    for r in card["rows"]:
+        if r["key"] == "lens":
+            add("lens", "Man vs zone", r["them"], f"{r['effect']} ({first}: {r['him']})", "small", r["tip"])
+        elif r["key"] == "pressure":
+            add("pressure", "Pressure", r["them"], f"{first}: {r['him']}", "context", r["tip"])
+        elif r["key"] == "style_run":
+            add("style_run", "Early-down runner", "run D matters more for this style", r["them"], "context", r["tip"])
+    return out

@@ -227,6 +227,15 @@ def build(espn_id: int, ctx: dict) -> dict | None:
                      "ints": int(r.ints) if r is not None else None, "fl": int(r.fl) if r is not None else None,
                      "ppr": _f(r.ppr) if r is not None else None, "espn_pts": _f(ctx["espn_pts"].get(wk)), "espn_proj": _f(ctx["espn_proj"].get(wk)),
                      "upcoming": wk > through or (wk == through and r is None and wk not in team_weeks)})
+    # returning from missed games (team played, he didn't): ESPN over-projects the first game or two back (backtest, pff/creative.md E10)
+    back, done = None, [w for w in team_weeks if w <= through]
+    if rows and done:
+        miss = lambda ws: next((i for i, w in enumerate(ws) if w in rows), len(ws))
+        n1 = miss(done[::-1])
+        if n1:
+            back = {"game": 1, "missed": n1}
+        elif len(done) > 1 and (n2 := miss(done[-2::-1])):
+            back = {"game": 2, "missed": n2}
     # comps at his current checkpoint
     comp = None
     if c is not None and games >= 2:
@@ -261,7 +270,7 @@ def build(espn_id: int, ctx: dict) -> dict | None:
         "role": prof, "fingerprint": fp,
         "style_info": _style_info(model, pos, prof.get("style")),
         "map": _map(model, pos, cur_agg, prev_agg, d_w if len(d_w) else None, g, owners, g2e),
-        "gamelog": logs, "comps": comp,
+        "gamelog": logs, "back": back, "comps": comp,
     }
     out["read"] = _read(pos, name, prof, fp, comp, est, model, int(games), out["espn_week"], logs)
     return out

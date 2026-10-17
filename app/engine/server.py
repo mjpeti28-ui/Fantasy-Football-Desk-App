@@ -412,6 +412,10 @@ def matchups_player(espn_id: int, opp: Optional[str] = None, team: int = 3):
         out["pff"] = matchups_pff.player(out, int(snap["season"]))
     except Exception:  # noqa: BLE001 -- optional PFF context
         out["pff"] = None
+    try:
+        out["compare"] = matchups_card.compare(out, out["card"], out["pff"])
+    except Exception as e:  # noqa: BLE001 -- the Compare rows are a convenience; the card above stands on its own
+        out["compare"] = {"opp": out.get("opp"), "read": None, "rows": [], "error": f"{type(e).__name__}: {e}"[:200]}
     return _json(out)
 
 
