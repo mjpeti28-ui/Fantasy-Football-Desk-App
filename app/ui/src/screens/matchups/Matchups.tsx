@@ -6,6 +6,7 @@ import { Face, POS_VAR } from "../../components/bits";
 import { Centered, ManLine, Meter, lastOf, Sec, Signal, Stack, StackKey, Tile, n2, p0, p1, pp, sg2, shellParts } from "./parts";
 import { Grade, MatchupCard, ord } from "./Card";
 import { Duel } from "./Duel";
+import { PffDefenders, PffSee } from "./Pff";
 import { mxMarkdown } from "./read";
 import type { MxBoard, MxCard, MxCurrent, MxDefenseView, MxHist, MxPlayer, MxQbCurrent, MxQbHist, MxRow } from "./types";
 import { Ahead, aheadMarkdown } from "./Ahead";
@@ -223,6 +224,7 @@ function Versus({ pl, row, data, dv, through, setThrough, busy }: {
       {pl.card
         ? <MatchupCard c={pl.card} busy={busy} side={mine ? "you" : "them"} />
         : <div className="mx-read"><div className="lines"><p>The engine that is running is older than this screen and didn’t send the start/sit card. Quit and reopen Desk to load it.</p></div></div>}
+      {pl.pff && <PffSee x={pl.pff} name={pl.name} />}
       <div className="mx-cols">
         <PlayerPanel pl={pl} tone={mine ? "you" : "them"} data={data} />
         {d ? <DefensePanel v={d} data={data} /> : <div className="mx-sec"><p className="mx-empty">{pl.opp ? "Loading the defense…" : "Bye week: nothing to show on the defense side. Pick a team in “Look through”."}</p></div>}
@@ -345,7 +347,7 @@ function QbPanel({ pl, tone }: { pl: MxPlayer & { current: MxQbCurrent | null; h
 function DefensePanel({ v, data, wide }: { v: MxDefenseView; data: MxBoard; wide?: boolean }) {
   const d = v.defense, lg = d.league, base = lg.base, c = d.current, r = d.run;
   const last = lastOf(d.history);
-  const [tab, setTab] = useState<"play" | "onoff">("play");
+  const [tab, setTab] = useState<"play" | "onoff" | "pff">(v.pff ? "pff" : "play");
   const mineFacing = [...data.mine, ...data.theirs].filter((x) => x.opp === d.abbr);
   const gp = data.teams[d.abbr]?.pass_grade, gr = data.teams[d.abbr]?.run_grade;
   return (
@@ -412,9 +414,11 @@ function DefensePanel({ v, data, wide }: { v: MxDefenseView; data: MxBoard; wide
           </tbody></table>
         )}
       </Sec>
-      <Sec title="Their defenders" aside={<span className="seg sm" role="group" aria-label="Defender view"><button type="button" aria-pressed={tab === "play"} onClick={() => setTab("play")}>Playmakers</button><button type="button" aria-pressed={tab === "onoff"} onClick={() => setTab("onoff")}>On / off</button></span>}>
-        <p className="mx-note t">The free data records who sacks, hits, tackles and breaks up passes, and who is on the field. It does <b>not</b> record who covered whom or whose receiver caught the ball, so there is no per-defender coverage grade here.</p>
-        {tab === "play" ? <Playmakers v={v} /> : <OnOff v={v} />}
+      <Sec title="Their defenders" aside={<span className="seg sm" role="group" aria-label="Defender view"><button type="button" aria-pressed={tab === "play"} onClick={() => setTab("play")}>Playmakers</button><button type="button" aria-pressed={tab === "onoff"} onClick={() => setTab("onoff")}>On / off</button>{v.pff && <button type="button" aria-pressed={tab === "pff"} onClick={() => setTab("pff")}>PFF</button>}</span>}>
+        {tab === "pff" && v.pff ? <PffDefenders p={v.pff} /> : <>
+          <p className="mx-note t">The free data records who sacks, hits, tackles and breaks up passes, and who is on the field. It does <b>not</b> record who covered whom or whose receiver caught the ball{v.pff ? "; the PFF tab does" : ", so there is no per-defender coverage grade here"}.</p>
+          {tab === "play" ? <Playmakers v={v} /> : <OnOff v={v} />}
+        </>}
       </Sec>
     </div>
   );

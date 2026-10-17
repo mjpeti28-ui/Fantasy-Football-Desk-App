@@ -53,7 +53,24 @@ export interface MxDefense {
 export interface MxPlayMaker { gsis: string; name: string; pos: string; sacks: number; hit: number; tfl: number; int: number; pbu: number; tkl: number; ff: number; still?: boolean | null }
 export interface MxOnOff { gsis: string; name: string; pos: string | null; on: number; off: number; pct: number; on_epa: number; off_epa: number | null; se: number | null; still: boolean | null }
 export interface MxDefenders { abbr: string; current: MxPlayMaker[]; last: MxPlayMaker[]; onoff?: MxOnOff[]; onoff_dropbacks?: number; onoff_season?: number }
-export interface MxDefenseView { defense: MxDefense; defenders: MxDefenders }
+export interface MxDefenseView { defense: MxDefense; defenders: MxDefenders; pff?: MxPffDefense | null }
+
+/* PFF matchup context (matchups_pff.py). Descriptive only: none of it beat ESPN's number in backtests. */
+export interface MxPffUnit { grade: number; rank: number; of: number }
+export type MxPffUnits = Partial<Record<"coverage" | "pass_rush" | "run_defense" | "pass_block" | "run_block", MxPffUnit>>;
+export interface MxPffDef {
+  pff_id: number; name: string; pos: string; games: number; corner: number; slot: number; box: number; cov_snaps: number; cov_grade: number | null;
+  tgt: number; rec: number; yds: number; td: number; int: number; yds_cov: number | null; rush_snaps: number; rush_grade: number | null; pressures: number;
+  sacks: number | null; prp: number | null; run_snaps: number; run_grade: number | null; stops: number; share: number | null;
+}
+export interface MxPffDefense { abbr: string; season: number; through: number | null; units: MxPffUnits; outside: MxPffDef[]; slot: MxPffDef[]; rushers: MxPffDef[]; run: MxPffDef[] }
+export interface MxPffLine { name: string; at: string; snaps: number; pass_grade: number | null; run_grade: number | null; pressures: number; sacks: number }
+export interface MxPffPlayer {
+  opp: string; season: number; through: number | null; pos: Pos; them: MxPffUnits; us: MxPffUnits; line: MxPffLine[];
+  align?: { slot: number; wide: number; inline: number; routes: number } | null; likely?: "slot" | "outside" | "inline";
+  outside?: MxPffDef[]; slot?: MxPffDef[]; rushers?: MxPffDef[]; run?: MxPffDef[];
+  covered_by?: { name: string | null; team: string | null; pos: string | null; tgt: number; rec: number; yds: number; td: number; theirs: boolean }[];
+}
 
 export interface MxSplit { db: number; tgt: number; tr: number | null; ypt: number | null; ppr_t: number | null; epa_t: number | null; comp: number | null }
 export interface MxBase {
@@ -95,5 +112,6 @@ export interface MxPlayer {
   game: { opp: string; home: boolean; date: string; time: string | null } | null;
   current: MxCurrent | MxQbCurrent | null; hist: MxHist | MxQbHist | null; lens?: MxLens | null;
   rush?: { car: number; yds: number; ypc: number; epa: number; success: number; explosive: number; td: number };
+  pff?: MxPffPlayer | null;
 }
 export const isQb = (p: MxPlayer): p is MxPlayer & { current: MxQbCurrent | null; hist: MxQbHist | null } => p.pos === "QB";
