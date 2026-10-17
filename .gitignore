@@ -24,3 +24,6 @@ __pycache__/
 .env
 .env.*
 .cache/pff/
+
+# Current-season play-by-play cache: the app rewrites it every few hours (matchups_data.load), so it is not tracked
+app/cache.nosync/matchups/2026.csv.gz
