@@ -8,7 +8,7 @@ in the same layout tools/fetch_pff_stats.py uses for the 2021-25 backtest window
 Everything here is optional. No key, no network or an API error leaves the cache as it was, and
 roles.py then types WR/TE with the free-data styles (model["style_free"]).
 
-  python -m app.engine.roles_pff 2026        # pull this season to date (+ last season once)
+  python -m app.engine.roles_pff 2026        # pull this season to date and its last two weeks (+ last season once)
 """
 from __future__ import annotations
 
@@ -169,6 +169,29 @@ def join(agg: pd.DataFrame, feats: pd.DataFrame) -> pd.DataFrame:
     return agg.join(feats[[c for c in cols if c in feats.columns]], how="left")
 
 
+def recent_split(season: int, weekly: pd.DataFrame | None, ids: pd.DataFrame | None = None) -> pd.DataFrame:
+    """Per gsis PFF counts for the last two weeks of the season-to-date window and for the weeks before them
+    (season window minus the recent one), for Shifts' role movers. Empty unless both windows are cached."""
+    try:
+        p = latest_window(season)
+        if p is None or weekly is None or not len(weekly):
+            return pd.DataFrame()
+        hi = int(p.stem.split("-")[1])
+        q = window_path(season, hi - 1, hi)
+        if hi < 4 or not q.exists():
+            return pd.DataFrame()
+        cols = ["routes", "slot_snaps", "pass_plays"]
+        a, b = load_counts(p), load_counts(q)
+        ga, gb = match(a, weekly, ids), match(b, weekly, ids)
+        a = a.assign(gsis=a["player_id"].map(ga)).dropna(subset=["gsis"]).drop_duplicates("gsis").set_index("gsis")[cols]
+        b = b.assign(gsis=b["player_id"].map(gb)).dropna(subset=["gsis"]).drop_duplicates("gsis").set_index("gsis")[cols]
+        b = b.reindex(a.index).fillna(0)
+        e = (a - b).clip(lower=0)
+        return pd.concat([b.add_prefix("r_"), e.add_prefix("e_")], axis=1).assign(lo=hi - 1, hi=hi)
+    except Exception:
+        return pd.DataFrame()
+
+
 def main(argv=None) -> int:
     import sys
     argv = sys.argv[1:] if argv is None else argv
@@ -181,6 +204,8 @@ def main(argv=None) -> int:
     calls = 0
     try:
         calls += fetch(season, 1, through, MAX_AGE)
+        if through >= 4:  # last two weeks on their own: Shifts' role movers (route share, slot rate)
+            calls += fetch(season, through - 1, through, MAX_AGE)
         if not window_path(season - 1, 1, 18).exists():
             calls += fetch(season - 1, 1, 18)
         print(f"PFF alignment through week {through}: {calls} API call(s)")

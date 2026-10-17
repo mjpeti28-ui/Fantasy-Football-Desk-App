@@ -52,8 +52,34 @@ def season_zone(ds, dh):
     return None
 
 
+ROUTE_T, SLOT_T = 15, 20  # role-mover thresholds, points of route share / slot rate (descriptive; not backtested as signals)
+
+
+def role_moves(split: pd.DataFrame, weekly: pd.DataFrame) -> dict:
+    """WR/TE route share (PFF routes / team dropbacks) and slot rate, last two weeks vs the weeks before,
+    from roles_pff.recent_split. Needs a game in the recent weeks (one, while the newest week is under way) and 2+
+    before them. gsis -> dict."""
+    if split is None or not len(split):
+        return {}
+    lo, hi = int(split["lo"].iloc[0]), int(split["hi"].iloc[0])
+    w = weekly[weekly["pos"].isin(["WR", "TE"]) & (weekly["week"] <= hi)]
+    rec, ear = w[w["week"] >= lo], w[w["week"] < lo]
+    db_r, db_e = rec.groupby("gsis")["t_db"].sum(), ear.groupby("gsis")["t_db"].sum()
+    n_r, n_e = rec.groupby("gsis").size(), ear.groupby("gsis").size()
+    out = {}
+    for g, x in split.iterrows():
+        if n_r.get(g, 0) < 1 or n_e.get(g, 0) < 2 or not db_r.get(g) or not db_e.get(g) or not x["r_pass_plays"] or not x["e_pass_plays"]:
+            continue
+        fr, to = min(100.0, 100 * x["e_routes"] / db_e[g]), min(100.0, 100 * x["r_routes"] / db_r[g])
+        fs, ts = min(100.0, 100 * x["e_slot_snaps"] / x["e_pass_plays"]), min(100.0, 100 * x["r_slot_snaps"] / x["r_pass_plays"])
+        out[g] = {"label": f"weeks {lo}–{hi} vs 1–{lo - 1}", "from_route": _f(fr, 0), "to_route": _f(to, 0), "d_route": _f(to - fr, 0),
+                  "from_slot": _f(fs, 0), "to_slot": _f(ts, 0), "d_slot": _f(ts - fs, 0),
+                  "games": int(n_r[g]), "move": bool(abs(to - fr) >= ROUTE_T or abs(ts - fs) >= SLOT_T)}
+    return out
+
+
 def build(board: dict, prev_agg: pd.DataFrame, e2g: dict, owners: dict, ledger: pd.DataFrame | None,
-          proj: dict, model: dict, week: int, pro_team: dict, headshot) -> dict:
+          proj: dict, model: dict, week: int, pro_team: dict, headshot, roles_pff: dict | None = None) -> dict:
     rows = []
     for pid, p in board["players"].items():
         pos = p["pos"]; s = p.get("series")
@@ -101,7 +127,7 @@ def build(board: dict, prev_agg: pd.DataFrame, e2g: dict, owners: dict, ledger: 
         ab = pro_team.get(int(pid)) or p.get("team")
         rows.append({"id": int(pid), "name": p["name"], "pos": pos, "team": ab, "headshot": headshot(int(pid), pos, ab),
                      "owner": own, "games": p["games"], "tier": p["tier"], "style": (p.get("style") or {}).get("name"),
-                     "series": s, "recent": recent, "season": season, "ledger": L, "espn_week": _f(proj.get(int(pid))),
+                     "series": s, "recent": recent, "season": season, "pff": (roles_pff or {}).get(g), "ledger": L, "espn_week": _f(proj.get(int(pid))),
                      "injury": (own or {}).get("injury") or (L or {}).get("status")})
     zones = {}
     for pos in ("RB", "WR", "TE"):
@@ -110,7 +136,7 @@ def build(board: dict, prev_agg: pd.DataFrame, e2g: dict, owners: dict, ledger: 
                       ("snap_up", "snap_up_out", "snap_up_still_out", "share_up_with_snaps", "share_spike", "snap_down", "share_drop")}
         zones[pos]["season"] = model.get("season_shift", {}).get(pos, {})
     return {"season": board["season"], "through_week": board["through_week"], "partial": board.get("partial", False), "week": week, "rows": rows, "zones": zones,
-            "thresholds": {"snap": R.SNAP_T, "share": R.SHARE_T, "snap_with": 10}}
+            "thresholds": {"snap": R.SNAP_T, "share": R.SHARE_T, "snap_with": 10, "route": ROUTE_T, "slot": SLOT_T}}
 
 
 def engine_build() -> dict:
@@ -127,4 +153,6 @@ def engine_build() -> dict:
     led = inp.ledger_players.set_index("espn_id") if len(inp.ledger_players) else None
     pr = inp.espn_proj[inp.espn_proj["week"] == inp.week]
     proj = dict(zip(pr["espn_id"].astype(int), pr["espn_proj"]))
-    return build(b, prev_agg, e2g, owners, led, proj, R.load_model(), inp.week, views._pro_team(inp), views.headshot)
+    from . import roles_pff as rp
+    moves = role_moves(rp.recent_split(season, cur, ids), cur)
+    return build(b, prev_agg, e2g, owners, led, proj, R.load_model(), inp.week, views._pro_team(inp), views.headshot, moves)
