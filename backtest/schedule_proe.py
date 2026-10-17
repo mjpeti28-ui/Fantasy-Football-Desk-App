@@ -83,7 +83,7 @@ def fit_apply(x: pd.DataFrame, cols, out_col: str) -> None:
             te = (x["position"] == pos) & (x["season"] == held)
             X = np.c_[np.ones(len(tr)), tr[cols]]
             b = np.linalg.lstsq(X, tr["future_ppg"] / tr["live"] - 1, rcond=None)[0]
-            x.loc[te, out_col] = x.loc[te, "live"] * (1 + x.loc[te, cols].to_numpy() @ b[1:])
+            x.loc[te, out_col] = x.loc[te, "live"] * (1 + b[0] + x.loc[te, cols].to_numpy() @ b[1:])
             if out_col.endswith("both") and not out_col.startswith("placebo"):
                 COEF.append({"position": pos, "held": held, **{c: b[i + 1] for i, c in enumerate(cols)}})
 

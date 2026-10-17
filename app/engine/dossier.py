@@ -40,8 +40,12 @@ def _map(model, pos, cur_agg, prev_agg, d_w, me, owners, g2e):
     last season's point, and each style group's 1-sd ellipse on these two axes."""
     st = model["style"][pos]
     pff_axes = model.get("axes_pff", {}).get(pos)
-    if pff_axes and pos in model.get("style_free", {}) and not cur_agg[cur_agg.pos == pos].reindex(columns=pff_axes).notna().all(axis=1).any():
-        st = model["style_free"][pos]  # no PFF alignment this season: free-data groups on the free axes
+    if pff_axes and pos in model.get("style_free", {}):
+        has = cur_agg.reindex(columns=pff_axes).notna().all(axis=1)
+        # the player himself (or, if he has no games yet, anyone at his position) lacks PFF alignment:
+        # free-data groups on the free axes, matching how roles.style_of typed him
+        if not (bool(has.get(me, False)) if me in cur_agg.index else has[cur_agg.pos == pos].any()):
+            st = model["style_free"][pos]
     ax, ay = pff_axes if pff_axes and all(a in st["features"] for a in pff_axes) else model["axes"][pos]
     f = st["features"]; ix, iy = f.index(ax), f.index(ay)
     groups = []

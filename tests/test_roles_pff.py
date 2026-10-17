@@ -74,3 +74,13 @@ def test_season_features_and_match(tmp_path, monkeypatch):
     f = rp.season_features(2026, weekly)
     assert list(f.index) == ["g1"]  # two Mike Williams at WR: dropped, not guessed
     assert abs(f.loc["g1", "slot_rate"] - 100 * 120 / 180) < 1e-9 and f.loc["g1", "pff_through"] == 5
+
+
+def test_role_map_uses_free_axes_for_unmatched_player():
+    from app.engine import dossier
+    cols = {"pos": "WR", "games": 6.0, "tgt_sh": 0.2, "adot": 11.0, "behind_r": 0.08, "deep_r": 0.15}
+    cur = pd.DataFrame([{**cols, "slot_rate": 55.0}, {**cols, "slot_rate": np.nan}], index=["matched", "unmatched"])
+    for me, axes in (("matched", MODEL["axes_pff"]["WR"]), ("unmatched", MODEL["axes"]["WR"])):
+        m = dossier._map(MODEL, "WR", cur, pd.DataFrame(), None, me, {}, {})
+        assert [m["x"], m["y"]] == list(axes)
+        assert [g["name"] for g in m["groups"]] == (MODEL["style"] if me == "matched" else MODEL["style_free"])["WR"]["names"]
