@@ -1,6 +1,7 @@
 """Fit the role model offline and write roles_model.json + roles_library.csv.gz (needs scikit-learn).
 
 python -m app.engine.roles_fit <cache_dir> [<actuals_dir>]
+python -m app.engine.roles_fit --pff <cache_dir> <pff_cache>   (WR/TE PFF styles on top of the shipped model)
   cache_dir    holds <season>/roles_weekly.csv for 2016-2025 (python -m app.engine.roles_data 2016 ... 2025)
   actuals_dir  history/actuals (ESPN weekly projections, 2021+) for the "next week vs ESPN" trend test
 
@@ -297,6 +298,118 @@ def comps_backtest(L: pd.DataFrame) -> dict:
     return out
 
 
+PFF_SEASONS = range(2021, 2026)
+# WR: k=3 (BIC's pick) labelled earlier but was no steadier year to year than the free styles (kappa .41 vs .41);
+# slot vs outside at k=2 is (kappa .54). TE: k=2 by BIC. Backtest: backtest/pff_roles_cluster.py on the PFF branch.
+PFF_K = {"WR": 2, "TE": 2}
+PFF_AXES = {"WR": ("slot_rate", "adot"), "TE": ("inline_rate", "tgt_per_snap")}
+
+
+def name_pff(pos, cent):
+    if pos == "WR":
+        names = {cent.slot_rate.idxmax(): "Slot receiver"}
+        for i in cent.index: names.setdefault(i, "Outside receiver")
+    else:
+        names = {cent.inline_rate.idxmax(): "Inline TE"}
+        for i in cent.index: names.setdefault(i, "Move TE")
+    return names
+
+
+def fit_pff_styles(roles_cache: Path, pff_cache: Path) -> None:
+    """Refit the WR/TE styles on free features + PFF alignment (2021-25, weeks 1-12) and write them into
+    roles_model.json; the free-data WR/TE styles move to model["style_free"] as the no-PFF fallback.
+    Only model parameters and aggregates are stored (no per-player PFF values)."""
+    from . import roles_pff as rp
+    model = json.loads((HERE / "roles_model.json").read_text())
+    model.setdefault("style_free", {p: model["style"][p] for p in PFF_K})
+    ids = pd.read_csv(HERE.parents[1] / "history" / "nflverse" / "ids.csv")
+    w = pd.concat([pd.read_csv(roles_cache / str(y) / "roles_weekly.csv") for y in PFF_SEASONS], ignore_index=True)
+    w = w[w.pos.isin(list(PFF_K))]
+
+    def pff(y, lo, hi):
+        c = rp.load_counts(rp.window_path(y, lo, hi, pff_cache))
+        c["gsis"] = c.player_id.map(rp.match(c, w[w.season == y], ids))
+        return c.dropna(subset=["gsis"]).drop_duplicates("gsis").set_index("gsis")
+
+    CNT = ["player_game_count", "slot_snaps", "inline_snaps", "routes", "pass_plays"]
+
+    def window(lo, hi, wins=None):
+        """nflverse weeks lo..hi + PFF rates summed over `wins` (default the same weeks), one row per season-player."""
+        out = []
+        for y in PFF_SEASONS:
+            a = R.aggregate(w[(w.season == y) & w.week.between(lo, hi)])
+            c = sum(pff(y, *x)[CNT] for x in (wins or [(lo, hi)])) if wins and len(wins) > 1 else pff(y, *(wins or [(lo, hi)])[0])[CNT]
+            c = rp.rates(c.dropna())
+            out.append(a.join(c[rp.FEATS + ["pass_plays", "player_game_count"]], on="gsis"))
+        return pd.concat(out, ignore_index=True)
+
+    full = window(1, 12)
+    halves = [window(1, 12, [(1, 3), (7, 9)]), window(1, 12, [(4, 6), (10, 12)])]
+    for pos, k in PFF_K.items():
+        col, mn = QUAL[pos]
+        f = list(R.STYLE[pos]) + list(R.PFF_STYLE[pos])
+        clip = {**R.STYLE[pos], **R.PFF_STYLE[pos]}
+        q = full[(full.pos == pos) & (full.games >= 8) & (full[col] >= mn) & (full.pass_plays >= 100)].dropna(subset=f).copy()
+        for c in f:
+            q[c] = q[c].clip(*clip[c])
+        # stabilization of the PFF features: weeks 1-3 + 7-9 vs 4-6 + 10-12, summed from counts
+        a, b = (h.merge(q[["season", "gsis"]]) for h in halves)
+        m2 = a.merge(b, on=["season", "gsis"], suffixes=("_a", "_b"))
+        nh = (m2.player_game_count_a.mean() + m2.player_game_count_b.mean()) / 2
+        yy = q.merge(q.assign(season=q.season - 1), on=["gsis", "season"], suffixes=("", "_n"))
+        for c in R.PFF_STYLE[pos]:
+            r = float(m2[[c + "_a", c + "_b"]].dropna().corr().iloc[0, 1]); ry = float(yy[[c, c + "_n"]].corr().iloc[0, 1])
+            v = q[c]
+            model["stab"][pos][c] = {"M": round(float(nh * (1 - r) / r), 2), "r_half": round(r, 3), "yoy": round(max(ry, 0), 3),
+                                     "mean": round(float(v.mean()), 5), "sd": round(float(v.std()), 5),
+                                     "q": [round(float(t), 5) for t in np.percentile(v, np.linspace(0, 100, 21))], "n": int(len(v)), "source": "PFF"}
+            print(f"  stab {pos} {c:12s} M={model['stab'][pos][c]['M']:5.1f} games  r_half={r:.2f} yoy={ry:.2f}")
+        mu, sc = q[f].mean().values, q[f].std(ddof=0).values
+        X = (q[f].values - mu) / sc
+        gm = GaussianMixture(k, n_init=10, random_state=0, covariance_type="full").fit(X)
+        q["cl"] = gm.predict(X)
+        cent = q.groupby("cl")[f].mean(); names = name_pff(pos, cent); nm = [names[i] for i in range(k)]
+        m = q[["gsis", "season", "cl"]].merge(q[["gsis", "season", "cl"]].assign(season=q.season - 1), on=["gsis", "season"], suffixes=("", "_n"))
+        st = {"features": f, "mean": mu.round(5).tolist(), "scale": sc.round(5).tolist(), "weights": gm.weights_.round(5).tolist(),
+              "means": gm.means_.round(5).tolist(), "covs": gm.covariances_.round(6).tolist(), "names": nm, "n": int(len(q)),
+              "n_fit": round(float(q.games.mean()), 2), "seasons": [min(PFF_SEASONS), max(PFF_SEASONS)], "source": "PFF alignment + nflverse",
+              "centroids": {nm[i]: {c: round(float(cent.loc[i, c]), 4) for c in f} for i in range(k)},
+              "yoy_same": round(float((m.cl == m.cl_n).mean()), 3), "kappa": round(float(cohen_kappa_score(m.cl, m.cl_n)), 3),
+              "transitions": {nm[a]: {nm[b]: round(float(((m.cl == a) & (m.cl_n == b)).sum() / max(1, (m.cl == a).sum())), 3) for b in range(k)} for a in range(k)},
+              "meaning": {nm[i]: {"ppg": round(float(q[q.cl == i].ppr.sum() / q[q.cl == i].games.sum()), 1), "n": int((q.cl == i).sum()),
+                                  "snap": round(float(q[q.cl == i].snap.mean()), 0)} for i in range(k)}}
+        # early check through the shipped classifier (noise-aware), weeks 1..G, vs the weeks 1-12 label;
+        # the free-data fallback is scored on the same rows against its own weeks 1-12 label
+        free = model["style_free"][pos]
+        lab_free = q.apply(lambda r: int(np.argmax(R.classify(model, pos, r, 99, free))), axis=1)
+        fq = q.assign(cl_free=lab_free.values)
+        mf = fq[["gsis", "season", "cl_free"]].merge(fq[["gsis", "season", "cl_free"]].assign(season=fq.season - 1), on=["gsis", "season"], suffixes=("", "_n"))
+        acc, acc_free = {}, {}
+        for G in (3, 6):
+            e = window(1, G).merge(fq[["season", "gsis", "cl", "cl_free"]], on=["season", "gsis"])
+            h, cf, hf = [], [], []
+            for r in e.to_dict("records"):
+                pr = R.classify(model, pos, r, r["games"], st)
+                prf = R.classify(model, pos, r, r["games"], free)
+                if pr is None or prf is None:
+                    continue
+                h.append(int(np.argmax(pr) == r["cl"])); cf.append(float(pr.max())); hf.append(int(np.argmax(prf) == r["cl_free"]))
+            acc[f"G{G}"] = {"acc": round(float(np.mean(h)), 3), "conf": round(float(np.mean(cf)), 3), "n": len(h)}
+            acc_free[f"G{G}"] = round(float(np.mean(hf)), 3)
+        st["early_acc"] = acc
+        st["check_free_same_rows"] = {"early_acc": acc_free, "yoy_same": round(float((mf.cl_free == mf.cl_free_n).mean()), 3),
+                                      "kappa": round(float(cohen_kappa_score(mf.cl_free, mf.cl_free_n)), 3)}
+        model["style"][pos] = st
+        print(f"  style {pos}: {nm} n={len(q)} yoy={st['yoy_same']} kappa={st['kappa']} early={acc}")
+        print(f"    free-data styles on the same rows: {st['check_free_same_rows']}")
+        for i in range(k):
+            print(f"    {nm[i]:18s} share={np.mean(q.cl == i):.2f} " + " ".join(f"{c}={cent.loc[i, c]:.3g}" for c in f))
+    model["axes_pff"] = {p: list(a) for p, a in PFF_AXES.items()}
+    model["version"] = 3
+    (HERE / "roles_model.json").write_text(json.dumps(model, separators=(",", ":")))
+    print("wrote", HERE / "roles_model.json")
+
+
 def main(cache: Path, actuals: Path | None):
     w = pd.concat([pd.read_csv(cache / str(y) / "roles_weekly.csv") for y in SEASONS], ignore_index=True)
     w = w[w.pos.isin(["QB", "RB", "WR", "TE"])]
@@ -326,4 +439,7 @@ def main(cache: Path, actuals: Path | None):
 
 
 if __name__ == "__main__":
-    main(Path(sys.argv[1]), Path(sys.argv[2]) if len(sys.argv) > 2 else None)
+    if sys.argv[1] == "--pff":  # python -m app.engine.roles_fit --pff <roles_cache> <pff_cache>
+        fit_pff_styles(Path(sys.argv[2]), Path(sys.argv[3]))
+    else:
+        main(Path(sys.argv[1]), Path(sys.argv[2]) if len(sys.argv) > 2 else None)

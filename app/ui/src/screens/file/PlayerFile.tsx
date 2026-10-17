@@ -110,7 +110,7 @@ function RoleMap({ f, myTeam, onOpen }: { f: PF; myTeam: number; onOpen: (id: nu
       </svg>
       <p className="pf-cap">
         Every {pos} with 2+ games this season, placed by the two usage traits that separate the {f.style_info.names.length} styles (dot size = {pos === "RB" ? "opportunity" : pos === "QB" ? "dropback" : "target"} share,
-        <span className="k-mine" /> on your roster). Ovals cover the middle of each style group, 2016–25. The colored path is {f.name.split(" ").slice(-1)[0]} week by week, regressed for sample size{m.last_season ? `; the ring is ${f.season - 1}` : ""}.
+        <span className="k-mine" /> on your roster). Ovals cover the middle of each style group, {(m.seasons ?? [2016, 2025])[0]}–{String((m.seasons ?? [2016, 2025])[1]).slice(2)}.{f.style_info.pff ? " Alignment (slot/inline) is PFF season to date, so his point has no weekly path." : ""} The colored path is {f.name.split(" ").slice(-1)[0]} week by week, regressed for sample size{m.last_season ? `; the ring is ${f.season - 1}` : ""}.
       </p>
     </div>
   );
@@ -469,7 +469,7 @@ export function PlayerFileView({ file, err, loading, nameHint, myTeam, colors, d
             <BoxScore f={f} />
           </section>
           <footer className="pf-foot">
-            Usage from nflverse play-by-play, FTN charting and snap counts; points and projections from ESPN. Styles, stabilization and comps are fit on 2016–25 and tested out of sample (app/DESIGN.md).
+            Usage from nflverse play-by-play, FTN charting and snap counts{f.style_info.pff ? "; WR/TE alignment from PFF" : ""}; points and projections from ESPN. Styles, stabilization and comps are fit on 2016–25 and tested out of sample (app/DESIGN.md).
             Nothing here feeds the valuation model; it explains, it doesn't forecast better than the model.
           </footer>
         </div>}

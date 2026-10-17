@@ -38,8 +38,16 @@ def _age(birth, season):
 def _map(model, pos, cur_agg, prev_agg, d_w, me, owners, g2e):
     """Role map: shrunk style axes for every qualified player at the position, his weekly trail,
     last season's point, and each style group's 1-sd ellipse on these two axes."""
-    ax, ay = model["axes"][pos]
-    st = model["style"][pos]; f = st["features"]; ix, iy = f.index(ax), f.index(ay)
+    st = model["style"][pos]
+    pff_axes = model.get("axes_pff", {}).get(pos)
+    if pff_axes and pos in model.get("style_free", {}):
+        has = cur_agg.reindex(columns=pff_axes).notna().all(axis=1)
+        # the player himself (or, if he has no games yet, anyone at his position) lacks PFF alignment:
+        # free-data groups on the free axes, matching how roles.style_of typed him
+        if not (bool(has.get(me, False)) if me in cur_agg.index else has[cur_agg.pos == pos].any()):
+            st = model["style_free"][pos]
+    ax, ay = pff_axes if pff_axes and all(a in st["features"] for a in pff_axes) else model["axes"][pos]
+    f = st["features"]; ix, iy = f.index(ax), f.index(ay)
     groups = []
     for nm, mu, cov in zip(st["names"], st["means"], st["covs"]):
         mx = mu[ix] * st["scale"][ix] + st["mean"][ix]; my = mu[iy] * st["scale"][iy] + st["mean"][iy]
@@ -60,7 +68,15 @@ def _map(model, pos, cur_agg, prev_agg, d_w, me, owners, g2e):
         eid = g2e.get(g)
         peers.append({"id": eid, "x": x, "y": y, "vol": _f(r.get(col), 3), "name": r.get("pname"), "owner": owners.get(eid)})
     trail = []
-    if d_w is not None and len(d_w):
+    if (ax in R.PFF_STYLE.get(pos, {}) or ay in R.PFF_STYLE.get(pos, {})) and me in cur_agg.index:
+        # PFF alignment is season to date only: one point, no weekly trail
+        r = cur_agg.loc[me]; p = prev_agg.loc[me] if me in prev_agg.index else None
+        pg = float(p["games"]) if p is not None else 0
+        x = R.shrink(model, pos, ax, r.get(ax), r["games"], None if p is None else p.get(ax), pg)
+        y = R.shrink(model, pos, ay, r.get(ay), r["games"], None if p is None else p.get(ay), pg)
+        if x is not None and y is not None and d_w is not None and len(d_w):
+            trail.append({"week": int(d_w.iloc[-1]["week"]), "x": x, "y": y})
+    elif d_w is not None and len(d_w):
         p = prev_agg.loc[me] if me in prev_agg.index else None
         pg = float(p["games"]) if p is not None else 0
         for i in range(1, len(d_w) + 1):
@@ -76,10 +92,22 @@ def _map(model, pos, cur_agg, prev_agg, d_w, me, owners, g2e):
             last = {"x": float(p[ax]), "y": float(p[ay])}
     labels = {k: R.METRICS[pos].get(k, (None,))[0] for k in (ax, ay)}
     fallback = {"rec_mix": "Touches that are catches", "pd_ratio": "Passing-down tilt (1 = even)", "behind_r": "Targets at or behind the line",
-                "adot": "Average depth of target", "tgt_per_snap": "Targets per snap", "des_rush_g": "Designed runs per game", "p_adot": "Average throw depth"}
+                "adot": "Average depth of target", "tgt_per_snap": "Targets per snap", "des_rush_g": "Designed runs per game", "p_adot": "Average throw depth",
+                "slot_rate": "Pass snaps in the slot (PFF)", "inline_rate": "Pass snaps inline (PFF)"}
     return {"x": ax, "y": ay, "xlabel": labels[ax] or fallback.get(ax, ax), "ylabel": labels[ay] or fallback.get(ay, ay),
             "groups": groups, "peers": peers, "trail": trail, "last_season": last,
-            "fmt": {ax: R.METRICS[pos].get(ax, (None, "num2"))[1], ay: R.METRICS[pos].get(ay, (None, "num2"))[1]}}
+            "fmt": {a: "pct100" if a in R.PFF_STYLE.get(pos, {}) else R.METRICS[pos].get(a, (None, "num2"))[1] for a in (ax, ay)},
+            "seasons": st.get("seasons", model["seasons"])}
+
+
+def _style_info(model, pos, st):
+    """Facts about the style model this player was typed with (PFF or the free-data fallback)."""
+    m = model["style"][pos]
+    if st and not st.get("pff", True) and pos in model.get("style_free", {}):
+        m = model["style_free"][pos]
+    out = {k: m.get(k) for k in ("names", "centroids", "transitions", "meaning", "early_acc", "yoy_same", "kappa")}
+    out["seasons"] = m.get("seasons", model["seasons"]); out["pff"] = any(c in R.PFF_STYLE.get(pos, {}) for c in m["features"])
+    return out
 
 
 def _read(pos, name, prof, fp, comps, est_ppg, model, games, espn_wk, logs):
@@ -91,7 +119,8 @@ def _read(pos, name, prof, fp, comps, est_ppg, model, games, espn_wk, logs):
                     f"({round(st['p'] * 100)}%); everything below leans on that."})
     elif st:
         sure = "" if st["p"] >= 0.75 else f", leaning {st['alt'].lower()}" if st["alt_p"] >= 0.25 else ""
-        acc = model["style"][pos].get("early_acc", {}).get("G3" if games < 6 else "G6", {}).get("acc")
+        sm = model["style_free"][pos] if not st.get("pff", True) and pos in model.get("style_free", {}) else model["style"][pos]
+        acc = sm.get("early_acc", {}).get("G3" if games < 6 else "G6", {}).get("acc")
         out.append({"kind": "role", "anchor": "map", "text": f"{prof['tier']}, {st['name'].lower()}{sure} ({round(st['p'] * 100)}% sure after {games} games"
                     + (f"; labels this early match the full-season call {round(acc * 100)}% of the time" if acc and games < 8 else "") + ")."})
     reliable = [m for m in fp if (m["rel"] or 0) >= 0.6 and m["pct"] is not None and m["group"] in ("Role", "Style") and m["key"] != "snap"]
@@ -153,6 +182,11 @@ def build(espn_id: int, ctx: dict) -> dict | None:
     if "pname" in cur:
         cur_agg["pname"] = cur.dropna(subset=["pname"]).groupby("gsis")["pname"].last()
     prev_agg = R.aggregate(prev, ("gsis", "pos")).set_index("gsis") if prev is not None else pd.DataFrame()
+    from . import roles_pff as rp
+    pff = R.pff_tables(season, cur, prev, ids)
+    cur_agg = rp.join(cur_agg, pff[0])
+    if len(prev_agg):
+        prev_agg = rp.join(prev_agg, pff[1])
     c = cur_agg.loc[g] if g in cur_agg.index else None
     p = prev_agg.loc[g] if (g in prev_agg.index and prev_agg.loc[g]["games"] >= 3) else None
     games = float(c["games"]) if c is not None else 0.0
@@ -219,7 +253,7 @@ def build(espn_id: int, ctx: dict) -> dict | None:
                                                 "rank": int((peers.ppr_g > c["ppr_g"]).sum() + 1) if len(peers) else None, "of": int(len(peers))},
         "last_season": None if p is None else {"games": int(p["games"]), "ppr_g": _f(p["ppr_g"]), "snap": _f(p["snap"], 0)},
         "role": prof, "fingerprint": fp,
-        "style_info": {k: model["style"][pos][k] for k in ("names", "centroids", "transitions", "meaning", "early_acc", "yoy_same", "kappa")},
+        "style_info": _style_info(model, pos, prof.get("style")),
         "map": _map(model, pos, cur_agg, prev_agg, d_w if len(d_w) else None, g, owners, g2e),
         "gamelog": logs, "comps": comp,
     }

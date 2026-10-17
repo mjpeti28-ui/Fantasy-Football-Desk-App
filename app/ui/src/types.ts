@@ -185,7 +185,7 @@ export interface RoleTrend {
   kind: string; label: string; text: string; hold: number | null; hold_n?: number; cause?: string[]; hold_if_still_out?: number | null;
   next_vs_espn?: number | null; next_lo?: number | null; next_hi?: number | null; next_n?: number; season?: boolean;
 }
-export interface RoleStyle { name: string; p: number; alt: string; alt_p: number; probs: Record<string, number>; from_last_season?: boolean }
+export interface RoleStyle { name: string; p: number; alt: string; alt_p: number; probs: Record<string, number>; from_last_season?: boolean; pff?: boolean }
 export interface RoleProfile {
   name: string; pos: Pos; team: string | null; games: number; tier: string;
   style: RoleStyle | null; traits: RoleTrait[]; trends: RoleTrend[];
@@ -194,6 +194,8 @@ export interface RoleProfile {
 export interface RolesBoard {
   season: number; through_week: number; fit_seasons: [number, number];
   styles: Record<string, { names: string[]; yoy_same: number; early_acc?: Record<string, { acc: number; conf: number; n: number }> }>;
+  styles_free?: Record<string, { names: string[]; yoy_same: number; early_acc?: Record<string, { acc: number; conf: number; n: number }> }>;
+  pff_through?: number | null;
   players: Record<string, RoleProfile>;
 }
 
@@ -229,9 +231,9 @@ export interface PlayerFile {
   last_season: { games: number; ppr_g: number; snap: number } | null;
   role: RoleProfile; fingerprint: FpMetric[];
   style_info: { names: string[]; centroids: Record<string, Record<string, number>>; transitions: Record<string, Record<string, number>>;
-    meaning: Record<string, { ppg: number; n: number; snap: number }>; early_acc: Record<string, { acc: number; conf: number; n: number }>; yoy_same: number; kappa: number };
+    meaning: Record<string, { ppg: number; n: number; snap: number }>; early_acc: Record<string, { acc: number; conf: number; n: number }>; yoy_same: number; kappa: number; seasons?: [number, number]; pff?: boolean };
   map: { x: string; y: string; xlabel: string; ylabel: string; groups: MapGroup[]; peers: MapPeer[]; trail: { week: number; x: number; y: number }[];
-    last_season: { x: number; y: number } | null; fmt: Record<string, string> };
+    last_season: { x: number; y: number } | null; fmt: Record<string, string>; seasons?: [number, number] };
   gamelog: LogRow[]; comps: Comps | null;
   read: { kind: "role" | "signal" | "caution" | "change" | "outlook"; anchor: string; text: string }[];
 }

@@ -203,6 +203,9 @@ def _run_refresh(season: int, week: int, quick: bool = False, full: bool = False
         steps.append(("nflverse play-by-play (roles)", [sys.executable, "-m", "app.engine.roles_data", str(season)]))
     else:  # the automatic refreshes rebuild it only when nflverse has published new snap/charting data (HEAD checks, no download)
         steps.append(("nflverse usage (only if new data is out)", [sys.executable, "-m", "app.engine.roles_data", "--if-stale", str(season)]))
+    # optional: PFF slot/inline alignment for the WR/TE styles (at most one call per 12h; no key or an error
+    # exits 0 and the styles fall back to free data)
+    steps.append(("PFF alignment (WR/TE styles)", [sys.executable, "-m", "app.engine.roles_pff", str(season)]))
     _refresh.update(state="running", started=time.time(), finished=None, log=[], quick=quick, full=full, step=None)
     ok = True
     for label, cmd in steps:

@@ -6,7 +6,8 @@ Model v2 (fit offline by roles_fit.py on 2016-25, shipped as roles_model.json):
   spread is real, from split-half reliability). In-season numbers are shrunk toward a prior
   (last season, regressed by its year-to-year correlation, else the position average) by
   R(n) = n / (n + M). Percentiles and traits use the shrunk value.
-- Style is a 3-group Gaussian mixture per position on reliable shape features. Classification
+- Style is a Gaussian mixture per position on reliable shape features (WR/TE add PFF alignment,
+  fit on 2021-25; without PFF data they fall back to the free-data groups in model["style_free"]). Classification
   inflates each group's covariance by the sampling noise of an n-game sample, so a 3-game label
   says "70%" when it is right about 70% of the time (backtested).
 Scoring here is numpy only.
@@ -31,6 +32,10 @@ STYLE = {  # features and clip ranges; chosen for split-half reliability (see ro
     "WR": {"adot": (-5, 30), "behind_r": (0, 1), "deep_r": (0, 1)},
     "TE": {"tgt_per_snap": (0, .4), "adot": (-5, 25), "behind_r": (0, 1)},
     "QB": {"des_rush_g": (0, 15), "scr_rate": (0, .3), "p_adot": (0, 15)},
+}
+PFF_STYLE = {  # PFF alignment features (roles_pff.py) added to the WR/TE styles; % of the player's pass snaps
+    "WR": {"slot_rate": (0, 100)},
+    "TE": {"inline_rate": (0, 100), "slot_rate": (0, 100), "route_rate": (20, 100)},
 }
 AXES = {  # two interpretable style axes per position for the role map
     "RB": ("rec_mix", "pd_ratio"), "WR": ("adot", "behind_r"), "TE": ("tgt_per_snap", "adot"), "QB": ("des_rush_g", "p_adot"),
@@ -134,19 +139,34 @@ def pct_of(model: dict, pos: str, metric: str, v) -> float | None:
     return float(np.interp(v, s["q"], np.linspace(0, 100, len(s["q"]))))
 
 
-def classify(model: dict, pos: str, row, games: float) -> np.ndarray | None:
-    """Style probabilities with each group's covariance widened by n-game sampling noise."""
+def _x(pos: str, m: dict, row) -> np.ndarray:
+    clip = {**STYLE[pos], **PFF_STYLE.get(pos, {})}
+    v = lambda c: row.get(c, np.nan) if row is not None else np.nan
+    return np.array([np.clip(np.nan if v(c) is None else v(c), *clip[c]) for c in m["features"]], float)
+
+
+def style_model(model: dict, pos: str, row) -> dict | None:
+    """The PFF style model when this row has PFF alignment, else the free-data one."""
     m = model["style"].get(pos)
+    if m and np.isnan(_x(pos, m, row)).any() and pos in model.get("style_free", {}):
+        return model["style_free"][pos]
+    return m
+
+
+def classify(model: dict, pos: str, row, games: float, m: dict | None = None) -> np.ndarray | None:
+    """Style probabilities with each group's covariance widened by n-game sampling noise."""
+    m = m or style_model(model, pos, row)
     if not m:
         return None
     f = m["features"]
-    x = np.array([np.clip(row.get(c, np.nan), *STYLE[pos][c]) for c in f], float)
+    x = _x(pos, m, row)
     if np.isnan(x).any():
         return None
     z = (x - np.array(m["mean"])) / np.array(m["scale"])
     M = np.array([model["stab"][pos][c]["M"] for c in f])
-    rseas = 15.0 / (15.0 + M)
-    extra = np.clip((1.0 / max(games, 1.0) - 1.0 / 15.0) * rseas * M, 0, None)
+    n_fit = m.get("n_fit", 15.0)  # games behind a fit-sample row
+    rseas = n_fit / (n_fit + M)
+    extra = np.clip((1.0 / max(games, 1.0) - 1.0 / n_fit) * rseas * M, 0, None)
     lp = []
     for w, mu, cov in zip(m["weights"], m["means"], m["covs"]):
         c = np.array(cov) + np.diag(extra); d = z - np.array(mu)
@@ -308,12 +328,14 @@ def style_of(model, pos, c, p, games):
         src, n = p, float(p["games"])
     if src is None:
         return None
-    pr = classify(model, pos, src, n)
+    m = style_model(model, pos, src)
+    pr = classify(model, pos, src, n, m)
     if pr is None:
         return None
-    nm = model["style"][pos]["names"]; o = np.argsort(-pr)
+    nm = m["names"]; o = np.argsort(-pr)
     return {"name": nm[o[0]], "p": round(float(pr[o[0]]), 2), "alt": nm[o[1]], "alt_p": round(float(pr[o[1]]), 2),
-            "probs": {nm[i]: round(float(pr[i]), 3) for i in range(len(nm))}, "from_last_season": src is p}
+            "probs": {nm[i]: round(float(pr[i]), 3) for i in range(len(nm))}, "from_last_season": src is p,
+            "pff": any(c in PFF_STYLE.get(pos, {}) for c in m["features"])}
 
 
 def profile_one(model, g, d, c, p, ctx, names, last_week):
@@ -340,9 +362,10 @@ def profile_one(model, g, d, c, p, ctx, names, last_week):
     return res, fp
 
 
-def profiles(cur_w: pd.DataFrame, prev_w: pd.DataFrame | None, model: dict, names: dict) -> dict:
-    cur = aggregate(cur_w, ("gsis", "pos")).set_index("gsis")
-    prev = aggregate(prev_w, ("gsis", "pos")).set_index("gsis") if prev_w is not None and len(prev_w) else pd.DataFrame()
+def profiles(cur_w: pd.DataFrame, prev_w: pd.DataFrame | None, model: dict, names: dict, pff=(None, None)) -> dict:
+    from . import roles_pff as rp
+    cur = rp.join(aggregate(cur_w, ("gsis", "pos")).set_index("gsis"), pff[0])
+    prev = rp.join(aggregate(prev_w, ("gsis", "pos")).set_index("gsis"), pff[1]) if prev_w is not None and len(prev_w) else pd.DataFrame()
     last_week = int(cur_w["week"].max()); ctx = _context(cur_w)
     out = {}
     for g, d in cur_w.sort_values("week").groupby("gsis"):
@@ -381,10 +404,17 @@ def tables(refresh: bool = False):
     return _CACHE["tables"]
 
 
+def pff_tables(season: int, cur: pd.DataFrame, prev: pd.DataFrame | None, ids: pd.DataFrame):
+    """(this season, last season) PFF alignment by gsis; empty frames when PFF isn't there."""
+    from . import roles_pff as rp
+    return rp.season_features(season, cur, ids), rp.season_features(season - 1, prev, ids)
+
+
 def board(refresh: bool = False) -> dict:
     """Profiles for every QB/RB/WR/TE who has played this season, keyed by ESPN id."""
     season, cur, prev, ids = tables(refresh)
-    key = ("board", _CACHE.get("tkey"))
+    from . import roles_pff as rp
+    key = ("board", _CACHE.get("tkey"), rp.stamp(season))
     if not refresh and _CACHE.get("bkey") == key:
         return _CACHE["board"]
     names = dict(zip(ids["gsis_id"], ids["name"]))
@@ -392,10 +422,13 @@ def board(refresh: bool = False) -> dict:
         for g, n in cur.dropna(subset=["pname"]).groupby("gsis")["pname"].last().items():
             names.setdefault(g, n)
     model = load_model()
-    P = profiles(cur, prev, model, names)
+    pff = pff_tables(season, cur, prev, ids)
+    P = profiles(cur, prev, model, names, pff)
     espn = ids.dropna(subset=["gsis_id", "espn_id"]).drop_duplicates("gsis_id").set_index("gsis_id")["espn_id"].astype(int)
     out = {"season": season, "through_week": int(cur["week"].max()),
            "styles": {p: {"names": m["names"], "yoy_same": m["yoy_same"], "early_acc": m.get("early_acc")} for p, m in model["style"].items()},
+           "styles_free": {p: {"names": m["names"], "yoy_same": m["yoy_same"], "early_acc": m.get("early_acc")} for p, m in model.get("style_free", {}).items()},
+           "pff_through": int(pff[0]["pff_through"].max()) if len(pff[0]) else None,
            "fit_seasons": model["seasons"], "players": {}}
     for g, prof in P.items():
         if g in espn.index:
