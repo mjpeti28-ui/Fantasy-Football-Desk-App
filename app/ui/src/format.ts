@@ -9,6 +9,18 @@ export const pct = (x: number | null | undefined) =>
 
 // "through week 5 (week 6 under way)" when only some of the latest week's games are in
 export const throughWeek = (w: number, partial?: boolean) => (partial ? `through week ${w - 1} (week ${w} under way)` : `through week ${w}`);
+/** One short form per team, used wherever a full team name won't fit: the whole name if short, else its last word
+ * ("Stinkers", "Gemstones") when that's unique in the league, else its first two words. Leading "The" is dropped. */
+export function teamShort(name: string, all: string[]): string {
+  const strip = (n: string) => n.replace(/^the\s+/i, "").trim();
+  const n = strip(name);
+  if (n.length <= 12) return n;
+  const last = (x: string) => strip(x).split(/\s+/).pop()!.toLowerCase();
+  const w = n.split(/\s+/), lw = w[w.length - 1];
+  if (lw.length >= 4 && /[a-z]/i.test(lw) && all.filter((x) => last(x) === lw.toLowerCase()).length <= 1) return lw;
+  return w.slice(0, 2).join(" ");
+}
+
 export const lastName = (n: string) => (n.endsWith("D/ST") ? n : n.split(" ").slice(1).join(" ") || n);
 
 export function clock(t?: string) {
