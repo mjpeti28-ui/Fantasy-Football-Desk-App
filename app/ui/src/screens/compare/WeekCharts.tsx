@@ -59,7 +59,10 @@ export function DefenseDots({ files, mx }: { files: PF[]; mx: Record<number, MxC
         <div key={k} className="ddr">
           <span className="nm">{k === "pass" ? "Pass D" : "Run D"}</span>
           <span className="trk"><i className="zone tough" /><i className="zone soft" />
-            {files.map((f, i) => { const d = mx[f.id]?.defense?.[k]; return d ? <b key={f.id} style={{ left: `${((d.rank - 1) / Math.max(1, d.of - 1)) * 100}%`, ["--c" as string]: POS_VAR[f.pos] }}
+            {files.map((f, i) => { const d = mx[f.id]?.defense?.[k];
+              // players facing equally ranked defenses (teammates, or the same rank) sit side by side instead of on top of each other
+              const n = d ? files.slice(0, i).filter((g) => mx[g.id]?.defense?.[k]?.rank === d.rank).length : 0;
+              return d ? <b key={f.id} style={{ left: `${((d.rank - 1) / Math.max(1, d.of - 1)) * 100}%`, marginLeft: -10 + n * 18, ["--c" as string]: POS_VAR[f.pos] }}
               title={`${f.name}: ${mx[f.id]!.opp} ${d.label.toLowerCase()}, ${d.rank} of ${d.of}`}>{LET[i]}</b> : null; })}
           </span>
         </div>
