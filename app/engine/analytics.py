@@ -452,7 +452,7 @@ def _league(season: int) -> dict:
     pos_of = inp.players_weekly.drop_duplicates("espn_id").set_index("espn_id")["position"]
     name_of = inp.players_weekly.drop_duplicates("espn_id").set_index("espn_id")["name"]
     dr = draft.copy()
-    dr["overall"] = (dr["round"] - 1) * len(teams) + dr["pick"]
+    dr["overall"] = dr["pick"]   # ESPN's pick number is already overall
     dr["pos"] = dr["espn_id"].map(pos_of)
     dr = dr.dropna(subset=["pos"]).sort_values("overall")
     dr["pos_pick"] = dr.groupby("pos").cumcount() + 1

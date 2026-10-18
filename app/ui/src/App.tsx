@@ -38,7 +38,7 @@ import { analyticsApi, matchupsApi, shiftsApi, useWarm, warmed, changesApi, kick
 import { MyAnalysis, analysisMarkdown } from "./screens/myteam/Analysis";
 import { Signals } from "./components/Analytics";
 import { LabScreen } from "./screens/lab/Lab";
-import type { ALeague, Analytics } from "./types";
+import type { ALeague, Analytics, DraftRecap } from "./types";
 import { ChangesPanel } from "./components/Changes";
 import { Shortcuts } from "./components/Shortcuts";
 import type { Shifts as ShiftsT } from "./types";
@@ -136,6 +136,7 @@ export default function App() {
   // season analytics (every stat labelled by the 2021–25 backtest): preloaded once the engine has built it
   const [an, setAn] = useState<Analytics | null>(null);
   const [anLg, setAnLg] = useState<ALeague | null>(null);
+  const [dRec, setDRec] = useState<DraftRecap | null>(null);
   const [anErr, setAnErr] = useState<string | null>(null);
   const anKey = useRef<string | null>(null);
   useEffect(() => {
@@ -144,6 +145,7 @@ export default function App() {
     analyticsApi.players().then((x) => { setAn(x); setAnErr(null); },
       (e) => { anKey.current = null; setAnErr(/404/.test(String(e)) ? "The engine running now predates the analytics. Quit Desk and open it again once." : `Couldn't build the season analytics: ${e}`); });
     analyticsApi.league().then(setAnLg, () => undefined);
+    analyticsApi.draft().then(setDRec, () => undefined);
   }, [screen, mode, source, dataKey, warm, fileNav]);
 
   // matchups: coverage splits, defenses and defenders from free charted data (built by the engine; ~20 s the first time)
@@ -420,7 +422,7 @@ export default function App() {
           {screen === "team" && mode !== "analysis" && (mode === "board"
             ? <Board tw={tw} plan={plan} setPlan={setPlan} selected={selPlayer?.id ?? null} onSelect={(id) => setSel({ kind: "player", id })} ratioQ={snap.ratio_q} colorMode={colorMode} teamColors={snap.team_colors} roles={roles} dropCost={wboard?.drop_cost ?? null} freeAgents={wboard?.candidates ?? null} onWaivers={() => setScreen("waivers")} onCopy={async (t) => flash((await copyText(t)) ? "Copied the moves" : "Copy failed")} />
             : <GameDay tw={tw} plan={plan} live={liveB} selected={selPlayer?.id ?? null} onSelect={(id) => setSel({ kind: "player", id })} />)}
-          {screen === "league" && <League alg={source === "engine" ? anLg : null} power={snap.power} myId={tw.team_id} oppId={tw.matchup?.opp_id ?? null} live={live} liveErr={liveErr}
+          {screen === "league" && <League alg={source === "engine" ? anLg : null} draft={source === "engine" ? dRec : null} power={snap.power} myId={tw.team_id} oppId={tw.matchup?.opp_id ?? null} live={live} liveErr={liveErr}
             engineUp={source === "engine"} whatif={whatif} scenario={scenario} busy={busy} selected={leagueSel}
             onSelect={setLeagueSel} onTrade={(t) => { setDeal({ partner: t, give: [], get: [] }); setScreen("trades"); }} onRemove={(id) => void applyScenario(scenario.filter((o) => o.id !== id))} onClear={() => void applyScenario([])} />}
           {screen === "trades" && <Trades an={source === "engine" ? an : null} me={tw.team_id} teams={snap.power.teams} live={live} engineUp={source === "engine"} teamColors={snap.team_colors}
