@@ -312,6 +312,26 @@ export interface ALeague {
   labels: Record<string, { name: string; label: ALabel; repeat: number | null }>;
 }
 
+/** /api/draft: draft recap (app/engine/draft.py). v_* = value over replacement vs what that pick slot usually returns. */
+export interface DPick {
+  id: number; name: string | null; pos: Pos | null; team_id: number; round: number; pick: number;
+  pts: number; vor: number; gp: number; possible: number; exp_now: number; v_now: number; v_rate: number; v_absence: number;
+  ros: number | null; exp_ros: number | null; v_ros: number | null; v_total: number;
+  adp: number | null; vs_adp: number | null; board_rank: number | null;
+  status: "kept" | "dropped" | "traded"; owner_now: number | null; left_after: number | null;
+  started_for_drafter: number; started_elsewhere: number;
+}
+export interface DTeam {
+  id: number; name: string; v_now: number; v_rate: number; v_absence: number; v_ros: number; v_total: number; pts: number;
+  started_for_drafter: number; started_elsewhere: number; vs_adp: number | null; vs_adp_rel: number | null; adp_n: number;
+  kept: number; dropped: number; traded: number; by_pos: Record<string, number>; v_now_rank: number; v_ros_rank: number; v_total_rank: number;
+}
+export interface DraftRecap {
+  season: number; through_week: number; ros_from_week: number; n_teams: number; rounds: number; picks: DPick[]; teams: DTeam[];
+  reach_corr: number | null; league_vs_adp: number | null; adp_matched: number;
+  history: { through: number; seasons: number[]; hold: (number | null)[]; next_year: (number | null)[]; vs_points: (number | null)[] };
+}
+
 /** /api/accuracy: this season's pre-kickoff numbers scored against results (app/engine/accuracy.py). ci = 95% range. */
 export interface AccBin { lo: number; hi: number; n: number; pred: number; actual: number; ci: [number, number] }
 export interface AccMean { n: number; mean: number | null; ci: [number | null, number | null] }

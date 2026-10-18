@@ -15,6 +15,7 @@ Binds to 127.0.0.1 only. Endpoints:
     GET  /api/accuracy               this season's pre-kickoff numbers scored against results
     GET  /api/analytics              season analytics for every relevant QB/RB/WR/TE, each stat labelled by the 2021-25 backtest
     GET  /api/analytics/league       team-by-week table: points, best possible lineup, luck, drafted vs added, draft board
+    GET  /api/draft                  draft recap: every pick's value over replacement vs its slot, so far and rest of season
     POST /api/trade/evaluate         {"team_a":3,"give_a":[ids],"team_b":7,"give_b":[ids],"espn_view":false}
 """
 from __future__ import annotations
@@ -35,7 +36,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from . import accuracy, analytics, changes, data as d, dossier, journal, league, matchups, matchups_card, matchups_pff, roles, shifts, snapshot, trades, waivers
+from . import accuracy, analytics, changes, draft, data as d, dossier, journal, league, matchups, matchups_card, matchups_pff, roles, shifts, snapshot, trades, waivers
 
 # ---------- warm-up: precompute the slow views in the background as soon as the engine starts ----------
 _warm: dict = {"state": "idle", "started": None, "finished": None, "steps": {}, "again": False}
@@ -436,6 +437,14 @@ def analytics_players():
         return _json(analytics.players())
     except Exception as e:  # noqa: BLE001
         raise HTTPException(500, f"analytics failed: {type(e).__name__}: {e}")
+
+
+@app.get("/api/draft")
+def draft_recap():
+    try:
+        return _json(draft.recap())
+    except Exception as e:
+        raise HTTPException(500, f"draft recap failed: {type(e).__name__}: {e}")
 
 
 @app.get("/api/analytics/league")

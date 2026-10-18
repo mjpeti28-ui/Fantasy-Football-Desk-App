@@ -152,6 +152,7 @@ export const accuracyApi = { get: () => getJSON<import("./types").Accuracy>(`${E
 export const analyticsApi = {
   players: () => getJSON<import("./types").Analytics>(`${ENGINE}/api/analytics`),
   league: () => getJSON<import("./types").ALeague>(`${ENGINE}/api/analytics/league`),
+  draft: () => getJSON<import("./types").DraftRecap>(`${ENGINE}/api/draft`),
 };
 export const shiftsApi = { get: () => getJSON<Shifts>(`${ENGINE}/api/shifts`) };
 export const matchupsApi = {
