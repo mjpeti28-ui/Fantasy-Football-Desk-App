@@ -118,6 +118,8 @@ export interface MxPlayer {
 /** Short rows for the Compare screen. tag: priced = inside ESPN's number, small = real but tiny, context = descriptive, tested null. */
 export interface MxCompare {
   opp: string | null; read: string | null; error?: string;
+  /** opponent's rating ranks, 1 = toughest */
+  defense?: Record<"pass" | "run", { rank: number; of: number; label: string }>;
   rows: { key: string; label: string; text: string; sub: string | null; tag: "priced" | "small" | "context"; tip: string | null }[];
 }
 export const isQb = (p: MxPlayer): p is MxPlayer & { current: MxQbCurrent | null; hist: MxQbHist | null } => p.pos === "QB";

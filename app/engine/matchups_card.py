@@ -274,6 +274,7 @@ def compare(pv: dict, card: dict, pff: dict | None) -> dict:
         out["read"] = bt.get("headline")
         return out
     g, pr, priced = card["defense"], card["proj"], card.get("priced") or {}
+    out["defense"] = {k: {x: g[k][x] for x in ("rank", "of", "label")} for k in ("pass", "run")}
     parts = {p["kind"]: p for p in priced.get("parts", [])}
     # ---- the read: which unit faces him and how much of ESPN's number it is ----
     main = "run" if pos == "RB" and "run" in parts and abs(parts["run"]["pts"]) > abs(parts["pass"]["pts"]) else "pass"

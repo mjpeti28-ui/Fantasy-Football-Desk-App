@@ -100,3 +100,40 @@
 .journal .prompts .pt { display: grid; gap: 2px; font-family: var(--prose); }
 .journal .prompts .pt b { font-weight: 600; font-size: 15px; }
 .journal .prompts .pt span { color: var(--ink-2); font-size: 13.5px; line-height: 1.45; }
+
+/* How we're doing: Desk's own pre-kickoff numbers scored on this season */
+.journal .ac { display: grid; gap: 10px; padding: 14px 0 18px; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); font-family: var(--sys); }
+.journal .ac h3 { margin: 0; font: 600 20px/1.2 var(--prose); }
+.journal .ac h3 small { font: 500 12px var(--sys); color: var(--ink-2); margin-left: 8px; }
+.journal .ac-sub { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); max-width: 760px; }
+.journal .ac-lines { display: grid; gap: 2px; }
+.journal .ac-line { display: grid; grid-template-columns: 170px 54px 220px minmax(0, 1fr); gap: 14px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+.journal .ac-line .lab { font-weight: 600; }
+.journal .ac-line .val { font: 650 16px var(--sys); }
+.journal .ac-line .vd { color: var(--ink-2); line-height: 1.4; }
+.journal .ac-line .vd em { font-style: normal; font-weight: 650; margin-right: 4px; }
+.journal .ac-line.ok .vd em { color: var(--you); }
+.journal .ac-line.off .vd em { color: var(--alert); }
+.journal .ac-line.few .vd em { color: var(--ink-3); }
+.journal .ac-trk { position: relative; height: 16px; border-radius: 4px; background: var(--field); }
+.journal .ac-trk i { position: absolute; display: block; }
+.journal .ac-trk .ci { top: 4px; height: 8px; border-radius: 3px; background: var(--ink-3); opacity: .45; }
+.journal .ac-trk .tgt { top: 0; width: 2px; height: 16px; margin-left: -1px; background: var(--ink); }
+.journal .ac-trk .v { top: 3px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--you); box-shadow: 0 0 0 2px var(--win); }
+.journal .ac-line.off .ac-trk .v { background: var(--alert); }
+.journal .ac-wk { display: flex; gap: 3px; align-items: center; height: 26px; }
+.journal .ac-wk i { width: 10px; border-radius: 2px; }
+.journal .ac-wk .up { background: var(--you); align-self: flex-end; }
+.journal .ac-wk .dn { background: var(--alert); opacity: .7; align-self: flex-start; }
+.journal .ac-figs { display: flex; flex-wrap: wrap; gap: 18px 28px; margin-top: 8px; }
+.journal .ac-figs figure { margin: 0; display: grid; gap: 4px; align-content: start; }
+.journal .ac-figs figcaption { font: 11px/1.35 var(--sys); color: var(--ink-2); max-width: 240px; }
+.journal .ac-cal text { font: 10px var(--sys); fill: var(--ink-2); }
+.journal .ac-cal .grid { stroke: var(--line); }
+.journal .ac-cal .diag { stroke: var(--ink-3); stroke-dasharray: 3 3; }
+.journal .ac-cal .whisk { stroke: var(--you); stroke-opacity: .45; stroke-width: 2; }
+.journal .ac-cal .pt { fill: var(--you); fill-opacity: .85; stroke: var(--win); stroke-width: 1.5; }
+.journal .ac-back table { border-collapse: collapse; font-size: 12px; }
+.journal .ac-back th, .journal .ac-back td { padding: 3px 10px 3px 0; text-align: left; }
+.journal .ac-back thead th { font-weight: 600; color: var(--ink-2); font-size: 11px; }
+.journal .ac-back .dim { color: var(--ink-3); }

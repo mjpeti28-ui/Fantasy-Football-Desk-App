@@ -148,6 +148,7 @@ export const fileApi = {
 };
 
 export const liveApi = { get: () => getJSON<import("./screens/live/Live").LiveBoard>(`${ENGINE}/api/live`) };
+export const accuracyApi = { get: () => getJSON<import("./types").Accuracy>(`${ENGINE}/api/accuracy`) };
 export const analyticsApi = {
   players: () => getJSON<import("./types").Analytics>(`${ENGINE}/api/analytics`),
   league: () => getJSON<import("./types").ALeague>(`${ENGINE}/api/analytics/league`),

@@ -12,6 +12,7 @@ Binds to 127.0.0.1 only. Endpoints:
     GET  /api/matchups               defenses in brief + your players / opponent's starters against theirs
     GET  /api/matchups/defense/DAL   one defense: scheme, allowed, who hurt it, defenders
     GET  /api/matchups/player/ID     one player vs coverage + his start/sit card (?opp=PHI to look through a different defense)
+    GET  /api/accuracy               this season's pre-kickoff numbers scored against results
     GET  /api/analytics              season analytics for every relevant QB/RB/WR/TE, each stat labelled by the 2021-25 backtest
     GET  /api/analytics/league       team-by-week table: points, best possible lineup, luck, drafted vs added, draft board
     POST /api/trade/evaluate         {"team_a":3,"give_a":[ids],"team_b":7,"give_b":[ids],"espn_view":false}
@@ -34,7 +35,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from . import analytics, changes, data as d, dossier, journal, league, matchups, matchups_card, matchups_pff, roles, shifts, snapshot, trades, waivers
+from . import accuracy, analytics, changes, data as d, dossier, journal, league, matchups, matchups_card, matchups_pff, roles, shifts, snapshot, trades, waivers
 
 # ---------- warm-up: precompute the slow views in the background as soon as the engine starts ----------
 _warm: dict = {"state": "idle", "started": None, "finished": None, "steps": {}, "again": False}
@@ -72,6 +73,7 @@ WARM_STEPS = [
     ("files", "Your player files", _my_files),
     ("matchups", "Matchup tables", lambda: (matchups.warm(), matchups_card.grades())),
     ("analytics", "Season analytics", lambda: (analytics.players(), analytics.league())),
+    ("accuracy", "Accuracy so far", lambda: accuracy.build()),
 ]
 
 
@@ -417,6 +419,15 @@ def matchups_player(espn_id: int, opp: Optional[str] = None, team: int = 3):
     except Exception as e:  # noqa: BLE001 -- the Compare rows are a convenience; the card above stands on its own
         out["compare"] = {"opp": out.get("opp"), "read": None, "rows": [], "error": f"{type(e).__name__}: {e}"[:200]}
     return _json(out)
+
+
+@app.get("/api/accuracy")
+def accuracy_board(team: int = 3):
+    """This season's pre-kickoff numbers (ranges, 15+/20+, head-to-head, win odds, blind spots, lineups) scored against what happened."""
+    try:
+        return _json(accuracy.build(team=team))
+    except Exception as e:  # noqa: BLE001 -- archives missing or mid-refresh
+        raise HTTPException(503, f"accuracy isn't available yet: {type(e).__name__}: {e}"[:300])
 
 
 @app.get("/api/analytics")
