@@ -111,3 +111,22 @@
 .mxread { font-size: 12.5px; line-height: 1.4; }
 .mxsub { display: block; font: 11.5px/1.35 var(--sys); margin-top: 2px; }
 .mxsub.warn-n { color: var(--alert); font-weight: 600; }
+
+/* start/sit view: outcome range, defense dots, recent usage */
+.cmp-chart h2.sub { margin-top: 22px; display: flex; gap: 8px; align-items: center; }
+.cmp-dd { display: grid; gap: 6px; max-width: 980px; }
+.cmp-dd .ddr { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 12px; align-items: center; }
+.cmp-dd .nm { font: 650 12.5px var(--sys); color: var(--ink-2); }
+.cmp-dd .trk { position: relative; height: 24px; border-radius: 5px; background: var(--field); margin: 0 11px; }
+.cmp-dd .zone { position: absolute; top: 0; bottom: 0; width: 31%; opacity: .5; }
+.cmp-dd .zone.tough { left: 0; border-radius: 5px 0 0 5px; background: color-mix(in srgb, var(--alert) 18%, transparent); }
+.cmp-dd .zone.soft { right: 0; border-radius: 0 5px 5px 0; background: color-mix(in srgb, var(--you) 18%, transparent); }
+.cmp-dd b { position: absolute; top: 2px; width: 20px; height: 20px; margin-left: -10px; display: grid; place-items: center; border-radius: 50%; background: var(--c); color: var(--pos-ink); font: 700 10.5px/1 var(--sys); box-shadow: 0 0 0 2px var(--win); }
+.cmp-dd .axis .trk { height: 14px; background: none; }
+.cmp-dd .axis em { position: absolute; top: 0; font: 10.5px var(--sys); font-style: normal; color: var(--ink-2); white-space: nowrap; }
+.cmp-dd .axis em:last-child { transform: translateX(-100%); }
+.cmp-dd .cap { font: 11.5px/1.45 var(--sys); color: var(--ink-2); margin: 4px 0 0; max-width: 780px; }
+.usg { display: inline-flex; gap: 8px; align-items: flex-end; }
+.usg small { white-space: nowrap; }
+.cmp-ranges.wk .rr { grid-template-columns: 160px minmax(0, 1fr) 230px; }
+.cmp-ranges.wk .vals { white-space: nowrap; }

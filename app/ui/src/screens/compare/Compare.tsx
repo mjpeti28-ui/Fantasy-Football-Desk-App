@@ -7,6 +7,7 @@ import { pBeats } from "../../odds";
 import { holdText } from "../../components/Role";
 import { matchupsApi } from "../../data";
 import type { MxCompare } from "../matchups/types";
+import { DefenseDots, OutcomeRange, UsageCell, VsEspnCell, usageMax } from "./WeekCharts";
 import "./compare.css";
 
 /* C — Compare: a spec sheet. Players across, evidence down, the better value in each row filled —
@@ -122,6 +123,16 @@ function groups(files: PF[], ratioQ?: Record<string, number[]>, an?: Analytics |
     { label: "Beat ESPN's projection", val: (f) => { const r = f.gamelog.filter((x) => x.played && !x.upcoming && x.espn_proj != null); return r.length ? r.filter((x) => (x.espn_pts ?? x.ppr ?? 0) >= (x.espn_proj ?? 0)).length / r.length : null; },
       cell: (f) => { const r = f.gamelog.filter((x) => x.played && !x.upcoming && x.espn_proj != null); return <span className="num">{r.length ? `${r.filter((x) => (x.espn_pts ?? x.ppr ?? 0) >= (x.espn_proj ?? 0)).length} of ${r.length}` : "–"}</span>; } },
   ];
+  // recent form, start/sit view only: usage settles within a few games; points vs ESPN is context
+  const form: Row[] = [
+    ...(["snap", "tgt", "car"] as const).filter((k) => files.some((f) => (k === "car" ? f.pos === "RB" : f.pos !== "QB"))).map((k) => {
+      const max = usageMax(files, k);
+      return { label: k === "snap" ? "Snap share, last 5" : k === "tgt" ? "Targets, last 5" : "Carries, last 5", hint: "Usage is mostly signal within 2–4 games (stabilization backtest); same scale for everyone here",
+        cell: (f: PF) => <UsageCell f={f} k={k} max={max} /> };
+    }),
+    { label: "Points vs ESPN, last 6", ev: <Tag t="context" />, hint: "Bar = points, line = ESPN's projection that week; colored when he beat it. How he's done, not a forecast: beating ESPN doesn't repeat.",
+      cell: (f) => <VsEspnCell f={f} /> },
+  ];
   const logi: Row[] = [
     { label: "Bye week", cell: (f) => <span className="num">{f.ledger?.bye ?? "–"}</span> },
     { label: "Rostered by", cell: (f) => <span>{f.owner?.name ?? "free agent"}</span> },
@@ -155,6 +166,7 @@ function groups(files: PF[], ratioQ?: Record<string, number[]>, an?: Analytics |
     { key: "real", title: sameType ? "What's real (best guess, percentile vs position)" : "What's real (shared stats only: different positions)", rows: real },
     { key: "shape", title: "Week to week", rows: shape },
     { key: "logi", title: "Logistics", rows: logi },
+    { key: "form", title: "Recent usage and results", rows: form },
   ];
 }
 
@@ -308,7 +320,8 @@ export function CompareView({ files, loading, err, ratioQ, candidates, onAdd, on
     return () => { live = false; };
   }, [ids]); // eslint-disable-line react-hooks/exhaustive-deps
   const G = useMemo(() => groups(files, ratioQ, an, mx), [files, ratioQ, an, mx]);
-  const order = mode === "week" ? ["week", "mx", "ros", "role", "an", "real", "shape", "logi"] : ["ros", "an", "role", "real", "shape", "week", "mx", "logi"];
+  // each question gets only its own evidence: nothing rest-of-season on the start view, nothing this-week on the hold view
+  const order = mode === "week" ? ["week", "mx", "form", "role"] : ["ros", "an", "role", "real", "shape", "logi"];
   const matches = q.length >= 2 ? candidates.filter((c) => c.name.toLowerCase().includes(q.toLowerCase()) && !files.some((f) => f.id === c.id)).slice(0, 8) : [];
   const cols = `minmax(190px, 230px) repeat(${Math.max(files.length, 1)}, minmax(0, 290px))`;
   return (
@@ -350,7 +363,9 @@ export function CompareView({ files, loading, err, ratioQ, candidates, onAdd, on
             ))}
           </div>
           <section className="cmp-chart">
-            {mode === "week" ? <><h2>Head to head this week</h2><H2H files={files} ratioQ={ratioQ} /></> : <><h2>Rest of season: what players like them did</h2><Ranges files={files} /></>}
+            {mode === "week" ? <><h2>Head to head this week</h2><H2H files={files} ratioQ={ratioQ} />
+              <h2 className="sub">Where this week should land</h2><OutcomeRange files={files} ratioQ={ratioQ} />
+              {files.some((f) => mx[f.id]?.defense) && <><h2 className="sub">Opponent defense <Tag t="priced" /></h2><DefenseDots files={files} mx={mx} /></>}</> : <><h2>Rest of season: what players like them did</h2><Ranges files={files} /></>}
           </section>
           {order.map((k) => G.find((g) => g.key === k)!).filter((g) => g.rows.length).map((g) => (
             <section key={g.key} className={`cmp-grp ${(mode === "week" && g.key === "week") || (mode === "ros" && g.key === "ros") ? "lead" : ""}`}>
