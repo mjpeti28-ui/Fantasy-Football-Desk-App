@@ -1,4 +1,5 @@
-import type { Accuracy, PlayerFile as PF } from "../../types";
+import type { Accuracy, Player, PlayerFile as PF, TeamWeek } from "../../types";
+import { pBeats, phi } from "../../odds";
 import type { MxCompare } from "../matchups/types";
 import { f1, lastName, pct } from "../../format";
 import { POS_VAR } from "../../components/bits";
@@ -16,6 +17,16 @@ function qs(f: PF, q?: Record<string, number[]>): number[] | null {
   if (!r || !f.espn_week || dead(f)) return null;
   return r.map((x) => x * f.espn_week!).sort((a, b) => a - b);
 }
+/** ESPN over-projects players coming back from missed games (2021-25, vs the same position's other games; pff/creative.md E10). */
+export function backPts(f: PF): number | null {
+  const b = f.back;
+  if (!b || f.game?.bye) return null;
+  if (b.game === 2) return f.pos === "WR" ? -0.8 : null;
+  return f.pos === "WR" ? -1.3 : f.pos === "QB" ? -1.5 : f.pos === "RB" ? (b.missed >= 2 ? -1.5 : -0.7) : null;
+}
+const asPt = (f: PF, add = 0) => ({ pos: f.pos, espn_week: f.espn_week != null ? Math.max(0.1, f.espn_week + add) : null, game: f.game ?? null,
+  injury: (f.owner?.injury ?? f.ledger?.status ?? "ACTIVE") || "ACTIVE" } as unknown as Player);
+
 const at = (s: number[], p: number) => s[Math.min(s.length - 1, Math.max(0, Math.round(p * (s.length - 1))))];
 const share = (s: number[], x: number) => s.filter((v) => v >= x).length / s.length;
 
@@ -36,7 +47,8 @@ export function OutcomeRange({ files, ratioQ, acc }: { files: PF[]; ratioQ?: Rec
               {s && <><i className="b80" style={{ left: x(at(s, 0.1)), width: `calc(${x(at(s, 0.9))} - ${x(at(s, 0.1))})` }} />
                 <i className="b50" style={{ left: x(at(s, 0.25)), width: `calc(${x(at(s, 0.75))} - ${x(at(s, 0.25))})` }} />
                 <i className="med" style={{ left: x(at(s, 0.5)), background: POS_VAR[f.pos] }} title={`median ${f1(at(s, 0.5))}`} />
-                <i className="mdl" style={{ left: x(f.espn_week!) }} title={`ESPN ${f1(f.espn_week)}`} /></>}
+                <i className="mdl" style={{ left: x(f.espn_week!) }} title={`ESPN ${f1(f.espn_week)}`} />
+                {backPts(f) != null && <i className="adj" style={{ left: x(f.espn_week! + backPts(f)!) }} title={`ESPN ${f1(f.espn_week)} adjusted for his first game back: ${f1(f.espn_week! + backPts(f)!)}`} />}</>}
             </span>
             <span className="vals num">{s ? <>{f1(at(s, 0.1))}–{f1(at(s, 0.9))} <small className="dim">15+ {pct(share(s, 15))} · 20+ {pct(share(s, 20))}</small></> : <small className="dim">not playing / no projection</small>}</span>
           </div>
@@ -120,3 +132,50 @@ export function VsEspnCell({ f }: { f: PF }) {
     </span>
   );
 }
+
+/** What would change the call: the projection gap that flips a 2-player start/sit to 50/50, the known
+ *  adjustments on this page drawn against it, and (for your own players) the win-chance difference. */
+export function DecisionBox({ files, ratioQ, tw }: { files: PF[]; ratioQ?: Record<string, number[]>; tw?: TeamWeek | null }) {
+  if (files.length !== 2 || !ratioQ || files.some((f) => !f.espn_week || dead(f))) return null;
+  const p = pBeats(asPt(files[0]), asPt(files[1]), ratioQ);
+  if (p == null) return null;
+  const [fav, dog] = p >= 0.5 ? [files[0], files[1]] : [files[1], files[0]];
+  // bisection: points added to the underdog's projection until it's a coin flip
+  let lo = 0, hi = 40;
+  for (let k = 0; k < 30; k++) { const m = (lo + hi) / 2; (pBeats(asPt(fav), asPt(dog, m), ratioQ) ?? 0.5) > 0.5 ? (lo = m) : (hi = m); }
+  const need = (lo + hi) / 2;
+  const s = qs(fav, ratioQ)!, noise = (at(s, 0.9) - at(s, 0.1)) / 2;
+  // known adjustments, signed toward the underdog (positive = closes the gap)
+  const adj = [fav, dog].map((f) => ({ f, v: backPts(f) })).filter((x) => x.v != null).map((x) => ({ who: lastName(x.f.name), v: x.f === dog ? x.v! : -x.v!, raw: x.v! }));
+  const net = adj.reduce((t, x) => t + x.v, 0);
+  const weight = (v: number) => (v < 0 ? "backs the favourite" : v >= need ? "could flip it" : v >= need / 3 ? "a lean" : "a tiebreaker");
+  const pAdj = adj.length ? pBeats(asPt(fav, adj.filter((x) => x.who === lastName(fav.name)).reduce((t, x) => t + x.raw, 0)), asPt(dog, adj.filter((x) => x.who === lastName(dog.name)).reduce((t, x) => t + x.raw, 0)), ratioQ) : null;
+  const scale = Math.max(need, noise, ...adj.map((x) => Math.abs(x.v))) * 1.1;
+  const w = (v: number) => `${(Math.abs(v) / scale) * 100}%`;
+  // win chance: only when both are yours and one of them is in the current lineup
+  const mine = tw ? files.map((f) => tw.players.find((x) => x.id === f.id)) : [];
+  const starter = mine.find((x) => x && !["BE", "IR"].includes(x.slot));
+  const other = starter ? mine.find((x) => x && x !== starter) : undefined;
+  const m = tw?.matchup;
+  let win: { s: string; o: string; ps: number; po: number } | null = null;
+  if (m && starter && other && starter.espn_week != null && other.espn_week != null) {
+    const base = m.my_proj;
+    win = { s: lastName(starter.name), o: lastName(other.name), ps: phi((base - m.opp_proj) / m.margin_sd), po: phi((base - starter.espn_week + other.espn_week - m.opp_proj) / m.margin_sd) };
+  }
+  return (
+    <div className="cmp-dec">
+      <div className="row"><span className="nm">To make it 50/50</span><span className="bar"><i className="need" style={{ width: w(need) }} /></span>
+        <span className="v"><b>{lastName(dog.name)} +{f1(need)}</b> <small className="dim">in his projection</small></span></div>
+      <div className="row"><span className="nm">A normal week's miss</span><span className="bar"><i className="noise" style={{ width: w(noise) }} /></span>
+        <span className="v"><b>±{f1(noise)}</b> <small className="dim">either way, for {lastName(fav.name)}</small></span></div>
+      {adj.map((x) => <div key={x.who} className="row"><span className="nm">{x.who}: first game back</span><span className="bar"><i className={x.v > 0 ? "adj up" : "adj dn"} style={{ width: w(x.v) }} /></span>
+        <span className="v"><b>{x.raw > 0 ? "+" : "−"}{f1(Math.abs(x.raw))}</b> <small className="dim">{x.v > 0 ? "closes" : "widens"} the gap · {weight(x.v)}</small></span></div>)}
+      <p className="cap">{adj.length
+        ? `Known ESPN misses on this page move it ${net >= 0 ? "toward" : "away from"} ${lastName(dog.name)} by ${f1(Math.abs(net))}; with them the call is ${pAdj != null ? `${Math.round(Math.max(pAdj, 1 - pAdj) * 100)}/${Math.round(Math.min(pAdj, 1 - pAdj) * 100)}` : "unchanged"}.`
+        : "Nothing on this page measurably moves ESPN's number for either player: the matchup is already in it and the PFF/context rows tested null."}
+        {" "}The defense, Vegas and PFF rows describe the game; none of them is a measured adjustment.
+        {win && ` Win chance this week: ${Math.round(win.ps * 100)}% starting ${win.s}, ${Math.round(win.po * 100)}% with ${win.o} instead (${signedPct(win.po - win.ps)}).`}</p>
+    </div>
+  );
+}
+const signedPct = (d: number) => `${d >= 0 ? "+" : "−"}${Math.abs(Math.round(d * 1000) / 10)} percentage points`;

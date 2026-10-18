@@ -469,7 +469,7 @@ export default function App() {
           </aside>
         )}
       </div>
-      {cmpOpen && <CompareView an={an} files={cmpIds.map((id) => cmpFiles.find((f) => f.id === id)).filter((f): f is PlayerFile => !!f)} loading={cmpFiles.length < cmpIds.length} err={cmpErr}
+      {cmpOpen && <CompareView an={an} tw={tw} files={cmpIds.map((id) => cmpFiles.find((f) => f.id === id)).filter((f): f is PlayerFile => !!f)} loading={cmpFiles.length < cmpIds.length} err={cmpErr}
         ratioQ={snap.ratio_q} candidates={roles ? Object.entries(roles.players).map(([k, v]) => ({ id: Number(k), name: v.name, pos: v.pos, team: v.team })) : []}
         onAdd={(id) => setCmpIds((xs) => (xs.includes(id) || xs.length >= 4 ? xs : [...xs, id]))} onRemove={(id) => setCmpIds((xs) => xs.filter((x) => x !== id))}
         onClose={() => setCmpOpen(false)} onOpen={(id) => { setCmpOpen(false); openFile(id, cmpIds); }}

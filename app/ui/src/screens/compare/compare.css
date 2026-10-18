@@ -130,3 +130,15 @@
 .usg small { white-space: nowrap; }
 .cmp-ranges.wk .rr { grid-template-columns: 160px minmax(0, 1fr) 230px; }
 .cmp-ranges.wk .vals { white-space: nowrap; }
+.cmp-ranges .adj { top: 1px; width: 0; height: 0; margin-left: -5px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid var(--alert); }
+/* what would change the call */
+.cmp-dec { display: grid; gap: 4px; max-width: 760px; margin-top: 12px; }
+.cmp-dec .row { display: grid; grid-template-columns: 170px minmax(0, 1fr) 250px; gap: 12px; align-items: center; font: 12.5px var(--sys); }
+.cmp-dec .nm { color: var(--ink-2); }
+.cmp-dec .bar { height: 10px; background: var(--field); border-radius: 3px; position: relative; overflow: hidden; }
+.cmp-dec .bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; }
+.cmp-dec .need { background: var(--ink); }
+.cmp-dec .noise { background: var(--ink-3); opacity: .5; }
+.cmp-dec .adj.up { background: var(--you); }
+.cmp-dec .adj.dn { background: var(--alert); }
+.cmp-dec .v b { font-weight: 650; }

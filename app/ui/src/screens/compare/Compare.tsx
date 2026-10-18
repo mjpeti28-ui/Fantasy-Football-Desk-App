@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useMemo, useState } from "react";
-import type { APlayer, Analytics, FpMetric, Player, PlayerFile as PF } from "../../types";
+import type { APlayer, Analytics, FpMetric, Player, PlayerFile as PF, TeamWeek } from "../../types";
 import { EvFor, FlagChip, TierStrip, pctTxt } from "../../components/Analytics";
 import { f1, lastName, pct, signed } from "../../format";
 import { Face, POS_VAR, Spark } from "../../components/bits";
@@ -8,7 +8,7 @@ import { holdText } from "../../components/Role";
 import { accuracyApi, matchupsApi } from "../../data";
 import type { Accuracy } from "../../types";
 import type { MxCompare } from "../matchups/types";
-import { DefenseDots, OutcomeRange, UsageCell, VsEspnCell, usageMax } from "./WeekCharts";
+import { DecisionBox, DefenseDots, OutcomeRange, UsageCell, VsEspnCell, backPts, usageMax } from "./WeekCharts";
 import "./compare.css";
 
 /* C — Compare: a spec sheet. Players across, evidence down, the better value in each row filled —
@@ -42,13 +42,6 @@ type Mx = Record<number, MxCompare | null | undefined>;
 const TAG = { priced: "in ESPN", small: "tiny", context: "context", blind: "ESPN blind spot" } as const;
 const Tag = ({ t }: { t: keyof typeof TAG }) => <em className={`mxtag ${t}`}>{TAG[t]}</em>;
 const MX_ORDER = ["pass", "run", "allowed", "depth", "trench", "seen", "lens", "pressure", "style_run"];
-/** ESPN over-projects players coming back from missed games (2021-25, vs the same position's other games; pff/creative.md E10). */
-function backPts(f: PF): number | null {
-  const b = f.back;
-  if (!b || f.game?.bye) return null;
-  if (b.game === 2) return f.pos === "WR" ? -0.8 : null;
-  return f.pos === "WR" ? -1.3 : f.pos === "QB" ? -1.5 : f.pos === "RB" ? (b.missed >= 2 ? -1.5 : -0.7) : null;
-}
 
 /** This season's check of a head-to-head probability: how often favourites at about this confidence won. */
 export function h2hSeason(acc: Accuracy | null | undefined, p: number): string {
@@ -305,8 +298,10 @@ export function compareMarkdown(files: PF[], mode: Mode, ratioQ?: Record<string,
   return L.join("\n");
 }
 
-export function CompareView({ files, loading, err, ratioQ, candidates, onAdd, onRemove, onClose, onOpen, onCopy, an, suggest }: {
+export function CompareView({ files, loading, err, ratioQ, candidates, onAdd, onRemove, onClose, onOpen, onCopy, an, suggest, tw }: {
   an?: Analytics | null;
+  /** your team this week: lets the start view show the win-chance difference of a swap */
+  tw?: TeamWeek | null;
   /** with one player open: who to put next to him (your players at his position, top free agents) */
   suggest?: (id: number, pos: string) => { id: number; name: string; why: string }[];
   files: PF[]; loading: boolean; err: string | null; ratioQ?: Record<string, number[]>;
@@ -373,7 +368,7 @@ export function CompareView({ files, loading, err, ratioQ, candidates, onAdd, on
             ))}
           </div>
           <section className="cmp-chart">
-            {mode === "week" ? <><h2>Head to head this week</h2><H2H files={files} ratioQ={ratioQ} acc={acc} />
+            {mode === "week" ? <><h2>Head to head this week</h2><H2H files={files} ratioQ={ratioQ} acc={acc} /><DecisionBox files={files} ratioQ={ratioQ} tw={tw} />
               <h2 className="sub">Where this week should land</h2><OutcomeRange files={files} ratioQ={ratioQ} acc={acc} />
               {files.some((f) => mx[f.id]?.defense) && <><h2 className="sub">Opponent defense <Tag t="priced" /></h2><DefenseDots files={files} mx={mx} /></>}</> : <><h2>Rest of season: what players like them did</h2><Ranges files={files} /></>}
           </section>
