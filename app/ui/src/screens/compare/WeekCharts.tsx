@@ -1,4 +1,4 @@
-import type { PlayerFile as PF } from "../../types";
+import type { Accuracy, PlayerFile as PF } from "../../types";
 import type { MxCompare } from "../matchups/types";
 import { f1, lastName, pct } from "../../format";
 import { POS_VAR } from "../../components/bits";
@@ -19,7 +19,7 @@ function qs(f: PF, q?: Record<string, number[]>): number[] | null {
 const at = (s: number[], p: number) => s[Math.min(s.length - 1, Math.max(0, Math.round(p * (s.length - 1))))];
 const share = (s: number[], x: number) => s.filter((v) => v >= x).length / s.length;
 
-export function OutcomeRange({ files, ratioQ }: { files: PF[]; ratioQ?: Record<string, number[]> }) {
+export function OutcomeRange({ files, ratioQ, acc }: { files: PF[]; ratioQ?: Record<string, number[]>; acc?: Accuracy | null }) {
   const S = files.map((f) => qs(f, ratioQ));
   if (!S.some(Boolean)) return null;
   const xmax = Math.max(20, ...S.map((s) => (s ? at(s, 0.9) + 2 : 0)));
@@ -43,8 +43,10 @@ export function OutcomeRange({ files, ratioQ }: { files: PF[]; ratioQ?: Record<s
         );
       })}
       <div className="rr axis"><span /><span className="trk">{ticks.map((t) => <em key={t} style={{ left: x(t) }}>{t}</em>)}</span><span /></div>
-      <p className="cap"><i className="k80" /> 80% and <i className="k50" /> 50% of where this week should land: ESPN's projection (▲) times how far actual scores at his position have landed from forecasts, 2021–25.
-        Colored tick = median. The 15+/20+ chances come from the same spread; boom chances showed skill in the scorecard backtest, while a "bust" chance showed none, so it is left out.</p>
+      <p className="cap"><i className="k80" /> 80% and <i className="k50" /> 50% of where his score should land if he plays: ESPN's projection (▲) times how far actual scores at his position landed from ESPN's, 2021–25. Colored tick = median.
+        {acc?.range ? ` This season ${Math.round(acc.range.rate * 100)}% of ${acc.range.n.toLocaleString()} rostered player-games landed inside the 80% range.` : ""}
+        {acc?.boom ? ` 15+ chances said ${Math.round(acc.boom["15"].pred * 100)}% on average and ${Math.round(acc.boom["15"].actual * 100)}% did; 20+ said ${Math.round(acc.boom["20"].pred * 100)}%, ${Math.round(acc.boom["20"].actual * 100)}% did.` : ""}
+        {" "}No bust chance: it showed no skill in backtests.</p>
     </div>
   );
 }

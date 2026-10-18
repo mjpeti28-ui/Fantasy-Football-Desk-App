@@ -61,8 +61,8 @@ def _nfl_game(inp: d.Inputs, abbrev: Optional[str], week: int) -> Optional[dict]
 
 def _range(inp: d.Inputs, pos: str, center: Optional[float]) -> Optional[List[float]]:
     """80% range for a single week: ESPN's number times the empirical actual/forecast ratio
-    spread for the position (2021-25, weeks 3-14). Approximate: the ratios were measured
-    against our forecast, not ESPN's."""
+    spread for the position (2021-25, weeks 3-14; QB/RB/WR/TE measured against ESPN's number,
+    tools/ratio_dist_espn.py; K/DST still against our forecast)."""
     r = inp.ratios.get(pos)
     if center is None or r is None or len(r) == 0 or center <= 0:
         return None

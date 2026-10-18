@@ -6,7 +6,7 @@ export type Pt = Pick<Player, "pos" | "espn_week" | "injury" | "game">;
 
 /** P(a outscores b this week). Each player's outcome = ESPN projection × the 2021-25 spread of
  *  actual/forecast at his position (quantile grid), treated as independent. Approximate: same-game
- *  correlation is ignored and the ratios were measured against our forecast, not ESPN's. */
+ *  correlation is ignored. QB/RB/WR/TE ratios are measured against ESPN's number (tools/ratio_dist_espn.py). */
 export function pBeats(a: Pt, b: Pt, q?: Record<string, number[]>): number | null {
   if (isDead(b) && !isDead(a)) return 1;
   if (isDead(a)) return 0;

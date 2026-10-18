@@ -4,6 +4,7 @@ import type { JDraft, JEntry, JKind, JStatus, Journal as JournalT } from "../../
 import { f1, pct, signed } from "../../format";
 import { useFile } from "../../components/FileContext";
 import type { Prompt } from "./prompts";
+import { AccuracyPanel } from "./Accuracy";
 
 type Filter = JKind | "all";
 const KIND_LABEL: Record<JKind, string> = { lineup: "Lineup", waiver: "Waiver", trade: "Trade", note: "Note" };
@@ -147,6 +148,7 @@ export function Journal({ journal, err, engineUp, onAdd, onUpdate, onDelete, nam
         <h2>Journal</h2>
         <p>What you decided, why, and how sure you were, next to what the model said. Scored against what happened.</p>
       </header>
+      <AccuracyPanel />
       <section className="score">
         <div className="figs">
           <div><b className="num">{s.logged}</b><span>logged</span></div>

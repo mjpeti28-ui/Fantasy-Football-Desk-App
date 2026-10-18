@@ -311,3 +311,18 @@ export interface ALeague {
   season: number; through_week: number; n_teams: number; teams: ALeagueTeam[]; cells: ALeagueCell[]; draft: ADraftPick[];
   labels: Record<string, { name: string; label: ALabel; repeat: number | null }>;
 }
+
+/** /api/accuracy: this season's pre-kickoff numbers scored against results (app/engine/accuracy.py). ci = 95% range. */
+export interface AccBin { lo: number; hi: number; n: number; pred: number; actual: number; ci: [number, number] }
+export interface AccMean { n: number; mean: number | null; ci: [number | null, number | null] }
+export interface Accuracy {
+  season: number; through_week: number; n_players: number;
+  range?: { n: number; rate: number; ci: [number, number]; expect: number; by_pos: Record<string, { n: number; rate: number; ci: [number, number] }> };
+  boom?: Record<"15" | "20", { n: number; pred: number; actual: number; ci: [number, number]; bins: AccBin[] }>;
+  h2h?: { n: number; pred: number; actual: number; ci: [number, number]; bins: AccBin[] };
+  proj_err?: { mae: number; bias: number; n: number };
+  back: Record<string, AccMean & { expect: number }>;
+  lineup: { weeks: { week: number; pts: number; espn: number; opt: number }[]; vs_espn?: AccMean; league_vs_espn?: AccMean; left?: number; expect_vs_espn?: number };
+  winp: { n: number; pred?: number; actual?: number; ci?: [number, number]; brier?: number; brier_coin?: number };
+  sources: { source: string; weeks: number; n: number; mae: number; bias: number; rank_corr: number }[];
+}

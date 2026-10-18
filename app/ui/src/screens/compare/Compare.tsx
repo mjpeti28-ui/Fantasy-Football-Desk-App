@@ -5,7 +5,8 @@ import { f1, lastName, pct, signed } from "../../format";
 import { Face, POS_VAR, Spark } from "../../components/bits";
 import { pBeats } from "../../odds";
 import { holdText } from "../../components/Role";
-import { matchupsApi } from "../../data";
+import { accuracyApi, matchupsApi } from "../../data";
+import type { Accuracy } from "../../types";
 import type { MxCompare } from "../matchups/types";
 import { DefenseDots, OutcomeRange, UsageCell, VsEspnCell, usageMax } from "./WeekCharts";
 import "./compare.css";
@@ -49,7 +50,13 @@ function backPts(f: PF): number | null {
   return f.pos === "WR" ? -1.3 : f.pos === "QB" ? -1.5 : f.pos === "RB" ? (b.missed >= 2 ? -1.5 : -0.7) : null;
 }
 
-function mxRows(files: PF[], mx: Mx): Row[] {
+/** This season's check of a head-to-head probability: how often favourites at about this confidence won. */
+export function h2hSeason(acc: Accuracy | null | undefined, p: number): string {
+  const f = Math.max(p, 1 - p), b = acc?.h2h?.bins.find((x) => f > x.lo && f <= x.hi + 1e-9);
+  return b ? ` This season, favourites at ${Math.round(b.lo * 100)}–${Math.round(b.hi * 100)}% won ${Math.round(b.actual * 100)}% of ${b.n} same-team calls (said ${Math.round(b.pred * 100)}%).` : "";
+}
+
+function mxRows(files: PF[], mx: Mx, acc?: Accuracy | null): Row[] {
   const out: Row[] = [];
   const has = (f: PF) => mx[f.id];
   out.push({ label: "The read", hint: "How tough this defense is for him, and how much of ESPN's number that is", cell: (f) => {
@@ -57,7 +64,8 @@ function mxRows(files: PF[], mx: Mx): Row[] {
     return m === undefined ? <span className="dim">loading…</span> : <span className="mxread">{m?.read ?? "No matchup data for him."}</span>;
   } });
   if (files.some((f) => f.back)) out.push({ label: "Back from missed games", ev: <Tag t="blind" />,
-    hint: "ESPN over-projects players in their first game back (WR -1.3, QB -1.5, RB -0.7, or -1.5 after 2+ missed; TE nothing) and WRs in their second (-0.8). 2021-25, 4 of 5 seasons. 'Missed' includes healthy scratches.",
+    hint: "ESPN over-projects players in their first game back (WR -1.3, QB -1.5, RB -0.7, or -1.5 after 2+ missed; TE nothing) and WRs in their second (-0.8). 2021-25, 4 of 5 seasons. 'Missed' includes healthy scratches." +
+      (acc ? ` This season so far: ${Object.entries(acc.back).filter(([, v]) => v.n).map(([p, v]) => `${p} ${signed(v.mean)} (n ${v.n})`).join(", ") || "no cases"}; too few to confirm or reject.` : ""),
     cell: (f) => { const b = f.back, p = backPts(f);
       if (!b) return <span className="dim">–</span>;
       const txt = `${b.game === 1 ? "1st" : "2nd"} game back after ${b.missed} missed`;
@@ -78,7 +86,7 @@ function mxRows(files: PF[], mx: Mx): Row[] {
   return out;
 }
 
-function groups(files: PF[], ratioQ?: Record<string, number[]>, an?: Analytics | null, mx: Mx = {}): Group[] {
+function groups(files: PF[], ratioQ?: Record<string, number[]>, an?: Analytics | null, mx: Mx = {}, acc?: Accuracy | null): Group[] {
   const sameType = new Set(files.map((f) => (f.pos === "QB" ? "QB" : "SKILL"))).size === 1;
   const commonFp = files.length ? files[0].fingerprint.filter((m) => files.every((f) => f.fingerprint.some((x) => x.key === m.key)) && files.every((f) => f.pos === files[0].pos || ["ppr_g", "snap", "td_g"].includes(m.key))) : [];
   const fpOf = (f: PF, k: string) => f.fingerprint.find((m) => m.key === k);
@@ -160,7 +168,7 @@ function groups(files: PF[], ratioQ?: Record<string, number[]>, an?: Analytics |
   return [
     { key: "an", title: `Usage vs results, week to week (through week ${an?.through_week ?? "–"}; chips = how much 2021–25 trusts each row)`, rows: ana },
     { key: "week", title: "This week", rows: week },
-    { key: "mx", title: "Matchup this week (describes the game; the defense is already in ESPN's number, only “ESPN blind spot” rows moved points in backtests)", rows: mxRows(files, mx) },
+    { key: "mx", title: "Matchup this week (describes the game; the defense is already in ESPN's number, only “ESPN blind spot” rows moved points in backtests)", rows: mxRows(files, mx, acc) },
     { key: "ros", title: "Rest of season", rows: ros },
     { key: "role", title: "Role", rows: role },
     { key: "real", title: sameType ? "What's real (best guess, percentile vs position)" : "What's real (shared stats only: different positions)", rows: real },
@@ -181,7 +189,7 @@ function bestOf(files: PF[], r: Row): { best: number | null; tie: boolean } {
   return { best: ok[0].i, tie: false };
 }
 
-function H2H({ files, ratioQ }: { files: PF[]; ratioQ?: Record<string, number[]> }) {
+function H2H({ files, ratioQ, acc }: { files: PF[]; ratioQ?: Record<string, number[]>; acc?: Accuracy | null }) {
   if (files.length < 2 || !ratioQ) return null;
   const P = files.map((a) => files.map((b) => (a === b ? null : pBeats(asPlayer(a), asPlayer(b), ratioQ))));
   if (files.length === 2) {
@@ -192,7 +200,7 @@ function H2H({ files, ratioQ }: { files: PF[]; ratioQ?: Record<string, number[]>
       <div className="cmp-h2h">
         <div className="lbls"><span><i className="let">A</i>{lastName(files[0].name)} {f1(files[0].espn_week)}</span><span>{f1(files[1].espn_week)} {lastName(files[1].name)}<i className="let">B</i></span></div>
         {p != null ? <div className="split"><i className={p >= 0.5 ? "lead" : ""} style={{ width: `${p * 100}%` }}><b>{pct(p)}</b></i><i className={p < 0.5 ? "lead" : ""} style={{ width: `${(1 - p) * 100}%` }}><b>{pct(1 - p)}</b></i></div> : <p className="dim">No ESPN projection for one of them.</p>}
-        <p className="cap">Chance each outscores the other this week: ESPN's projection times how far actual scores at each position have landed from forecasts (2021–25), treated as independent. {p != null ? `${edge(Math.max(p, 1 - p))[0].toUpperCase()}${edge(Math.max(p, 1 - p)).slice(1)}.` : ""}</p>
+        <p className="cap">Chance each outscores the other this week: ESPN's projection times how far actual scores at each position have landed from ESPN's (2021–25), treated as independent. {p != null ? `${edge(Math.max(p, 1 - p))[0].toUpperCase()}${edge(Math.max(p, 1 - p)).slice(1)}.${h2hSeason(acc, p)}` : ""}</p>
       </div>
     );
   }
@@ -313,13 +321,15 @@ export function CompareView({ files, loading, err, ratioQ, candidates, onAdd, on
     return () => window.removeEventListener("keydown", k);
   }, [onClose]);
   const [mx, setMx] = useState<Mx>({});
+  const [acc, setAcc] = useState<Accuracy | null>(null);
+  useEffect(() => { accuracyApi.get().then(setAcc, () => setAcc(null)); }, []);
   const ids = files.map((f) => f.id).join(",");
   useEffect(() => {
     let live = true;
     for (const f of files) if (!(f.id in mx)) matchupsApi.player(f.id).then((p) => p.compare ?? null, () => null).then((c) => live && setMx((m) => ({ ...m, [f.id]: c })));
     return () => { live = false; };
   }, [ids]); // eslint-disable-line react-hooks/exhaustive-deps
-  const G = useMemo(() => groups(files, ratioQ, an, mx), [files, ratioQ, an, mx]);
+  const G = useMemo(() => groups(files, ratioQ, an, mx, acc), [files, ratioQ, an, mx, acc]);
   // each question gets only its own evidence: nothing rest-of-season on the start view, nothing this-week on the hold view
   const order = mode === "week" ? ["week", "mx", "form", "role"] : ["ros", "an", "role", "real", "shape", "logi"];
   const matches = q.length >= 2 ? candidates.filter((c) => c.name.toLowerCase().includes(q.toLowerCase()) && !files.some((f) => f.id === c.id)).slice(0, 8) : [];
@@ -363,8 +373,8 @@ export function CompareView({ files, loading, err, ratioQ, candidates, onAdd, on
             ))}
           </div>
           <section className="cmp-chart">
-            {mode === "week" ? <><h2>Head to head this week</h2><H2H files={files} ratioQ={ratioQ} />
-              <h2 className="sub">Where this week should land</h2><OutcomeRange files={files} ratioQ={ratioQ} />
+            {mode === "week" ? <><h2>Head to head this week</h2><H2H files={files} ratioQ={ratioQ} acc={acc} />
+              <h2 className="sub">Where this week should land</h2><OutcomeRange files={files} ratioQ={ratioQ} acc={acc} />
               {files.some((f) => mx[f.id]?.defense) && <><h2 className="sub">Opponent defense <Tag t="priced" /></h2><DefenseDots files={files} mx={mx} /></>}</> : <><h2>Rest of season: what players like them did</h2><Ranges files={files} /></>}
           </section>
           {order.map((k) => G.find((g) => g.key === k)!).filter((g) => g.rows.length).map((g) => (

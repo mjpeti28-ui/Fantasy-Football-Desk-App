@@ -17,6 +17,8 @@ ACTUALS = ROOT / "history" / "actuals"
 LEDGER = ROOT / "history" / "ledger"
 NFLVERSE = ROOT / "history" / "nflverse"
 RATIOS = ROOT / "history" / "backtest" / "multi" / "ratio_dist.json"
+# QB/RB/WR/TE spread measured against ESPN's weekly number (tools/ratio_dist_espn.py); the app scales ESPN's number, so it wins where present
+RATIOS_ESPN = ROOT / "history" / "backtest" / "multi" / "ratio_dist_espn.json"
 
 # ESPN abbreviations -> nflverse abbreviations (only the ones that differ)
 ESPN_TO_NFLVERSE = {"LAR": "LA", "WSH": "WAS"}
@@ -74,6 +76,8 @@ def load(season: int = 2026) -> Inputs:
     week = latest if latest not in played_weeks else max(played_weeks) + 1
     nfl = pd.read_csv(NFLVERSE / "schedules.csv")
     ratios = {k: np.asarray(v_, float) for k, v_ in json.loads(RATIOS.read_text()).items()} if RATIOS.exists() else {}
+    if RATIOS_ESPN.exists():
+        ratios.update({k: np.asarray(v_, float) for k, v_ in json.loads(RATIOS_ESPN.read_text()).items()})
     ages = {
         "rosters": _mtime(a / "rosters_by_week.csv"),
         "espn_proj": _mtime(a / "espn_weekly_proj.csv"),
