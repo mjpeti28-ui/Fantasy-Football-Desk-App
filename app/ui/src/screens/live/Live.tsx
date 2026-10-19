@@ -254,9 +254,12 @@ function Swings({ data, onPick }: { data: LiveBoard; onPick: (id: number) => voi
     const mine = in_(data.me), theirs = in_(data.opp);
     return `${g ? `${g.away.abbr} @ ${g.home.abbr}` : "Their game"}${mine ? ` · your ${mine}` : ""}${theirs ? ` · their ${theirs}` : ""}`;
   };
+  // the first point's change from kickoff covers every play before it (the series keeps only the latest
+  // 120 points), so it goes to "Everything else" instead of being pinned on whoever made that play
+  const early = steps.shift()!;
   const top = [...steps].filter((x) => Math.abs(x.d) >= 0.005).sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 5);
   const by = new Map<number, number>();
-  let rest = 0;
+  let rest = early.d;
   for (const x of steps) if (x.who != null) by.set(x.who, (by.get(x.who) ?? 0) + x.d); else rest += x.d;
   const movers: [number | null, number][] = [...by.entries()].filter(([, v]) => Math.abs(v) >= 0.005).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 6);
   if (movers.length && Math.abs(rest) >= 0.005) movers.push([null, rest]);
@@ -287,7 +290,7 @@ function Swings({ data, onPick }: { data: LiveBoard; onPick: (id: number) => voi
             const p = id != null ? all.get(id) : undefined;
             return (
               <button key={id ?? "rest"} type="button" className="sw-row" disabled={id == null} onClick={() => id != null && onPick(id)}
-                title={id == null ? "Time running off the clock, score changes and quarter ends that weren't a starter's own play" : `${p?.name ?? id}: net ${signed(v * 100)} points of win chance from his plays tonight`}>
+                title={id == null ? "Time running off the clock, score changes and quarter ends that weren't a starter's own play, plus everything before the first play shown" : `${p?.name ?? id}: net ${signed(v * 100)} points of win chance from his plays tonight`}>
                 <span className={`nm ${p?.side ?? ""}`}>{id == null ? "Everything else" : p ? `${p.side === "me" ? "your" : "their"} ${nm(p)}` : id}</span>
                 <span className="trk"><i className={v >= 0 ? "up" : "down"} style={{ width: `${(50 * Math.abs(v)) / mx}%`, [v >= 0 ? "left" : "right"]: "50%" } as CSSProperties} /></span>
                 <b className="num">{signed(v * 100)}</b>
