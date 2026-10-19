@@ -56,6 +56,7 @@
 .lv-wp .fill.me { fill: color-mix(in srgb, var(--you) 16%, transparent); }
 .lv-wp .fill.opp { fill: color-mix(in srgb, var(--them) 16%, transparent); }
 .lv-wp .ln { fill: none; stroke: var(--ink); stroke-width: 2; }
+.lv-wp svg { height: 168px; } .lv-wp .lev { fill: var(--ink-2); }
 .live svg .dot { stroke: var(--win); stroke-width: 1.5; cursor: pointer; }
 .live svg .dot.me { fill: var(--you); } .live svg .dot.opp { fill: var(--them); }
 .live svg .dot.now { fill: var(--ink); cursor: default; }
@@ -135,6 +136,7 @@
 .lv-swing .sw-top li.pick { cursor: pointer; } .lv-swing .sw-top li.pick:hover { background: var(--hover); }
 .lv-swing .d { font: 700 14px var(--mono); text-align: right; } .lv-swing .d.up { color: var(--above); } .lv-swing .d.down { color: var(--below); }
 .lv-swing .t em { font-style: normal; font-weight: 650; } .lv-swing .t em.me { color: var(--you); } .lv-swing .t em.opp { color: var(--them); }
+.lv-swing .t i.lev { font-style: normal; margin-left: 8px; padding: 0 6px; border-radius: 4px; background: var(--hover); color: var(--ink-2); font: 11px var(--mono); }
 .lv-swing .t small { display: block; color: var(--ink-2); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lv-swing .sw-who { display: grid; gap: 3px; align-content: start; }
 .lv-swing .sw-row { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 110px minmax(0, 1fr) 48px; gap: 8px; align-items: center; height: 22px; padding: 0 4px; border-radius: 5px; cursor: pointer; font: 12px var(--sys); }

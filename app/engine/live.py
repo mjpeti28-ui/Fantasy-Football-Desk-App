@@ -429,6 +429,8 @@ def simulate(me: List[dict], opp: List[dict], ratio_q: dict, seed: int = 7, n: i
         p["live_mean"] = round(float(x.mean()), 1)
         B += x
     return {"p_win": round(float((A > B).mean() + 0.5 * (A == B).mean()), 4),
+            # leverage: win chance one more fantasy point buys right now (density of the margin near 0, over ±3)
+            "lev": round(float((np.abs(A - B) < 3).mean() / 6), 4) if (A - B).std() > 0.1 else 0.0,  # 0 once nothing is left to play
             "me": {"mean": round(float(A.mean()), 1), "p10": round(float(np.percentile(A, 10)), 1),
                    "p90": round(float(np.percentile(A, 90)), 1)},
             "opp": {"mean": round(float(B.mean()), 1), "p10": round(float(np.percentile(B, 10)), 1),
@@ -616,7 +618,7 @@ def board(snap: dict, player_file: Callable[[int], dict] = None) -> dict:
         "generated_at": time.time(), "season": snap.get("season"), "week": snap.get("week"),
         "me_name": tw.get("team_name"), "opp_name": (tw.get("matchup") or {}).get("opp_name"),
         "games": games, "me": me, "opp": opp,
-        "matchup": {"p_win": sim["p_win"], "p_win_pre": pre["p_win"], "me": sim["me"], "opp": sim["opp"],
+        "matchup": {"p_win": sim["p_win"], "p_win_pre": pre["p_win"], "lev": sim["lev"], "lev_pre": pre["lev"], "me": sim["me"], "opp": sim["opp"],
                     "me_pts": round(sum(p["pts"] for p in me), 1), "opp_pts": round(sum(p["pts"] for p in opp), 1),
                     "me_left": sum(1 for p in me if p["state"] in ("pre", "in")),
                     "opp_left": sum(1 for p in opp if p["state"] in ("pre", "in"))},
@@ -699,7 +701,7 @@ def _series(me, opp, ratio_q, games, plays) -> List[dict]:
                                 banked=p["dst"]["banked"] * min(1.0, frac))
             return q
         sim = simulate([at(p) for p in me], [at(p) for p in opp], ratio_q, n=3000, seed=11)
-        out.append({"wall": wall, "elapsed": el, "event": ev, "p_win": sim["p_win"], "who": who,
+        out.append({"wall": wall, "elapsed": el, "event": ev, "p_win": sim["p_win"], "lev": sim["lev"], "who": who,
                     "pts": round(dpts, 1), "text": text[:140], "period": per, "clock": clk})
     return out
 
