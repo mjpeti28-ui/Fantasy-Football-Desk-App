@@ -21,6 +21,7 @@ his opportunity rate (targets + carries), one game of prior weight. See NOTES.
 """
 from __future__ import annotations
 
+import bisect
 import math
 import re
 import threading
@@ -641,7 +642,10 @@ def _series(me, opp, ratio_q, games, plays) -> List[dict]:
             sc = [pl.get("awayScore"), pl.get("homeScore")]
             el = _clock_elapsed(per, clk, "in")
             if last_score is not None and sc != last_score:
-                marks.append((pl.get("wallclock") or "", int(pl.get("sequenceNumber") or 0), ev, el, sc, None, 0.0,
+                # a tracked kicker's FG or extra point is his own play, not an anonymous score change
+                k = next((p for p in live if p["pos"] == "K" and p["event"] == ev and kicker_points([pl], short_name(p["name"]))), None)
+                marks.append((pl.get("wallclock") or "", int(pl.get("sequenceNumber") or 0), ev, el, sc, k and k["id"],
+                              kicker_points([pl], short_name(k["name"])) if k else 0.0,
                               (pl.get("text") or "").strip(), per, (pl.get("clock") or {}).get("displayValue")))
             if last_per is not None and per != last_per:
                 marks.append((pl.get("wallclock") or "", int(pl.get("sequenceNumber") or 0) - 1, ev, _clock_elapsed(last_per, 0, "in"), last_score, None, 0.0,
@@ -654,25 +658,43 @@ def _series(me, opp, ratio_q, games, plays) -> List[dict]:
             if e["pts"]:
                 marks.append((e.get("wall") or "", e["seq"], p["event"], e["elapsed"], e["score"], p["id"], e["pts"], e["text"], e["period"], e["clock"]))
     marks.sort(key=lambda m: (m[0], m[1]))
+    # each game's plays in wall order, so a player in another game can be put back where his game stood
+    tl = {}
+    for ev, pls in plays.items():
+        rows = sorted(((pl.get("wallclock") or "", int(pl.get("sequenceNumber") or 0), pl) for pl in pls if pl.get("wallclock")),
+                      key=lambda r: (r[0], r[1]))
+        tl[ev] = ([r[0] for r in rows], [r[2] for r in rows])
     out = []
     for wall, seq, ev, el, score, who, dpts, text, per, clk in marks[-120:]:
         def at(p):
             q = dict(p)
             if p["event"] is None or p["state"] not in ("in", "post"):
                 return q
+            s_, el_, sc_ = seq, el, score
             if p["event"] != ev:
-                # another game: use its state only if it had already started by this wall time
-                g = gstate.get(p["event"])
-                if g and g.get("kickoff") and wall and wall < (g["kickoff"].replace("Z", "") + ":00Z" if len(g["kickoff"]) == 17 else g["kickoff"]):
+                # another game: put it back to its last play at or before this wall time
+                walls, pls = tl.get(p["event"], ([], []))
+                if not walls or not wall:
+                    return q
+                i = bisect.bisect_right(walls, wall) - 1
+                if i < 0:
                     q.update(state="pre", pts=0.0)
-                return q
-            pts = sum(e["pts"] for e in p["events"] if e["seq"] <= seq)
-            q.update(state="in", elapsed=el, pts=pts, tilt=1.0)
+                    return q
+                if i == len(walls) - 1 and p["state"] == "post":
+                    return q
+                pl = pls[i]
+                per_, clk_ = _clock_of(pl)
+                s_, el_, sc_ = int(pl.get("sequenceNumber") or 0), _clock_elapsed(per_, clk_, "in"), [pl.get("awayScore"), pl.get("homeScore")]
+            if p["pos"] == "K":
+                pts = kicker_points([x for x in plays.get(p["event"], []) if int(x.get("sequenceNumber") or 0) <= s_], short_name(p["name"]))
+            else:
+                pts = sum(e["pts"] for e in p["events"] if e["seq"] <= s_)
+            q.update(state="in", elapsed=el_, pts=pts, tilt=1.0)
             if p["pos"] == "DST" and p.get("dst"):
-                g = gstate.get(ev)
+                g = gstate.get(p["event"])
                 home = g and g["home"]["abbr"] == p["team"]
-                pa_then = float((score[0] if home else score[1]) or 0)
-                frac = el / max(1e-6, p["elapsed"] or 1.0)
+                pa_then = float((sc_[0] if home else sc_[1]) or 0)
+                frac = el_ / max(1e-6, p["elapsed"] or 1.0)
                 q["dst"] = dict(p["dst"], pa=pa_then, ya=p["dst"]["ya"] * min(1.0, frac),
                                 banked=p["dst"]["banked"] * min(1.0, frac))
             return q

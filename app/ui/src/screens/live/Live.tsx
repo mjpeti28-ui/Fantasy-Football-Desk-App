@@ -239,22 +239,33 @@ function WinLine({ data, onPick }: { data: LiveBoard; onPick: (id: number) => vo
 }
 
 /* What moved the win chance tonight: each scoring play's change in your win chance, the five biggest,
-   and the total by player. Descriptive: it explains the line above, it predicts nothing. */
+   and the net by player. Descriptive: it explains the line above, it predicts nothing. */
 function Swings({ data, onPick }: { data: LiveBoard; onPick: (id: number) => void }) {
   const ser = [...data.series].sort((a, b) => (a.wall && b.wall ? Date.parse(a.wall) - Date.parse(b.wall) : a.elapsed - b.elapsed));
   if (ser.length < 2) return null;
   let prev = data.matchup.p_win_pre;
-  const steps = ser.map((x) => { const d = x.p_win - prev; prev = x.p_win; return { ...x, d }; });
+  const steps = ser.map((x) => { const from = prev; prev = x.p_win; return { ...x, from, d: x.p_win - from }; });
   const all = new Map([...data.me, ...data.opp].map((p) => [p.id, p]));
+  const nm = (p: LivePlayer) => (p.pos === "DST" ? p.name : lastName(p.name));
+  // a play with no player of yours or theirs: say which game and whose starters are in it
+  const where = (ev: string) => {
+    const g = data.games.find((x) => x.event === ev);
+    const in_ = (ps: LivePlayer[]) => ps.filter((p) => p.event === ev).map(nm).join(", ");
+    const mine = in_(data.me), theirs = in_(data.opp);
+    return `${g ? `${g.away.abbr} @ ${g.home.abbr}` : "Their game"}${mine ? ` · your ${mine}` : ""}${theirs ? ` · their ${theirs}` : ""}`;
+  };
   const top = [...steps].filter((x) => Math.abs(x.d) >= 0.005).sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 5);
   const by = new Map<number, number>();
-  for (const x of steps) if (x.who != null) by.set(x.who, (by.get(x.who) ?? 0) + x.d);
-  const movers = [...by.entries()].filter(([, v]) => Math.abs(v) >= 0.005).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 6);
+  let rest = 0;
+  for (const x of steps) if (x.who != null) by.set(x.who, (by.get(x.who) ?? 0) + x.d); else rest += x.d;
+  const movers: [number | null, number][] = [...by.entries()].filter(([, v]) => Math.abs(v) >= 0.005).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 6);
+  if (movers.length && Math.abs(rest) >= 0.005) movers.push([null, rest]);
   const mx = Math.max(0.01, ...movers.map(([, v]) => Math.abs(v)));
+  const end = steps[steps.length - 1].p_win;
   if (!top.length) return null;
   return (
     <section className="lv-swing" aria-label="What moved the win chance">
-      <h5>What moved it <span>change in your win chance at each scoring play, score change or quarter end · what happened, not a forecast</span></h5>
+      <h5>What moved it <span>the five plays that moved your win chance most · what happened, not a forecast</span></h5>
       <div className={movers.length ? "sw-two" : ""}>
         <ol className="sw-top">
           {top.map((x, i) => {
@@ -262,23 +273,28 @@ function Swings({ data, onPick }: { data: LiveBoard; onPick: (id: number) => voi
             return (
               <li key={i} onClick={() => p && onPick(p.id)} className={p ? "pick" : ""}>
                 <b className={`num d ${x.d > 0 ? "up" : "down"}`}>{signed(x.d * 100)}</b>
-                <span className="t">{p ? <><em className={p.side}>{p.pos === "DST" ? p.name : lastName(p.name)}</em> {signed(x.pts)} · </> : null}Q{x.period} {x.clock}<small>{x.text}</small></span>
+                <span className="t">
+                  {p ? <><em className={p.side}>{p.side === "me" ? "Your" : "Their"} {nm(p)}</em> {signed(x.pts)} pts</> : <>{x.text.startsWith("End of Q") ? "Quarter ended" : "Score change"} in {where(x.event)}</>}
+                  {" · "}Q{x.period} {x.clock} · <span className="num">{pct(x.from)} → {pct(x.p_win)}</span>
+                  <small>{x.text}</small>
+                </span>
               </li>
             );
           })}
         </ol>
         {movers.length > 0 && <div className="sw-who">
           {movers.map(([id, v]) => {
-            const p = all.get(id);
+            const p = id != null ? all.get(id) : undefined;
             return (
-              <button key={id} type="button" className="sw-row" onClick={() => onPick(id)} title={`${p?.name ?? id}: ${signed(v * 100)} points of win chance in total tonight`}>
-                <span className={`nm ${p?.side ?? ""}`}>{p ? (p.pos === "DST" ? p.name : lastName(p.name)) : id}</span>
+              <button key={id ?? "rest"} type="button" className="sw-row" disabled={id == null} onClick={() => id != null && onPick(id)}
+                title={id == null ? "Time running off the clock, score changes and quarter ends that weren't a starter's own play" : `${p?.name ?? id}: net ${signed(v * 100)} points of win chance from his plays tonight`}>
+                <span className={`nm ${p?.side ?? ""}`}>{id == null ? "Everything else" : p ? `${p.side === "me" ? "your" : "their"} ${nm(p)}` : id}</span>
                 <span className="trk"><i className={v >= 0 ? "up" : "down"} style={{ width: `${(50 * Math.abs(v)) / mx}%`, [v >= 0 ? "left" : "right"]: "50%" } as CSSProperties} /></span>
                 <b className="num">{signed(v * 100)}</b>
               </button>
             );
           })}
-          <p className="dim">Total by player, in points of win chance. Right of center helped you.</p>
+          <p className="dim">Net change in win chance from each player's plays, in percentage points; right of center helped you. Together they add up to tonight's move: {pct(data.matchup.p_win_pre)} at kickoff to {pct(end)}.</p>
         </div>}
       </div>
     </section>
