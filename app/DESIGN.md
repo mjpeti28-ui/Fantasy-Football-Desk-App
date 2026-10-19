@@ -424,8 +424,10 @@ keep what's interesting, say how predictive it is. Flags inline, depth in an Ana
   rating before week W predicted playoff pass defense at r .22 and run defense at .06 (2023–25), and
   points allowed by position did worse (.07). For planning holds and trades, not weekly start/sit.
 - **Live › What moved it:** the five biggest single changes in your win chance (scoring plays, score
-  changes, quarter ends) and the total by player as a diverging bar (right of center helped you).
-  Descriptive. Copy for Claude adds the biggest moves.
+  changes, quarter ends), each with before → after win % and, when no starter made the play, which
+  game it was and whose starters are in it; plus the net by player as a diverging bar (right of center
+  helped you), with an "Everything else" row so the bars add up to kickoff → now. Each point in the
+  series puts every game back where it stood at that moment. Descriptive. Copy for Claude adds the biggest moves.
 - **Lab (⌘9, P — instrument bench):** any stat against any stat for every relevant QB/RB/WR/TE
   (19 stats: usage, results, consistency, trends, the model's number, ECR), filtered by position and by
   everyone / rostered / free agents / yours, colored by owner (you cobalt, this week's opponent plum, other
