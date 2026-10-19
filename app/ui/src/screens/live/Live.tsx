@@ -244,7 +244,18 @@ function Swings({ data, onPick }: { data: LiveBoard; onPick: (id: number) => voi
   const ser = [...data.series].sort((a, b) => (a.wall && b.wall ? Date.parse(a.wall) - Date.parse(b.wall) : a.elapsed - b.elapsed));
   if (ser.length < 2) return null;
   let prev = data.matchup.p_win_pre;
-  const steps = ser.map((x) => { const from = prev; prev = x.p_win; return { ...x, from, d: x.p_win - from }; });
+  // one play can be several points (a pass to a catch, a TD and its extra point): the first point carries the
+  // whole change and the rest carry none, so merge them into one play and split its change among the players
+  type Step = (typeof ser)[number] & { from: number; d: number; ps: { who: number; pts: number }[] };
+  const steps: Step[] = [];
+  for (const x of ser) {
+    const last = steps[steps.length - 1];
+    if (last && last.event === x.event && last.wall === x.wall && last.text === x.text) {
+      last.d += x.p_win - last.p_win; last.p_win = x.p_win;
+      if (x.who != null) last.ps.push({ who: x.who, pts: x.pts });
+    } else steps.push({ ...x, from: prev, d: x.p_win - prev, ps: x.who != null ? [{ who: x.who, pts: x.pts }] : [] });
+    prev = x.p_win;
+  }
   const all = new Map([...data.me, ...data.opp].map((p) => [p.id, p]));
   const nm = (p: LivePlayer) => (p.pos === "DST" ? p.name : lastName(p.name));
   // a play with no player of yours or theirs: say which game and whose starters are in it
@@ -260,7 +271,11 @@ function Swings({ data, onPick }: { data: LiveBoard; onPick: (id: number) => voi
   const top = [...steps].filter((x) => Math.abs(x.d) >= 0.005).sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 5);
   const by = new Map<number, number>();
   let rest = early.d;
-  for (const x of steps) if (x.who != null) by.set(x.who, (by.get(x.who) ?? 0) + x.d); else rest += x.d;
+  for (const x of steps) {
+    if (!x.ps.length) { rest += x.d; continue; }
+    const tot = x.ps.reduce((a, q) => a + Math.abs(q.pts), 0);
+    for (const q of x.ps) by.set(q.who, (by.get(q.who) ?? 0) + x.d * (tot ? Math.abs(q.pts) / tot : 1 / x.ps.length));
+  }
   const movers: [number | null, number][] = [...by.entries()].filter(([, v]) => Math.abs(v) >= 0.005).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 6);
   if (movers.length && Math.abs(rest) >= 0.005) movers.push([null, rest]);
   const mx = Math.max(0.01, ...movers.map(([, v]) => Math.abs(v)));
@@ -272,12 +287,13 @@ function Swings({ data, onPick }: { data: LiveBoard; onPick: (id: number) => voi
       <div className={movers.length ? "sw-two" : ""}>
         <ol className="sw-top">
           {top.map((x, i) => {
-            const p = x.who != null ? all.get(x.who) : undefined;
+            const ps = x.ps.flatMap((q) => { const p = all.get(q.who); return p ? [{ p, pts: q.pts }] : []; });
             return (
-              <li key={i} onClick={() => p && onPick(p.id)} className={p ? "pick" : ""}>
+              <li key={i} onClick={() => ps.length && onPick(ps[0].p.id)} className={ps.length ? "pick" : ""}>
                 <b className={`num d ${x.d > 0 ? "up" : "down"}`}>{signed(x.d * 100)}</b>
                 <span className="t">
-                  {p ? <><em className={p.side}>{p.side === "me" ? "Your" : "Their"} {nm(p)}</em> {signed(x.pts)} pts</> : <>{x.text.startsWith("End of Q") ? "Quarter ended" : "Score change"} in {where(x.event)}</>}
+                  {ps.length ? ps.map(({ p, pts }, j) => <span key={p.id}>{j ? ", " : ""}<em className={p.side}>{p.side === "me" ? "Your" : "Their"} {nm(p)}</em> {signed(pts)} pts</span>)
+                    : <>{x.text.startsWith("End of Q") ? "Quarter ended" : "Score change"} in {where(x.event)}</>}
                   {" · "}Q{x.period} {x.clock} · <span className="num">{pct(x.from)} → {pct(x.p_win)}</span>
                   <small>{x.text}</small>
                 </span>
