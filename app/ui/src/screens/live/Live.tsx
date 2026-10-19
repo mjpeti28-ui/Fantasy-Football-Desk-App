@@ -26,12 +26,14 @@ export interface LiveGame { event: string; kickoff: string; state: "pre" | "in" 
   home: { abbr: string; score: number; name: string }; away: { abbr: string; score: number; name: string }; possession: string | null; down_dist: string | null; red_zone: boolean; last_play: string | null }
 export interface LiveBoard {
   generated_at: number; week: number; me_name: string; opp_name: string; games: LiveGame[]; me: LivePlayer[]; opp: LivePlayer[];
-  matchup: { p_win: number; p_win_pre: number; me: { mean: number; p10: number; p90: number }; opp: { mean: number; p10: number; p90: number }; me_pts: number; opp_pts: number; me_left: number; opp_left: number };
-  series: { wall: string; elapsed: number; event: string; p_win: number; who: number | null; pts: number; text: string; period: number; clock: string }[];
+  matchup: { p_win: number; p_win_pre: number; lev?: number; lev_pre?: number; me: { mean: number; p10: number; p90: number }; opp: { mean: number; p10: number; p90: number }; me_pts: number; opp_pts: number; me_left: number; opp_left: number };
+  series: { wall: string; elapsed: number; event: string; p_win: number; lev?: number; who: number | null; pts: number; text: string; period: number; clock: string }[];
   insights: { tone: "up" | "down" | "flat" | "alert"; kind: string; text: string; id?: number }[];
   notes: string[]; errors: string[]; poll_s: number;
 }
 
+// leverage as a share of win chance per fantasy point
+const levTxt = (v: number) => (v >= 0.0995 ? `${Math.round(v * 100)}%` : v < 0.001 ? "~0%" : `${(v * 100).toFixed(1)}%`);
 const chip = (pos: Pos) => ({ background: POS_VAR[pos], color: pos === "WR" ? "var(--wr-ink)" : "var(--pos-ink)" });
 const kickoff = (iso?: string) => (iso ? new Date(iso).toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" }) : "");
 const stateText = (p: LivePlayer, g?: LiveGame) =>
@@ -160,14 +162,16 @@ function Bullet({ p, max }: { p: LivePlayer; max: number }) {
 
 function WinLine({ data, onPick }: { data: LiveBoard; onPick: (id: number) => void }) {
   const [hov, setHov] = useState<number | null>(null);
-  const W = 1000, H = 150, padL = 34, padR = 10, padT = 10, padB = 22;
+  const W = 1000, H = 168, padL = 34, padR = 10, padT = 10, padB = 40;
   // x = time since the first tracked kickoff (wall clock), so a Sunday with overlapping games reads in order
   const t0s = data.games.filter((g) => g.state !== "pre" && [...data.me, ...data.opp].some((p) => p.event === g.event)).map((g) => Date.parse(g.kickoff));
   const t0 = t0s.length ? Math.min(...t0s) : Date.now();
   const tNow = data.generated_at * 1000;
-  const pts = [{ t: t0, p: data.matchup.p_win_pre, s: null as null | (typeof data.series)[number] },
-    ...data.series.filter((s) => s.wall).map((s) => ({ t: Date.parse(s.wall), p: s.p_win, s })),
-    { t: Math.max(tNow, t0 + 60_000), p: data.matchup.p_win, s: null }];
+  const pts = [{ t: t0, p: data.matchup.p_win_pre, lev: data.matchup.lev_pre, s: null as null | (typeof data.series)[number] },
+    ...data.series.filter((s) => s.wall).map((s) => ({ t: Date.parse(s.wall), p: s.p_win, lev: s.lev, s })),
+    { t: Math.max(tNow, t0 + 60_000), p: data.matchup.p_win, lev: data.matchup.lev, s: null }];
+  // leverage strip: how much one fantasy point moved the win chance, darker = a point mattered more (4%+ is full)
+  const hasLev = pts.some((q) => q.lev != null);
   // x = wall clock with the dead time between games squeezed out, so Thursday, the Sunday slots and
   // Monday sit side by side; tonight's game keeps room to its likely end so the line grows across.
   const GAP = 600_000, BREAK = 40 * 60_000;
@@ -230,10 +234,15 @@ function WinLine({ data, onPick }: { data: LiveBoard; onPick: (id: number) => vo
             onMouseEnter={() => setHov(i)} onClick={() => { if (q.s?.who != null) onPick(q.s.who); }} />
         ) : null)}
         <circle cx={X(pts[pts.length - 1].t)} cy={Y(data.matchup.p_win)} r={4} className="dot now" />
+        {hasLev && <>
+          <text className="ax" x={padL - 6} y={H - padB + 17} textAnchor="end">1 pt</text>
+          {pts.slice(0, -1).map((q, i) => <rect key={`v${i}`} className="lev" x={X(q.t)} width={Math.max(0, X(pts[i + 1].t) - X(q.t))} y={H - padB + 9} height={9}
+            style={{ opacity: Math.max(0.08, Math.min(1, (q.lev ?? 0) / 0.04)) }} />)}
+        </>}
       </svg>
       <p className="lv-read">{h?.s
-        ? <>{h.s.who != null ? <><b>{all.get(h.s.who)?.name}</b> {signed(h.s.pts)} · </> : null}Q{h.s.period} {h.s.clock} · win chance {pct(h.s.p_win)}. <span className="dim">{h.s.text}</span></>
-        : <>Now {pct(data.matchup.p_win)}; {pct(data.matchup.p_win_pre)} at kickoff. Hover a dot for the play.{zoomed ? <span className="dim"> The axis is zoomed to {Math.round(y0 * 100)}–{Math.round(y1 * 100)}% so small moves show.</span> : null}</>}</p>
+        ? <>{h.s.who != null ? <><b>{all.get(h.s.who)?.name}</b> {signed(h.s.pts)} · </> : null}Q{h.s.period} {h.s.clock} · win chance {pct(h.s.p_win)}{h.lev != null ? <> · a point was worth {levTxt(h.lev)}</> : null}. <span className="dim">{h.s.text}</span></>
+        : <>Now {pct(data.matchup.p_win)}; {pct(data.matchup.p_win_pre)} at kickoff. Hover a dot for the play.{hasLev ? <span className="dim"> The strip under the chart is what one fantasy point was worth: the stronger the shade, the more a point moved your win chance.</span> : null}{zoomed ? <span className="dim"> The axis is zoomed to {Math.round(y0 * 100)}–{Math.round(y1 * 100)}% so small moves show.</span> : null}</>}</p>
     </section>
   );
 }
@@ -246,15 +255,16 @@ function Swings({ data, onPick }: { data: LiveBoard; onPick: (id: number) => voi
   let prev = data.matchup.p_win_pre;
   // one play can be several points (a pass to a catch, a TD and its extra point): the first point carries the
   // whole change and the rest carry none, so merge them into one play and split its change among the players
-  type Step = (typeof ser)[number] & { from: number; d: number; ps: { who: number; pts: number }[] };
+  type Step = (typeof ser)[number] & { from: number; levFrom?: number; d: number; ps: { who: number; pts: number }[] };
+  let prevLev = data.matchup.lev_pre;
   const steps: Step[] = [];
   for (const x of ser) {
     const last = steps[steps.length - 1];
     if (last && last.event === x.event && last.wall === x.wall && last.text === x.text) {
       last.d += x.p_win - last.p_win; last.p_win = x.p_win;
       if (x.who != null) last.ps.push({ who: x.who, pts: x.pts });
-    } else steps.push({ ...x, from: prev, d: x.p_win - prev, ps: x.who != null ? [{ who: x.who, pts: x.pts }] : [] });
-    prev = x.p_win;
+    } else steps.push({ ...x, from: prev, levFrom: prevLev, d: x.p_win - prev, ps: x.who != null ? [{ who: x.who, pts: x.pts }] : [] });
+    prev = x.p_win; prevLev = x.lev;
   }
   const all = new Map([...data.me, ...data.opp].map((p) => [p.id, p]));
   const nm = (p: LivePlayer) => (p.pos === "DST" ? p.name : lastName(p.name));
@@ -295,6 +305,7 @@ function Swings({ data, onPick }: { data: LiveBoard; onPick: (id: number) => voi
                   {ps.length ? ps.map(({ p, pts }, j) => <span key={p.id}>{j ? ", " : ""}<em className={p.side}>{p.side === "me" ? "Your" : "Their"} {nm(p)}</em> {signed(pts)} pts</span>)
                     : <>{x.text.startsWith("End of Q") ? "Quarter ended" : "Score change"} in {where(x.event)}</>}
                   {" · "}Q{x.period} {x.clock} · <span className="num">{pct(x.from)} → {pct(x.p_win)}</span>
+                  {x.levFrom != null && <i className="lev" title="How much one fantasy point moved your win chance going into this play">1 pt = {levTxt(x.levFrom)}</i>}
                   <small>{x.text}</small>
                 </span>
               </li>
