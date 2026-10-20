@@ -124,6 +124,7 @@ export interface LeagueAnalysis {
   seed_dist: Record<string, number[]>; week_pts: Record<string, number[]>;
   pos_ppw: Record<string, Record<string, number>>; stream_rate: Record<string, Record<string, number>>;
   pos_so_far: Record<string, Record<string, number>>;
+  slots?: string[]; slot_ppw?: Record<string, Record<string, number>>; slot_so_far?: Record<string, Record<string, number>>;
 }
 export interface LeagueLive { sims: number; week: number; odds: Record<string, LiveOdds>; rosters: Record<string, RosterRow[]>; noise_pp: number; analysis?: LeagueAnalysis }
 export interface WhatIfResult { sims: number; base: Record<string, LiveOdds>; scenario: Record<string, LiveOdds>; delta: Record<string, LiveOdds>; noise_pp: number }

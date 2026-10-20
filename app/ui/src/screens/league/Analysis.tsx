@@ -3,8 +3,8 @@ import type { LeagueAnalysis, Pos, PowerTeam } from "../../types";
 import { f1, pct, signed, teamShort } from "../../format";
 import "./analysis.css";
 
-const POS_VAR: Record<string, string> = { QB: "var(--qb)", RB: "var(--rb)", WR: "var(--wr)", TE: "var(--te)", K: "var(--k)", DST: "var(--dst)" };
-const POS_LABEL: Record<string, string> = { QB: "QB", RB: "RB", WR: "WR", TE: "TE", K: "K", DST: "D/ST" };
+const POS_VAR: Record<string, string> = { QB: "var(--qb)", RB: "var(--rb)", WR: "var(--wr)", TE: "var(--te)", K: "var(--k)", DST: "var(--dst)", FLEX: "var(--ink-2)" };
+const POS_LABEL: Record<string, string> = { QB: "QB", RB: "RB", WR: "WR", TE: "TE", K: "K", DST: "D/ST", FLEX: "Flex" };
 const SKILL: Pos[] = ["QB", "RB", "WR", "TE"];
 const short = (n: string, teams: PowerTeam[]) => teamShort(n, teams.map((t) => t.name));
 
@@ -14,10 +14,13 @@ const role = (id: number, myId: number, oppId: number | null) => (id === myId ? 
 
 /* 1 ─ positional strength: starter points per week at each position vs the league average */
 function Strength({ a, teams, order, myId, oppId, onSelect, onTrade }: Props) {
-  const pos = a.positions;
-  const mean: Record<string, number> = Object.fromEntries(pos.map((p) => [p, order.reduce((s, t) => s + a.pos_ppw[t][p], 0) / order.length]));
-  const dev = (t: number, p: string) => a.pos_ppw[t][p] - mean[p];
-  const span = Math.max(...order.flatMap((t) => pos.map((p) => Math.abs(dev(t, p)))), 1);
+  // the table is by lineup slot (the three flex slots pooled); trade fits stay by player position
+  const pos = a.slots ?? a.positions, ppw = a.slot_ppw ?? a.pos_ppw;
+  const mean: Record<string, number> = Object.fromEntries(pos.map((p) => [p, order.reduce((s, t) => s + ppw[t][p], 0) / order.length]));
+  const sdev = (t: number, p: string) => ppw[t][p] - mean[p];
+  const pmean: Record<string, number> = Object.fromEntries(SKILL.map((p) => [p, order.reduce((s, t) => s + a.pos_ppw[t][p], 0) / order.length]));
+  const dev = (t: number, p: string) => a.pos_ppw[t][p] - pmean[p];
+  const span = Math.max(...order.flatMap((t) => pos.map((p) => Math.abs(sdev(t, p)))), 1);
   const name = (t: number) => teams.find((x) => x.id === t)!.name;
 
   // trade fits: their surplus where you're short + your surplus where they're short (skill spots)
@@ -33,24 +36,24 @@ function Strength({ a, teams, order, myId, oppId, onSelect, onTrade }: Props) {
 
   return (
     <section className="an-card wide">
-      <header><h4>Where the points come from</h4><p>Starter points per week by position, rest of the regular season, against the league average. From the same simulation as the odds.</p></header>
+      <header><h4>Where the points come from</h4><p>Starter points per week by lineup slot (RB/WR, WR/TE and FLEX pooled as Flex), rest of the regular season, against the league average. From the same simulation as the odds.</p></header>
       <div className="an-stack">
         <div className="mx-wrap">
           <table className="mx">
             <thead><tr><th />{pos.map((p) => <th key={p}><i className="sw" style={{ background: POS_VAR[p] }} />{POS_LABEL[p]}</th>)}<th>Total</th></tr></thead>
             <tbody>
               {order.map((t) => {
-                const tot = pos.reduce((s, p) => s + a.pos_ppw[t][p], 0);
+                const tot = pos.reduce((s, p) => s + ppw[t][p], 0);
                 const totMean = pos.reduce((s, p) => s + mean[p], 0);
                 return (
                   <tr key={t} className={role(t, myId, oppId)} onClick={() => onSelect(t)}>
                     <th className="tn">{short(name(t), teams)}</th>
                     {pos.map((p) => {
-                      const v = dev(t, p), alpha = Math.min(1, Math.abs(v) / span);
-                      const streams = a.stream_rate[t][p] >= 0.3;
+                      const v = sdev(t, p), alpha = Math.min(1, Math.abs(v) / span);
+                      const streams = (a.stream_rate[t][p] ?? 0) >= 0.3;
                       return (
                         <td key={p} className={`${v >= 0 ? "pos" : "neg"} ${streams ? "streams" : ""}`} style={{ ["--a" as string]: (0.12 + 0.6 * alpha).toFixed(2) }}
-                          title={`${name(t)} ${p}: ${f1(a.pos_ppw[t][p])} per week (league ${f1(mean[p])})${streams ? `; a waiver streamer starts ${pct(a.stream_rate[t][p])} of weeks` : ""}`}>
+                          title={`${name(t)} ${POS_LABEL[p]}: ${f1(ppw[t][p])} per week (league ${f1(mean[p])})${streams ? `; a waiver streamer starts ${pct(a.stream_rate[t][p])} of weeks` : ""}`}>
                           {signed(v)}
                         </td>
                       );
@@ -65,7 +68,7 @@ function Strength({ a, teams, order, myId, oppId, onSelect, onTrade }: Props) {
         </div>
         <div className="fits">
           <h5>Trade fits</h5>
-          <p className="an-note">Teams strong where you're short and short where you're strong. A starting point for Trades, not an evaluation.</p>
+          <p className="an-note">Teams strong where you're short and short where you're strong, by the position of the players who start (flex starters count at their own position). A starting point for Trades, not an evaluation.</p>
           {fits.length === 0 && <p className="an-note">No team lines up both ways right now.</p>}
           {fits.map((f) => (
             <button key={f.t} type="button" className="fit" onClick={() => (onTrade ? onTrade(f.t) : onSelect(f.t))}>
@@ -258,21 +261,21 @@ function Calendar({ a, teams, order, myId, oppId, onSelect }: Props) {
 
 /* 5 ─ points so far by position */
 function Composition({ a, teams, order, myId, oppId, onSelect }: Props) {
-  const pos = a.positions;
+  const pos = a.slots ?? a.positions, soFar = a.slot_so_far ?? a.pos_so_far;
   return (
     <section className="an-card wide">
-      <header><h4>Where the points came from so far</h4><p>Share of each team's starting-lineup points by position, weeks 1–{teams[0].weekly.length}.</p></header>
+      <header><h4>Where the points came from so far</h4><p>Share of each team's starting-lineup points by lineup slot (flex slots pooled), weeks 1–{teams[0].weekly.length}.</p></header>
       <div className="legend">{pos.map((p) => <span key={p}><i className="sw" style={{ background: POS_VAR[p] }} />{POS_LABEL[p]}</span>)}</div>
       <div className="comp">
         {order.map((t) => {
-          const so = a.pos_so_far[t] ?? {}, tot = pos.reduce((s, p) => s + (so[p] ?? 0), 0) || 1, r = role(t, myId, oppId);
+          const so = soFar[t] ?? {}, tot = pos.reduce((s, p) => s + (so[p] ?? 0), 0) || 1, r = role(t, myId, oppId);
           return (
             <div key={t} className={`crow ${r}`} onClick={() => onSelect(t)}>
               <span className="tn">{short(teams.find((x) => x.id === t)!.name, teams)}</span>
               <span className="stack">
                 {pos.map((p) => {
                   const share = (so[p] ?? 0) / tot;
-                  return share > 0 ? <i key={p} style={{ width: `${share * 100}%`, background: POS_VAR[p] }} className={p === "WR" ? "wr" : ""}
+                  return share > 0 ? <i key={p} style={{ width: `${share * 100}%`, background: POS_VAR[p] }} className={p === "WR" || p === "FLEX" ? "wr" : ""}
                     title={`${POS_LABEL[p]}: ${f1(so[p] ?? 0)} pts (${pct(share)})`}>{share >= 0.1 ? `${POS_LABEL[p]} ${Math.round(share * 100)}` : ""}</i> : null;
                 })}
               </span>

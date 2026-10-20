@@ -85,6 +85,11 @@ def simulate_crn(out: Dict[int, Optional[int]], sims: int, extras: Optional[dict
     wk_pts = np.zeros((nT, nW))
     POS = list(ss.POS_ORDER)
     pos_pts = np.zeros((nT, len(POS)))
+    # the same points by lineup slot, the three flex slots pooled: a team that plays one RB and
+    # fills the flexes with WRs shouldn't read as weak at RB and strong at WR
+    SLOTG = [p for p in POS if p not in ("K", "DST")] + ["FLEX"] + [p for p in POS if p in ("K", "DST")]
+    slot_pts = np.zeros((nT, len(SLOTG)))
+    n_single = sum(len(v.SLOT_ELIGIBILITY[sl]) == 1 for sl in s.slots)
     stream_ct = np.zeros((nT, len(POS)))
     tix = {t: k for k, t in enumerate(teams)}
     for n in range(sims):
@@ -98,7 +103,9 @@ def simulate_crn(out: Dict[int, Optional[int]], sims: int, extras: Optional[dict
             ids = [i for i in rosters[t] if up[col[i]] < avail[w].get(i, 0.0)] + list(streamer.values())
             tot = 0.0
             reg = w <= reg_end and extras is not None
-            for i in ss._lineup(ids, pos, est, s.slots):
+            lineup = ss._lineup(ids, pos, est, s.slots)
+            aligned = len(lineup) == len(s.slots)  # choose() lists single-position slots first, then flexes
+            for li, i in enumerate(lineup):
                 if i < 0:
                     pts = est[i]
                     if reg:
@@ -108,6 +115,7 @@ def simulate_crn(out: Dict[int, Optional[int]], sims: int, extras: Optional[dict
                     pts = est[i] * (float(r[int(ur[col[i]] * len(r))]) if r is not None and len(r) else 1.0)
                 if reg:
                     pos_pts[tix[t], POS.index(pos[i])] += pts
+                    slot_pts[tix[t], SLOTG.index("FLEX" if aligned and li >= n_single else pos[i])] += pts
                 tot += pts
             memo[(t, w)] = tot
             return tot
@@ -145,6 +153,8 @@ def simulate_crn(out: Dict[int, Optional[int]], sims: int, extras: Optional[dict
             "week_pts": {int(t): [round(x / sims, 1) for x in wk_pts[tix[t]]] for t in teams},
             # starter points per regular-season week, by the position of the player who started
             "pos_ppw": {int(t): {p: round(pos_pts[tix[t], k] / sims / n_reg, 2) for k, p in enumerate(POS)} for t in teams},
+            "slots": SLOTG,
+            "slot_ppw": {int(t): {p: round(slot_pts[tix[t], k] / sims / n_reg, 2) for k, p in enumerate(SLOTG)} for t in teams},
             "stream_rate": {int(t): {p: round(stream_ct[tix[t], k] / sims / n_reg, 3) for k, p in enumerate(POS)} for t in teams},
         })
     return {int(t): {k: round(counts[t][k] / sims, 4) for k in FIELDS} for t in teams}
@@ -162,7 +172,7 @@ def base(sims: int = 2000) -> Dict[int, dict]:
         if key not in _cache:
             # Same draws (fixed seed) on the same inputs give the same answer, so a saved run with
             # this exact key is reused across app launches.
-            dk = ("league-base", sims, SEED, d.load().week, d.ages_key())
+            dk = ("league-base", 2, sims, SEED, d.load().week, d.ages_key())  # bump when extras change
             hit = store.get(f"league_base_{sims}", dk)
             if hit is not None:
                 res, ex = hit[0]
@@ -186,6 +196,11 @@ def analysis(sims: int = 2000) -> dict:
     m["position"] = m["position"].replace({"D/ST": "DST"})
     so_far = m.groupby(["team_id", "position"])["points"].sum()
     ex["pos_so_far"] = {int(t): {str(p): round(float(v), 1) for p, v in g.droplevel(0).items()} for t, g in so_far.groupby(level=0)}
+    rs = inp.rosters[(inp.rosters["week"] < inp.week) & ~inp.rosters["lineup_slot"].isin(["BE", "IR"])][["week", "team_id", "espn_id", "lineup_slot"]]
+    ms = rs.merge(pw, on=["week", "espn_id"], how="left")
+    ms["slot"] = ms["lineup_slot"].replace({"RB/WR": "FLEX", "WR/TE": "FLEX", "D/ST": "DST"})
+    by_slot = ms.groupby(["team_id", "slot"])["points"].sum()
+    ex["slot_so_far"] = {int(t): {str(p): round(float(v), 1) for p, v in g.droplevel(0).items()} for t, g in by_slot.groupby(level=0)}
     return ex
 
 
