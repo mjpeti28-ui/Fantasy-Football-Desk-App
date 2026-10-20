@@ -5,6 +5,7 @@
   font-family: var(--content); font-variation-settings: "wdth" 108; }
 .trades .tr-hd { border-bottom: 3px solid var(--t-ink); padding-bottom: 10px; }
 .trades .tr-hd h2 { margin: 0; font: 800 30px/1 var(--content); font-variation-settings: "wdth" 115; text-transform: uppercase; letter-spacing: -.01em; }
+.trades .tr-hd .back { margin-left: 14px; vertical-align: middle; font: 600 12px/1.4 var(--content); text-transform: none; letter-spacing: 0; }
 .trades .tr-hd p { margin: 6px 0 0; color: var(--t-ink2); font-size: 13.5px; font-variation-settings: "wdth" 100; max-width: 95ch; }
 .trades .tr-off { color: var(--alert); margin: 0; }
 .trades .tr-empty { color: var(--t-ink2); margin: 8px 0; }

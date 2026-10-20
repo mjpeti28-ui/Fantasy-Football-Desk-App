@@ -187,7 +187,7 @@ export function Trades(p: Props) {
   return (
     <div className="trades">
       <header className="tr-hd">
-        <h2>Trades</h2>
+        <h2>Trades{partner != null && <button className="tbtn back" type="button" onClick={() => setDeal({ partner: null, give: [], get: [] })}>← All teams</button>}</h2>
         <p>Pick a partner, then click players on both sides. Gains are rest-of-season starting-lineup points (regular season and playoffs), calibrated to how past predictions played out.</p>
       </header>
       {!engineUp && <p className="tr-off">Start the engine to evaluate trades.</p>}
