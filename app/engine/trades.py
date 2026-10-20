@@ -11,7 +11,7 @@ import pandas as pd
 from . import data as d, league
 
 ME = 3
-_ideas = {"state": "idle", "partner": None, "started": None, "finished": None, "rows": [], "error": None}
+_ideas = {"state": "idle", "partner": None, "player": None, "started": None, "finished": None, "rows": [], "error": None}
 _ctx_cache: dict = {}
 
 
@@ -87,9 +87,13 @@ def odds(partner: int, give: List[int], get: List[int], sims: int = 2000) -> dic
                       for t in (ME, partner)}}
 
 
-def _run_ideas(partner: Optional[int]) -> None:
+def _run_ideas(partner: Optional[int], player: Optional[int] = None) -> None:
     try:
         tv, ctx = _ctx(False)
+        if player is not None:  # deals built around one player: land him, or shop him
+            rows = tv.around(ctx, _ctx(True)[1], ME, player).to_dict("records")
+            _ideas.update(state="done", rows=[{k: (float(v) if isinstance(v, float) else v) for k, v in r.items()} for r in rows], finished=time.time())
+            return
         df = tv.find(ctx, ME, partners=[partner] if partner else None)
         names = {(t, ctx.tbl.at[i, "name"]): i for t, ids in ctx.rosters.items() for i in ids}
         team_of = {ctx.team_name(t): t for t in ctx.rosters}
@@ -104,11 +108,11 @@ def _run_ideas(partner: Optional[int]) -> None:
         _ideas.update(state="failed", error=str(e), finished=time.time())
 
 
-def start_ideas(partner: Optional[int]) -> dict:
+def start_ideas(partner: Optional[int], player: Optional[int] = None) -> dict:
     if _ideas["state"] == "running":
         return _ideas
-    _ideas.update(state="running", partner=partner, started=time.time(), finished=None, rows=[], error=None)
-    threading.Thread(target=_run_ideas, args=(partner,), daemon=True).start()
+    _ideas.update(state="running", partner=partner, player=player, started=time.time(), finished=None, rows=[], error=None)
+    threading.Thread(target=_run_ideas, args=(partner, player), daemon=True).start()
     return _ideas
 
 

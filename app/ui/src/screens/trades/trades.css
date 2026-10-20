@@ -5,6 +5,7 @@
   font-family: var(--content); font-variation-settings: "wdth" 108; }
 .trades .tr-hd { border-bottom: 3px solid var(--t-ink); padding-bottom: 10px; }
 .trades .tr-hd h2 { margin: 0; font: 800 30px/1 var(--content); font-variation-settings: "wdth" 115; text-transform: uppercase; letter-spacing: -.01em; }
+.trades .tr-hd .back { margin-left: 14px; vertical-align: middle; font: 600 12px/1.4 var(--content); text-transform: none; letter-spacing: 0; }
 .trades .tr-hd p { margin: 6px 0 0; color: var(--t-ink2); font-size: 13.5px; font-variation-settings: "wdth" 100; max-width: 95ch; }
 .trades .tr-off { color: var(--alert); margin: 0; }
 .trades .tr-empty { color: var(--t-ink2); margin: 8px 0; }
@@ -58,7 +59,7 @@
 .trades .gain .val { fill: var(--t-ink); font: 600 12px var(--mono); }
 .trades .gain .me .bar { fill: var(--you); } .gain .them .bar { fill: var(--them); }
 .trades .verdict { margin: 0; font: 500 15px/1.45 var(--content); font-variation-settings: "wdth" 100; max-width: 75ch; }
-.trades .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.trades .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
 .trades .facts > div { border: 1px solid var(--t-rule); border-radius: 8px; padding: 9px 11px; display: grid; gap: 3px; align-content: start; }
 .trades .facts .k { font: 700 10.5px/1.2 var(--content); letter-spacing: .08em; text-transform: uppercase; color: var(--t-ink2); }
 .trades .facts b { font: 800 16px/1.15 var(--content); font-variation-settings: "wdth" 90; }

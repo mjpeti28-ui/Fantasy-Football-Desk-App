@@ -454,6 +454,8 @@ export default function App() {
         {screen === "trades" && (
           <aside className="inspector" aria-label="Trade ideas">
             <IdeasPanel partner={deal.partner} pname={snap.power.teams.find((t) => t.id === deal.partner)?.name ?? ""} engineUp={source === "engine"}
+              focus={deal.give.length + deal.get.length === 1 ? (() => { const id = deal.give[0] ?? deal.get[0];
+                return { id, mine: deal.give.length === 1, name: Object.values(live?.rosters ?? {}).flat().find((r) => r.id === id)?.name ?? "him" }; })() : null}
               onLoad={(partner, give, get) => setDeal({ partner, give, get })} />
           </aside>
         )}

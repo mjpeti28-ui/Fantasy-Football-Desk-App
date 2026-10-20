@@ -107,7 +107,7 @@ export const tradeApi = {
   history: () => getJSON<Record<string, TradeHistory>>(`${ENGINE}/api/trades/history`),
   evaluate: (partner: number, give: number[], get: number[]) => post<TradeEval>("/api/trades/evaluate", { partner, give, get }),
   odds: (partner: number, give: number[], get: number[]) => post<TradeOdds>("/api/trades/odds", { partner, give, get }),
-  startIdeas: (partner: number | null) => post<IdeasState>("/api/trades/ideas", { partner }),
+  startIdeas: (partner: number | null, player: number | null = null) => post<IdeasState>("/api/trades/ideas", { partner, player }),
   ideas: () => getJSON<IdeasState>(`${ENGINE}/api/trades/ideas`),
 };
 

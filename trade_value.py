@@ -163,6 +163,7 @@ def _value(ctx: Context, roster: List[int], weeks, sims: int) -> float:
 
 def evaluate(ctx: Context, team_a: int, give_a: List[int], team_b: int, give_b: List[int], sims: int = 300) -> dict:
     out = {"week": ctx.week, "teams": {}}
+    exp = v.expected_ros_points(ctx.tbl.loc[list(give_a) + list(give_b)], ctx.week, v.FANTASY_LAST_WEEK)
     for team, give, get in ((team_a, give_a, give_b), (team_b, give_b, give_a)):
         before = ctx.rosters[team]
         after = _after(ctx, before, give, get)
@@ -178,6 +179,9 @@ def evaluate(ctx: Context, team_a: int, give_a: List[int], team_b: int, give_b: 
             "delta_regular_season": round(reg, 1),
             "delta_playoffs": round(po, 1),
             "delta_total": round(total, 1),
+            # the players' own rest-of-season points swapped, ignoring who would start; the rest of
+            # delta_total is lineup fit (bench, byes, drops, waiver streaming)
+            "raw_swap": round(float(sum(exp[i] for i in get) - sum(exp[i] for i in give)), 1),
             "delta_total_calibrated": round(total * ctx.calibration.get("realized_over_predicted", 1.0), 1),
             "p_direction_right": win_probability(ctx, total),
             "edge_label": edge_label(total),
@@ -279,3 +283,65 @@ def find(ctx: Context, team: int, *, shapes=("1-1", "2-1", "1-2"), sims: int = 4
         if len(out) >= top:
             break
     return pd.DataFrame(out)
+
+
+def around(ctx: Context, espn: Context, team: int, pid: int, *, sims: int = 40, rescore_sims: int = 300,
+           top: int = 12) -> pd.DataFrame:
+    """Deals built around one player. If ``pid`` is on ``team``: shop him to every other team
+    (him for 1 or 2 of theirs, or him plus a filler for one better player). Otherwise: what
+    ``team`` could send his owner to land him (1 or 2 players, or a 2-for-2 with a filler coming
+    back). Keeps deals the partner gains from on ESPN's numbers (``espn``, what their app shows;
+    accepted offers in this league have looked fair there), ranked by ``team``'s gain on ours,
+    which may be negative: then it is the cheapest price, not a recommendation."""
+    exp = v.expected_ros_points(ctx.tbl, ctx.week, v.FANTASY_LAST_WEEK)
+    weeks = range(ctx.week, v.FANTASY_LAST_WEEK + 1)
+    skill = lambda t: [i for i in ctx.rosters[t] if ctx.tbl.at[i, "position"] in SKILL]
+    mine = skill(team)
+    cands = []
+    if pid in ctx.rosters[team]:
+        rest = [i for i in mine if i != pid]
+        for other in ctx.rosters:
+            if other == team:
+                continue
+            theirs = skill(other)
+            cands += [(other, [pid], [g]) for g in theirs]
+            cands += [(other, [pid], list(pr)) for pr in itertools.combinations(theirs, 2) if exp[pid] > max(exp[i] for i in pr)]
+            cands += [(other, [pid, x], [g]) for x in rest for g in theirs if exp[g] > max(exp[pid], exp[x])]
+    else:
+        other = next(t for t, ids in ctx.rosters.items() if pid in ids)
+        filler = sorted((i for i in skill(other) if i != pid and exp[i] < exp[pid]), key=lambda i: -exp[i])[:6]
+        cands += [(other, [g], [pid]) for g in mine]
+        cands += [(other, list(pr), [pid]) for pr in itertools.combinations(mine, 2)]
+        cands += [(other, list(pr), [pid, f]) for pr in itertools.combinations(mine, 2) for f in filler
+                  if max(exp[i] for i in pr) < exp[pid]]
+    base = {}
+
+    def gain(c: Context, t: int, give, get):
+        if (id(c), t) not in base:
+            base[(id(c), t)] = _value(c, c.rosters[t], weeks, sims)
+        return _value(c, _after(c, c.rosters[t], give, get), weeks, sims) - base[(id(c), t)]
+
+    rows = []
+    for other, give, get in cands:
+        if gain(espn, other, get, give) < 0:
+            continue
+        rows.append((gain(ctx, team, give, get), other, give, get))
+    rows.sort(key=lambda r: -r[0])
+    seen: Dict[tuple, int] = {}  # at most two deals per package sent, so fillers don't crowd the list
+    rows = [r for r in rows if seen.setdefault((r[1], tuple(r[2])), 0) < 2 and not seen.update({(r[1], tuple(r[2])): seen[(r[1], tuple(r[2]))] + 1})]
+    out = []
+    for _, other, give, get in rows[: top * 2]:
+        ev, ee = evaluate(ctx, team, give, other, get, sims=rescore_sims), evaluate(espn, team, give, other, get, sims=rescore_sims)
+        me, them, them_e = ev["teams"][team], ev["teams"][other], ee["teams"][other]
+        if them_e["delta_total"] < 0:
+            continue
+        out.append({
+            "with": them["name"], "partner": other, "give": ", ".join(me["gives"]), "get": ", ".join(me["gets"]),
+            "give_ids": list(give), "get_ids": list(get), "you_drop": ", ".join(me["would_drop"]),
+            "your_gain": me["delta_total"], "your_gain_calibrated": me["delta_total_calibrated"],
+            "your_gain_playoffs": me["delta_playoffs"], "p_right": me["p_direction_right"],
+            "their_gain": them["delta_total"], "their_gain_espn": them_e["delta_total"], "trust": edge_label(me["delta_total"]),
+            "why": " | ".join(f"{n}: {w}" for n, w in me["why"].items()),
+        })
+    out.sort(key=lambda r: -r["your_gain"])
+    return pd.DataFrame(out[:top])
