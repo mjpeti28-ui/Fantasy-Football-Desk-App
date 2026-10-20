@@ -332,11 +332,12 @@ def trades_odds(t: DealIn):
 
 class IdeasIn(BaseModel):
     partner: Optional[int] = None
+    player: Optional[int] = None  # build deals around this player (yours: shop him; theirs: land him)
 
 
 @app.post("/api/trades/ideas")
 def trades_ideas(i: IdeasIn):
-    return _json(trades.start_ideas(i.partner))
+    return _json(trades.start_ideas(i.partner, i.player))
 
 
 @app.get("/api/trades/ideas")

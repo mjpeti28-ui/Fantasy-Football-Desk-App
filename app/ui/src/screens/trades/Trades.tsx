@@ -212,6 +212,12 @@ export function Trades(p: Props) {
                 <div className="facts">
                   <div><span className="k">Right this often</span><b className="num">{pct(m.p_direction_right)}</b><span className={`conf ${m.edge_label === "noise" ? "noise" : m.edge_label === "thin edge" ? "thin" : "yes"}`}>{m.edge_label}</span></div>
                   <div><span className="k">Season · playoffs</span><b className="num">{signed(m.delta_regular_season)} · {signed(m.delta_playoffs)}</b><span className="dim">raw points</span></div>
+                  {m.raw_swap != null && (() => {
+                    const fit = m.delta_total - m.raw_swap;
+                    const kind = m.raw_swap < 0 && fit > 0 ? "consolidation: fewer points, more of them start" : m.raw_swap > 0 && fit < 0 ? "depth: more points, some sit on your bench" : "players and lineup agree";
+                    return <div title="Players: their own rest-of-season points swapped, ignoring who would start. Lineup fit: the rest of the gain, from who would actually start, bench, byes, drops and waiver streaming. Raw, not calibrated.">
+                      <span className="k">Players · lineup fit</span><b className="num">{signed(m.raw_swap)} · {signed(fit)}</b><span className="dim">{kind}</span></div>;
+                  })()}
                   <div><span className="k">Your offers to them</span><b className={`h ${h.tone}`}>{h.text}</b><span className="dim">2021–25</span></div>
                 </div>
                 {(m.would_drop.length > 0 || mt.would_drop.length > 0) && <p className="dim drops">Roster limits: {m.would_drop.length ? `you'd drop ${m.would_drop.join(", ")}` : ""}{m.would_drop.length && mt.would_drop.length ? "; " : ""}{mt.would_drop.length ? `${pname} would drop ${mt.would_drop.join(", ")}` : ""}.</p>}
@@ -300,7 +306,8 @@ export function fitTeams(a: LeagueAnalysis | undefined, me: number): Set<number>
 }
 
 /* inspector: idea search */
-export function IdeasPanel({ partner, pname, engineUp, onLoad }: { partner: number | null; pname: string; engineUp: boolean; onLoad: (partner: number, give: number[], get: number[]) => void }) {
+export function IdeasPanel({ partner, pname, engineUp, focus, onLoad }: { partner: number | null; pname: string; engineUp: boolean;
+  focus: { id: number; name: string; mine: boolean } | null; onLoad: (partner: number, give: number[], get: number[]) => void }) {
   const [st, setSt] = useState<IdeasState | null>(null);
   useEffect(() => { if (engineUp) tradeApi.ideas().then(setSt, () => undefined); }, [engineUp]);
   useEffect(() => {
@@ -308,7 +315,8 @@ export function IdeasPanel({ partner, pname, engineUp, onLoad }: { partner: numb
     const t = window.setInterval(() => tradeApi.ideas().then(setSt, () => undefined), 2000);
     return () => window.clearInterval(t);
   }, [st?.state]);
-  const start = async (p: number | null) => setSt(await tradeApi.startIdeas(p));
+  const start = async (p: number | null, player: number | null = null) => setSt(await tradeApi.startIdeas(p, player));
+  const around = st?.player != null;
   const secs = st?.state === "running" && st.started ? Math.round(Date.now() / 1000 - st.started) : 0;
   return (
     <div className="ideas">
@@ -318,15 +326,21 @@ export function IdeasPanel({ partner, pname, engineUp, onLoad }: { partner: numb
         <button className="tbtn pri" type="button" disabled={!engineUp || partner == null || st?.state === "running"} onClick={() => start(partner)}>With {pname || "partner"}</button>
         <button className="tbtn" type="button" disabled={!engineUp || st?.state === "running"} onClick={() => start(null)}>Whole league (~1 min)</button>
       </div>
+      <div className="ins-acts">
+        <button className="tbtn" type="button" disabled={!engineUp || !focus || st?.state === "running"} onClick={() => focus && start(null, focus.id)}
+          title="Select exactly one player on the desk: one of theirs to see what it takes to land him, one of yours to shop him">
+          {!focus ? "Build around one player" : focus.mine ? `Shop ${focus.name} (~1 min)` : `What would it take for ${focus.name}?`}</button>
+      </div>
+      {around && st?.state === "done" && <p className="ins-note">Deals the other team would see as fair or better on ESPN's numbers (what their app shows), best for you first. A negative gain means even the cheapest price costs you.</p>}
       {st?.state === "running" && <p className="ins-note">Searching… {secs}s</p>}
       {st?.state === "failed" && <p className="ins-note">Search failed: {st.error}</p>}
-      {st?.state === "done" && (st.rows ?? []).length === 0 && <p className="ins-note">No deal helps both sides by our numbers.</p>}
+      {st?.state === "done" && (st.rows ?? []).length === 0 && <p className="ins-note">{around ? "No package the other team would see as fair on ESPN's numbers." : "No deal helps both sides by our numbers."}</p>}
       <div className="ilist">
         {(st?.rows ?? []).map((r, i) => (
           <button key={i} type="button" className="idea" title={r.why} onClick={() => onLoad(r.partner, r.give_ids, r.get_ids)} disabled={r.give_ids.some((x) => x == null) || r.get_ids.some((x) => x == null)}>
             <span className="w">{r.with}</span>
             <span className="g"><b>{r.give}</b> → <b>{r.get}</b></span>
-            <span className="n"><span className="num you">{signed(r.your_gain_calibrated)}</span> you · <span className="num them">{signed(r.their_gain)}</span> them · {pct(r.p_right)} · <span className={`conf ${r.trust === "noise" ? "noise" : r.trust === "thin edge" ? "thin" : "yes"}`}>{r.trust}</span></span>
+            <span className="n"><span className="num you">{signed(r.your_gain_calibrated)}</span> you · <span className="num them">{signed(r.their_gain)}</span> them{r.their_gain_espn != null && <> ({signed(r.their_gain_espn)} ESPN)</>} · {pct(r.p_right)} · <span className={`conf ${r.trust === "noise" ? "noise" : r.trust === "thin edge" ? "thin" : "yes"}`}>{r.trust}</span></span>
             {r.you_drop && <span className="d">you'd drop {r.you_drop}</span>}
           </button>
         ))}
