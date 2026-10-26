@@ -202,6 +202,17 @@ def box_lines(summary: dict) -> Dict[str, dict]:
     return lines
 
 
+def line_from_events(evs: List[dict]) -> dict:
+    """Stat line rebuilt from play-by-play, for when ESPN's box score drops a player."""
+    k = lambda *ks: [e for e in evs if e["kind"] in ks]
+    rec, car, pas = k("catch"), k("carry"), k("pass")
+    return {"tgt": float(len(k("catch", "target"))), "rec": float(len(rec)),
+            "rec_yd": sum(e["yards"] for e in rec), "rec_td": float(sum(e["td"] for e in rec)),
+            "car": float(len(car)), "rush_yd": sum(e["yards"] for e in car), "rush_td": float(sum(e["td"] for e in car)),
+            "att": float(len(pas)), "cmp": float(sum(e["comp"] for e in pas)), "pass_yd": sum(e["yards"] for e in pas), "pass_td": float(sum(e["td"] for e in pas)),
+            "ints": float(sum(e.get("pick", False) for e in pas)), "fl": float(len(k("fumble"))), "from_plays": 1}
+
+
 def ppr(L: dict) -> float:
     return round(0.04 * L.get("pass_yd", 0) + 4 * L.get("pass_td", 0) - 2 * L.get("ints", 0)
                  + 0.1 * L.get("rush_yd", 0) + 6 * L.get("rush_td", 0)
@@ -316,7 +327,7 @@ def play_events(plays: List[dict], ids: set, team_ids: Dict[str, str]) -> Tuple[
                 td = typ == "passing touchdown"
                 comp = typ in CATCH_TYPES
                 pick = "interception" in typ
-                e.update(kind="pass", yards=yd if comp else 0, td=td,
+                e.update(kind="pass", yards=yd if comp else 0, td=td, pick=pick, comp=comp,
                          pts=(0.04 * yd if comp else 0) + (4 if td else 0) - (2 if pick else 0))
             elif role in ("fumbler",) and "opponent" in typ:
                 e.update(kind="fumble", pts=-2.0)
@@ -572,6 +583,8 @@ def board(snap: dict, player_file: Callable[[int], dict] = None) -> dict:
             p["line"] = {k: lines.get(aid, {}).get(k, 0) for k in ("fgm", "fga", "xpm", "xpa")}
         else:
             L = dict(lines.get(aid, {}))
+            if len(L) <= 1 and events.get(aid):  # box score missing him (ESPN does this) -> rebuild from plays
+                L.update(line_from_events(events[aid]))
             tp = two_points(plays.get(g["event"], []), short_name(p["name"]))
             if tp:
                 L["two_pt"] = len(tp)
