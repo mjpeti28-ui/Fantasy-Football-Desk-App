@@ -202,7 +202,8 @@
 .trades .finder .ft tbody tr:hover td { background: var(--hover); }
 .trades .finder .ft .r { text-align: right; }
 .trades .finder .ft .rk { color: var(--ink-3); font-variant-numeric: tabular-nums; }
-.trades .finder .ft .fp { display: flex; align-items: center; gap: 6px; white-space: nowrap; line-height: 1.5; }
+.trades .finder .ft .fp { display: grid; gap: 1px; white-space: nowrap; line-height: 1.45; margin-bottom: 4px; }
+.trades .finder .ft .fp1 { display: flex; align-items: center; gap: 6px; }
 .trades .finder .ft .fp b { font-weight: 650; }
 .trades .finder .ft .fp small { color: var(--ink-3); font-variant-numeric: tabular-nums; }
 .trades .finder .ft .sub { display: block; margin-top: 4px; font-size: 11.5px; color: var(--ink-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -215,3 +216,31 @@
 .trades .finder .tag.dim, .trades .finder .odds.dim { color: var(--ink-3); }
 .trades .finder .odds { font: 650 14px var(--sys); font-variant-numeric: tabular-nums; }
 .trades .finder .ft .sub.wrap { white-space: normal; max-width: 220px; }
+
+/* three ranks per player (FantasyPros, ESPN's projections, Desk), shared by finder, ideas and the desk */
+.rk3 { display: inline-flex; gap: 8px; font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap; cursor: help; }
+.rk3 em { font-style: normal; font-weight: 600; margin-right: 3px; color: var(--ink-3); opacity: .8; }
+.rk3.split span { text-decoration: underline dotted var(--alert); text-underline-offset: 3px; color: var(--ink-2); }
+.trades .finder .ft .fp .rk3 { padding-left: 14px; }
+.rk-split-key { font-style: normal; text-decoration: underline dotted var(--alert); text-underline-offset: 3px; }
+/* folded filler variants */
+.trades .finder .ft .fill { display: block; margin: 2px 0 0 14px; padding: 0; border: 0; background: none; color: var(--ink-2); font: 500 11.5px/1.4 var(--sys); text-align: left; cursor: pointer; white-space: normal; max-width: 260px; }
+.trades .finder .ft .fill:hover { color: var(--ink); }
+.trades .finder .ft tr.variant td { padding: 4px 6px; border-bottom: 1px dashed var(--t-rule); color: var(--ink-2); }
+.trades .finder .ft tr.variant td small { font-size: 11.5px; font-variant-numeric: tabular-nums; }
+/* the deal scored like a finder row */
+.trades .dscore { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.trades .dscore > div { border: 1px solid var(--t-rule); border-radius: 8px; padding: 9px 11px; display: grid; gap: 4px; align-content: start; justify-items: start; }
+.trades .dscore .k { font: 700 10.5px/1.2 var(--content); letter-spacing: .08em; text-transform: uppercase; color: var(--t-ink2); }
+.trades .dscore small { font-size: 11.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.trades .dscore .gain { font: 750 20px/1.1 var(--sys); } .trades .dscore .gain.up { color: var(--above); } .trades .dscore .gain.down { color: var(--below); }
+.trades .dscore .odds { font: 700 18px/1.1 var(--sys); }
+.trades .why div { grid-template-columns: 190px minmax(0, 1fr); }
+.trades .why b .rk3 { display: flex; margin-top: 2px; font-weight: 400; }
+.trades .why .rk3 span { font-family: var(--sys); font-size: 11px; color: var(--ink-3); }
+.trades .dscore .tag, .idea .tag { display: inline-block; padding: 1px 7px; border-radius: 999px; font: 600 11.5px/1.4 var(--sys); white-space: nowrap; border: 1px solid currentColor; }
+.trades .dscore .tag.good, .idea .tag.good, .trades .dscore .odds.good { color: var(--above); }
+.trades .dscore .tag.mid, .idea .tag.mid, .trades .dscore .odds.mid { color: var(--ink-2); }
+.trades .dscore .tag.warn, .idea .tag.warn { color: var(--alert); }
+.trades .dscore .tag.dim, .idea .tag.dim, .trades .dscore .odds.dim { color: var(--ink-3); }
+@media (max-width: 900px) { .trades .dscore { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

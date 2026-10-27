@@ -104,6 +104,30 @@ def playoff_label(edge: float) -> str:
     return "noise" if e < 6 else "thin edge" if e < 10 else "yes"
 
 
+_RANKS: Dict[tuple, Dict[int, dict]] = {}
+
+
+def player_ranks(ctx: Context, espn: Context) -> Dict[int, dict]:
+    """Three position ranks per player, all rest-of-season: "desk" (our expected points: the
+    blend, availability and byes), "espn" (the same with ESPN's weekly projection as the only
+    talent source, so it is what their app's numbers imply, not ESPN's own ranking) and "fp"
+    (FantasyPros' rest-of-season consensus, re-ranked within the position). 1 = best."""
+    key = (id(ctx), id(espn))
+    if key not in _RANKS:
+        out: Dict[int, dict] = {}
+        for k, c in (("desk", ctx), ("espn", espn)):
+            t = c.tbl[c.tbl["position"].isin(SKILL) & (c.tbl["est_ppg"] > 0)]
+            pts = v.expected_ros_points(t, c.week, v.FANTASY_LAST_WEEK)
+            for i, r in pts.groupby(t["position"]).rank(ascending=False, method="min").items():
+                out.setdefault(int(i), {})[k] = int(r)
+        t = ctx.tbl[ctx.tbl["position"].isin(SKILL) & ctx.tbl["ecr_rank"].notna()]
+        for i, r in t["ecr_rank"].groupby(t["position"]).rank(method="min").items():
+            out.setdefault(int(i), {})["fp"] = int(r)
+        _RANKS.clear()
+        _RANKS[key] = out
+    return _RANKS[key]
+
+
 def edge_label(edge: float) -> str:
     """Backtest: edges < 10 are right 47-57% of the time (noise), 10-20 ~61% (thin)."""
     e = abs(edge)
@@ -451,8 +475,19 @@ def search(ctx: Context, espn: Context, team: int, *, shapes=("1-1", "2-1", "1-2
 
     def hv(t: int, x: dict) -> float:  # one side's gain over the horizon, from evaluate()
         return round(lev.get(t, 1.0) * x["delta_regular_season"] + x["delta_playoffs"], 1) if hk is None else x[hk]
-    seen: Dict[tuple, int] = {}  # at most two deals per player(s) you'd get, so fillers don't crowd the list
-    rows = [r for r in rows if seen.setdefault((r[2], tuple(r[4])), 0) < 2 and not seen.update({(r[2], tuple(r[4])): seen[(r[2], tuple(r[4]))] + 1})]
+    # a deal's "group": same partner, same players sent, same main player back (the best one by
+    # rest-of-season points). Variants differ only in filler coming back; the UI folds them.
+    group = lambda other, give, get: (other, tuple(sorted(give)), max(get, key=lambda i: exp[i]))
+    seen: Dict[tuple, int] = {}  # at most three variants per group, and two per exact return
+    seen2: Dict[tuple, int] = {}
+    keep_rows = []
+    for r in rows:
+        g, k2 = group(r[2], r[3], r[4]), (r[2], tuple(r[4]))
+        if seen.get(g, 0) < 3 and seen2.get(k2, 0) < 2:
+            seen[g], seen2[k2] = seen.get(g, 0) + 1, seen2.get(k2, 0) + 1
+            keep_rows.append(r)
+    rows = keep_rows
+    rk = player_ranks(ctx, espn)
     out = []
     for _, _, other, give, get in rows[: top * 2]:
         ev, ee = evaluate(ctx, team, give, other, get, sims=rescore_sims), evaluate(espn, team, give, other, get, sims=rescore_sims)
@@ -463,9 +498,12 @@ def search(ctx: Context, espn: Context, team: int, *, shapes=("1-1", "2-1", "1-2
             continue
         out.append({
             "with": them["name"], "partner": other, "give_ids": list(give), "get_ids": list(get),
-            "give": [{"id": i, "name": ctx.tbl.at[i, "name"], "pos": pos(i), "ros": round(float(exp[i]), 1)} for i in give],
-            "get": [{"id": i, "name": ctx.tbl.at[i, "name"], "pos": pos(i), "ros": round(float(exp[i]), 1)} for i in get],
-            "shape": f"{len(give)}-{len(get)}", "you_drop": ", ".join(me["would_drop"]),
+            "give": [{"id": i, "name": ctx.tbl.at[i, "name"], "pos": pos(i), "ros": round(float(exp[i]), 1),
+                      "ppg": round(float(ctx.tbl.at[i, "est_ppg"]), 1), "ranks": rk.get(i, {})} for i in give],
+            "get": [{"id": i, "name": ctx.tbl.at[i, "name"], "pos": pos(i), "ros": round(float(exp[i]), 1),
+                     "ppg": round(float(ctx.tbl.at[i, "est_ppg"]), 1), "ranks": rk.get(i, {})} for i in get],
+            "shape": f"{len(give)}-{len(get)}", "group": "-".join(map(str, (other, *group(other, give, get)[1], group(other, give, get)[2]))),
+            "you_drop": ", ".join(me["would_drop"]),
             "your_gain": round(g, 1), "desk_gain": hv(team, me), "espn_gain": hv(team, me_e), "their_gain": round(tg, 1),
             "their_desk": hv(other, them), "their_espn": hv(other, them_e), "playoffs_gain": round(w * me["delta_playoffs"] + (1 - w) * me_e["delta_playoffs"], 1),
             # players' own ROS points swapped (Desk), and the rest of Desk's ROS gain: lineup fit
@@ -476,4 +514,5 @@ def search(ctx: Context, espn: Context, team: int, *, shapes=("1-1", "2-1", "1-2
         })
     out.sort(key={"gain": lambda r: -r["your_gain"], "their": lambda r: -r["their_gain"],
                   "fair": lambda r: -min(r["your_gain"], r["their_gain"])}[sort])
-    return {"rows": out[:top], "candidates": len(cands), "kept": len(rows), "truncated": truncated}
+    groups = list(dict.fromkeys(r["group"] for r in out))[:top]  # "top" counts deals, not filler variants
+    return {"rows": [r for r in out if r["group"] in groups], "candidates": len(cands), "kept": len(rows), "truncated": truncated}

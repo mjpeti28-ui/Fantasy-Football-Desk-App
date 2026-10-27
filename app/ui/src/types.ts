@@ -134,26 +134,25 @@ export interface TradeSide {
   delta_regular_season: number; delta_playoffs: number; delta_total: number; delta_total_calibrated: number; raw_swap?: number;
   p_direction_right: number; edge_label: string; why: Record<string, string>;
 }
-export interface TradeEval { model: { week: number; teams: Record<string, TradeSide> }; espn: { week: number; teams: Record<string, TradeSide> } }
+export interface TradeEval { model: { week: number; teams: Record<string, TradeSide> }; espn: { week: number; teams: Record<string, TradeSide> };
+  calibration?: [number, number, number][]; playoff_calibration?: [number, number, number][]; leverage?: Record<string, number> | null; ranks?: Record<string, Ranks>; }
 export type OddsSide = LiveOdds & { seed_med?: number };
 export interface TradeOdds { sims: number; noise_pp: number; week?: number; teams: Record<string, { before: OddsSide; after: OddsSide; delta: OddsSide }> }
 export interface TradeHistory { sent: number; accepted: number; declined: number; canceled: number }
-export interface IdeaRow {
-  with: string; give: string; get: string; you_drop: string; your_gain: number; your_gain_calibrated: number;
-  your_gain_playoffs: number; p_right: number; their_gain: number; their_gain_espn?: number; trust: string; why?: string; partner: number; give_ids: number[]; get_ids: number[];
-}
-export interface IdeasState { state: "idle" | "running" | "done" | "failed"; partner: number | null; player?: number | null; started: number | null; rows: IdeaRow[]; error: string | null }
+export interface IdeasState { state: "idle" | "running" | "done" | "failed"; partner: number | null; player?: number | null; started: number | null; rows: FinderRow[]; error: string | null; opts?: FinderOpts }
 
 export interface FinderOpts {
   shapes: string[]; keep: number[]; must_give: number[]; must_get: number[]; get_pos: string[]; partners: number[] | null;
   horizon: "ros" | "reg" | "playoffs" | "title"; desk_weight: number; min_gain: number; min_their: number; their_view: "espn" | "desk" | "both"; sort: "gain" | "their" | "fair";
   top: number; sims: number; max_cands: number; rescore_sims: number;
 }
-export interface FinderPlayer { id: number; name: string; pos: Pos; ros: number }
+/** Position ranks, rest of season: FantasyPros consensus, ESPN's projections, Desk. 1 = best. */
+export interface Ranks { fp?: number; espn?: number; desk?: number }
+export interface FinderPlayer { id: number; name: string; pos: Pos; ros: number; ppg?: number; ranks?: Ranks }
 export interface FinderRow {
   with: string; partner: number; give_ids: number[]; get_ids: number[]; give: FinderPlayer[]; get: FinderPlayer[]; shape: string; you_drop: string;
   your_gain: number; desk_gain: number; espn_gain: number; their_gain: number; their_desk: number; their_espn: number; playoffs_gain: number;
-  players: number; fit: number; p_right: number; trust: string; why: string;
+  players: number; fit: number; p_right: number; trust: string; why: string; group?: string;
 }
 export interface FinderState { state: "idle" | "running" | "done" | "failed"; opts: FinderOpts | null; started: number | null; rows: FinderRow[]; error: string | null; candidates?: number; kept?: number; truncated?: boolean }
 
