@@ -338,7 +338,7 @@ class FinderIn(BaseModel):  # trade_value.search() options
     must_get: List[int] = []
     get_pos: List[str] = ["QB", "RB", "WR", "TE"]
     partners: Optional[List[int]] = None
-    horizon: Literal["ros", "reg", "playoffs"] = "ros"
+    horizon: Literal["ros", "reg", "playoffs", "title"] = "ros"
     desk_weight: float = Field(0.5, ge=0, le=1)
     min_gain: float = 0.0
     min_their: float = 0.0
