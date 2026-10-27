@@ -19,17 +19,18 @@ const toggle = <T,>(xs: T[], x: T) => (xs.includes(x) ? xs.filter((y) => y !== x
 const n0 = (x: number) => { const r = Math.round(x); return `${r > 0 ? "+" : r < 0 ? "−" : ""}${Math.abs(r)}`; };
 
 /** How the two views read a deal for you: agree, or most of the gain lives in one of them. */
-function read(r: FinderRow): { t: string; tone: string; tip: string } {
-  const gap = r.desk_gain - r.espn_gain;
-  if (r.your_gain < 10) return { t: "Small edge", tone: "dim", tip: "Under 10 points: in the 2021-25 backtest edges this size had the right sign only a bit more than half the time." };
-  if (gap >= 15) return { t: "Mostly our model", tone: "warn", tip: `Desk sees ${n0(gap)} more than ESPN. A bet that our model is right where ESPN isn't; Desk has beaten ESPN only narrowly.` };
-  if (gap <= -15) return { t: "Mostly ESPN", tone: "mid", tip: `ESPN sees ${n0(-gap)} more than Desk. Looks great on the app; our model is less sold.` };
-  return { t: "Both agree", tone: "good", tip: "Desk and ESPN both have you gaining 10+ points, within 15 of each other." };
+function read(r: FinderRow, po: boolean): { t: string; tone: string; tip: string } {
+  // playoff-week gains are ~1/3 the size of rest-of-season ones, so the cutoffs scale down
+  const gap = r.desk_gain - r.espn_gain, small = po ? 6 : 10, big = po ? 5 : 15;
+  if (r.your_gain < small) return { t: "Small edge", tone: "dim", tip: `Under ${small} points: in the 2021-25 backtest edges this size had the right sign only a bit more than half the time.` };
+  if (gap >= big) return { t: "Mostly our model", tone: "warn", tip: `Desk sees ${n0(gap)} more than ESPN. A bet that our model is right where ESPN isn't; Desk has beaten ESPN only narrowly.` };
+  if (gap <= -big) return { t: "Mostly ESPN", tone: "mid", tip: `ESPN sees ${n0(-gap)} more than Desk. Looks great on the app; our model is less sold.` };
+  return { t: "Both agree", tone: "good", tip: `Desk and ESPN both have you gaining ${small}+ points, within ${big} of each other.` };
 }
 
 /** Partner's side on what their app shows: our only (weak) proxy for whether they'd accept. */
-function theirRead(x: number): { t: string; tone: string } {
-  if (x >= 5) return { t: "fair on their app", tone: "good" };
+function theirRead(x: number, po: boolean): { t: string; tone: string } {
+  if (x >= (po ? 2 : 5)) return { t: "fair on their app", tone: "good" };
   if (x >= 0) return { t: "barely fair", tone: "mid" };
   return { t: "looks bad to them", tone: "warn" };
 }
@@ -68,7 +69,8 @@ export function Finder({ me, teams, live, engineUp, setDeal }: { me: number; tea
   const depth = (Object.keys(DEPTH) as Depth[]).find((k) => DEPTH[k].sims === o.sims && DEPTH[k].max_cands === o.max_cands) ?? "normal";
   const wide = o.partners == null && !o.must_get.length && !o.must_give.length;
   const est = wide ? { quick: "~30 s", normal: "~2 min", deep: "5+ min" }[depth] : "";
-  const weeks = { ros: "rest of season", reg: "regular season", playoffs: "playoff weeks" }[o.horizon];
+  const HZ = { ros: "rest of season", reg: "regular season", playoffs: "playoff weeks", title: "season, weighted by title odds (in playoff points)" };
+  const weeks = HZ[o.horizon];
   const ppl = (xs: FinderPlayer[]) => xs.map((x) => (
     <span key={x.id} className="fp"><i className="pd" style={{ background: POS_VAR[x.pos] }} /><b title={x.name}>{tightName(x.name, 18)}</b><small>{x.pos} · {Math.round(x.ros)} pts</small></span>));
   const stale = st?.opts && (st.opts.desk_weight !== o.desk_weight || st.opts.horizon !== o.horizon);
@@ -119,7 +121,8 @@ export function Finder({ me, teams, live, engineUp, setDeal }: { me: number; tea
         <div className="f-row four">
           <div className="fg"><label>Weeks that count</label>
             <select value={o.horizon} onChange={(e) => set({ horizon: e.target.value as FinderOpts["horizon"] })}>
-              <option value="ros">Rest of season</option><option value="reg">Regular season only</option><option value="playoffs">Playoff weeks only</option></select></div>
+              <option value="ros">Rest of season</option><option value="reg">Regular season only</option><option value="playoffs">Playoff weeks only</option>
+              <option value="title" title="Each team's regular-season points count by how much they move its title odds: ~0 for a team that's already in, more for a bubble team. Gains in playoff points.">Weighted by title odds</option></select></div>
           <div className="fg"><label>You gain at least</label>
             <span className="row"><input type="number" step={5} value={o.min_gain} onChange={(e) => set({ min_gain: Number(e.target.value) })} /><small>pts</small></span></div>
           <div className="fg"><label>They gain at least <Info tip="Accepted offers in this league have looked fair on ESPN's numbers, which is what their app shows. That's from ~20 answered proposals: an assumption, not a fitted acceptance model." /></label>
@@ -147,13 +150,14 @@ export function Finder({ me, teams, live, engineUp, setDeal }: { me: number; tea
           {stale && <span className="warn"> You changed the valuation since this search: run it again.</span>}</p>
       )}
       {(st?.rows ?? []).length > 0 && (<>
-        <div className="f-key"><span><b>Your gain</b> = {st?.opts ? Math.round(st.opts.desk_weight * 100) : w}% Desk + {st?.opts ? 100 - Math.round(st.opts.desk_weight * 100) : 100 - w}% ESPN, starting-lineup points over the {st?.opts ? { ros: "rest of season", reg: "regular season", playoffs: "playoff weeks" }[st.opts.horizon] : weeks}</span>
+        <div className="f-key"><span><b>Your gain</b> = {st?.opts ? Math.round(st.opts.desk_weight * 100) : w}% Desk + {st?.opts ? 100 - Math.round(st.opts.desk_weight * 100) : 100 - w}% ESPN, starting-lineup points over the {st?.opts ? HZ[st.opts.horizon] : weeks}</span>
           <span><b>Odds</b>: how often a gain this size went the predicted way, 2021-25</span><span>Hover a row for the players' notes</span></div>
         <div className="ft-wrap"><table className="ft">
           <thead><tr><th>#</th><th>You give</th><th>You get</th>
             <th className="r">Your gain</th><th title="Do Desk and ESPN agree on your gain?">Desk vs ESPN</th><th title="Partner's gain on ESPN (their app) and on Desk">Their side</th><th className="r" title="How often a gain this size went the predicted way, 2021-25">Odds</th><th /></tr></thead>
           <tbody>{st!.rows.map((r: FinderRow, i) => {
-            const rd = read(r), th = theirRead(r.their_espn);
+            const po = st?.opts?.horizon === "playoffs" || st?.opts?.horizon === "title";
+            const rd = read(r, po), th = theirRead(r.their_espn, po);
             return (
               <tr key={i} title={r.why}>
                 <td className="rk">{i + 1}</td>

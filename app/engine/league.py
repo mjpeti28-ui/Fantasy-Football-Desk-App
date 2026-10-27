@@ -40,11 +40,12 @@ def _ratios():
 
 
 def simulate_crn(out: Dict[int, Optional[int]], sims: int, extras: Optional[dict] = None,
-                 rosters: Optional[Dict[int, List[int]]] = None) -> Dict[int, dict]:
+                 rosters: Optional[Dict[int, List[int]]] = None, bonus: Optional[dict] = None) -> Dict[int, dict]:
     """season_sim.simulate (levels off), re-implemented with common random numbers: every
     player's play/no-play draw and points ratio is fixed per (simulated season, week, player).
     A scenario then changes only what the scenario touches, so deltas aren't swamped by
-    Monte Carlo noise. `out` = {player_id: weeks out, or None for the rest of the season}."""
+    Monte Carlo noise. `out` = {player_id: weeks out, or None for the rest of the season}.
+    `bonus` = {(team_id, week): points} added to that team's score that week (see leverage)."""
     import season_sim as ss
     import valuation as v
     ctx = _ctx()
@@ -96,7 +97,7 @@ def simulate_crn(out: Dict[int, Optional[int]], sims: int, extras: Optional[dict
             wi = w - week
             up, ur = U_play[n, wi], U_ratio[n, wi]
             ids = [i for i in rosters[t] if up[col[i]] < avail[w].get(i, 0.0)] + list(streamer.values())
-            tot = 0.0
+            tot = bonus.get((t, w), 0.0) if bonus else 0.0
             reg = w <= reg_end and extras is not None
             for i in ss._lineup(ids, pos, est, s.slots):
                 if i < 0:
@@ -200,6 +201,34 @@ def whatif(out: List[dict], sims: int = 2000) -> dict:
             "delta": {t: {f: round(s[t][f] - b[t][f], 4) for f in FIELDS} for t in s},
             # Monte Carlo standard error of a probability near 50% at this many sims
             "noise_pp": round(100 * 0.5 / np.sqrt(sims), 1)}
+
+
+LEVERAGE_FLOOR = 0.1  # seeding still breaks ties for a team whose regular-season points look worthless
+LEVERAGE_BONUS = 5.0
+
+
+def leverage(sims: int = 2000) -> Dict[int, float]:
+    """Per team: what a regular-season point is worth toward the title, as a share of what a
+    playoff point is worth. Adds LEVERAGE_BONUS a week to one team, regular season only and then
+    playoffs only, on the same draws. Locked-in teams land near 0 (clamped to LEVERAGE_FLOOR);
+    bubble teams ~.2-.4, since their regular-season points buy a playoff spot."""
+    b = base(sims)
+    dk = ("league-leverage", sims, SEED, LEVERAGE_BONUS, d.load().week, d.ages_key())
+    hit = store.get(f"league_leverage_{sims}", dk)
+    if hit is not None:
+        return {int(t): x for t, x in hit[0].items()}
+    ctx = _ctx()
+    reg = list(ctx.reg_weeks)
+    po = list(ctx.playoff_weeks)
+    out = {}
+    with _lock:
+        for t in b:
+            r = simulate_crn({}, sims, bonus={(t, w): LEVERAGE_BONUS for w in reg})[t]["title"] - b[t]["title"]
+            p = simulate_crn({}, sims, bonus={(t, w): LEVERAGE_BONUS for w in po})[t]["title"] - b[t]["title"]
+            per_reg, per_po = r / max(1, len(reg)), p / max(1, len(po))
+            out[int(t)] = round(float(np.clip(per_reg / per_po, LEVERAGE_FLOOR, 1.0)) if per_po > 0 else 1.0, 3)
+    store.put(f"league_leverage_{sims}", dk, out)
+    return out
 
 
 def rosters() -> Dict[int, List[dict]]:

@@ -126,6 +126,8 @@ _finder = {"state": "idle", "opts": None, "started": None, "finished": None, "ro
 def _run_finder(opts: dict) -> None:
     try:
         tv, ctx = _ctx(False)
+        if opts.get("horizon") == "title":  # per-team title weight of a regular-season point (~1 min first run)
+            opts = {**opts, "leverage": league.leverage()}
         _finder.update(state="done", finished=time.time(), **tv.search(ctx, _ctx(True)[1], ME, **opts))
     except Exception as e:  # surface the reason in the UI
         _finder.update(state="failed", error=str(e), finished=time.time())
