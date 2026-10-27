@@ -8,8 +8,12 @@ import type { Deal } from "./Trades";
 const POS = ["QB", "RB", "WR", "TE"];
 const SHAPES = ["1-1", "2-1", "1-2", "2-2", "3-1", "3-2"];
 const SLOW = new Set(["2-2", "3-1", "3-2"]);
+// search depth presets: sims in the cheap first pass, packages scored at most, sims when rescoring the shortlist
+const DEPTH = { quick: { sims: 10, max_cands: 3000, rescore_sims: 150 }, normal: { sims: 20, max_cands: 12000, rescore_sims: 300 },
+  deep: { sims: 40, max_cands: 40000, rescore_sims: 600 } };
+type Depth = keyof typeof DEPTH;
 const DEFAULT: FinderOpts = { shapes: ["1-1", "2-1", "1-2"], keep: [], must_give: [], must_get: [], get_pos: POS, partners: null,
-  horizon: "ros", desk_weight: 0.5, min_gain: 0, min_their: 0, their_view: "espn", sort: "gain" };
+  horizon: "ros", desk_weight: 0.5, min_gain: 0, min_their: 0, their_view: "espn", sort: "gain", top: 25, ...DEPTH.normal };
 
 const toggle = <T,>(xs: T[], x: T) => (xs.includes(x) ? xs.filter((y) => y !== x) : [...xs, x]);
 const tone = (x: number) => (x >= 10 ? "up" : x <= -10 ? "down" : "");
@@ -41,6 +45,9 @@ export function Finder({ me, teams, live, engineUp, setDeal }: { me: number; tea
   const secs = st?.state === "running" && st.started ? Math.round(Date.now() / 1000 - st.started) : 0;
   const w = Math.round(o.desk_weight * 100);
   const slow = o.shapes.some((s) => SLOW.has(s));
+  const depth = (Object.keys(DEPTH) as Depth[]).find((k) => DEPTH[k].sims === o.sims && DEPTH[k].max_cands === o.max_cands) ?? "normal";
+  const wide = o.partners == null && !o.must_get.length && !o.must_give.length;
+  const est = wide ? { quick: "~30 s", normal: "~2 min", deep: "5+ min" }[depth] : "";
   const ppl = (xs: FinderPlayer[]) => xs.map((x) => <span key={x.id} className="fp"><b title={x.name}>{tightName(x.name, 18)}</b> <small>{x.pos} · {Math.round(x.ros)}</small></span>);
 
   return (
@@ -78,8 +85,13 @@ export function Finder({ me, teams, live, engineUp, setDeal }: { me: number; tea
         <div className="fg"><label>Sort by</label>
           <select value={o.sort} onChange={(e) => set({ sort: e.target.value as FinderOpts["sort"] })}>
             <option value="gain">Your gain</option><option value="their">Their gain</option><option value="fair">Fairest win (smaller of the two)</option></select></div>
+        <div className="fg"><label>Search depth <Ev l="descriptive" tip="Quick: 10 sims per package, at most 3,000 packages. Normal: 20 sims, 12,000. Deep: 40 sims, 40,000, and the shortlist rescored at 600 sims. Deeper = fewer good deals missed to noise or the package cap, and slower." /></label>
+          <span className="row"><select value={depth} onChange={(e) => set(DEPTH[e.target.value as Depth])}>
+            <option value="quick">Quick</option><option value="normal">Normal</option><option value="deep">Deep</option></select>
+            <input type="number" min={1} max={60} value={o.top} onChange={(e) => set({ top: Math.max(1, Math.min(60, Number(e.target.value) || 25)) })} title="Results to show" /></span>
+          <small className="dim">depth · results to show</small></div>
         <div className="fg go"><button className="tbtn pri" type="button" disabled={!engineUp || st?.state === "running" || !o.shapes.length || !o.get_pos.length} onClick={run}>
-          {st?.state === "running" ? `Searching… ${secs}s` : o.partners == null && !o.must_get.length && !o.must_give.length ? "Find trades (~2 min)" : "Find trades"}</button>
+          {st?.state === "running" ? `Searching… ${secs}s` : est ? `Find trades (${est})` : "Find trades"}</button>
           <button className="tbtn" type="button" onClick={() => setO(DEFAULT)}>Reset</button></div>
       </div>
       {st?.state === "failed" && <p className="tr-off">Search failed: {st.error}</p>}

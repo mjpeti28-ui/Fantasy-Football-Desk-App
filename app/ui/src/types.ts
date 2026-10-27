@@ -147,6 +147,7 @@ export interface IdeasState { state: "idle" | "running" | "done" | "failed"; par
 export interface FinderOpts {
   shapes: string[]; keep: number[]; must_give: number[]; must_get: number[]; get_pos: string[]; partners: number[] | null;
   horizon: "ros" | "reg" | "playoffs"; desk_weight: number; min_gain: number; min_their: number; their_view: "espn" | "desk" | "both"; sort: "gain" | "their" | "fair";
+  top: number; sims: number; max_cands: number; rescore_sims: number;
 }
 export interface FinderPlayer { id: number; name: string; pos: Pos; ros: number }
 export interface FinderRow {

@@ -345,6 +345,10 @@ class FinderIn(BaseModel):  # trade_value.search() options
     their_view: Literal["espn", "desk", "both"] = "espn"
     sort: Literal["gain", "their", "fair"] = "gain"
     top: int = Field(25, ge=1, le=60)
+    # search depth: sims in the cheap pass, packages scored, sims when rescoring the shortlist
+    sims: int = Field(20, ge=5, le=100)
+    max_cands: int = Field(12000, ge=500, le=60000)
+    rescore_sims: int = Field(300, ge=50, le=1000)
 
 
 class IdeasIn(BaseModel):
