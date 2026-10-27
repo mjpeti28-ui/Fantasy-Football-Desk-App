@@ -345,3 +345,104 @@ def around(ctx: Context, espn: Context, team: int, pid: int, *, sims: int = 40, 
         })
     out.sort(key=lambda r: -r["your_gain"])
     return pd.DataFrame(out[:top])
+
+
+def _shape_cands(exp, mine: List[int], theirs: List[int], shape: str) -> List[tuple]:
+    """(give, get) packages of one shape, pruned the way ``find`` prunes: in uneven deals the
+    side sending more players must get the best one back."""
+    a, b = (int(x) for x in shape.split("-"))
+    gives, gets = list(itertools.combinations(mine, a)), list(itertools.combinations(theirs, b))
+    out = []
+    for g in gives:
+        gx, gs = max(exp[i] for i in g), sum(exp[i] for i in g)
+        for t in gets:
+            tx, ts = max(exp[i] for i in t), sum(exp[i] for i in t)
+            if a > b and tx <= gx + (15 if a == 3 else 0):
+                continue
+            if b > a and gx <= tx:
+                continue
+            if a == b > 1 and not (tx >= gx + 10 and -90 < ts - gs < 30):
+                continue
+            out.append((list(g), list(t)))
+    return out
+
+
+def search(ctx: Context, espn: Context, team: int, *, shapes=("1-1", "2-1", "1-2"), give_pool: Optional[Sequence[int]] = None,
+           keep: Sequence[int] = (), must_give: Sequence[int] = (), must_get: Sequence[int] = (),
+           get_pos: Sequence[str] = SKILL, partners: Optional[Sequence[int]] = None, horizon: str = "ros",
+           desk_weight: float = 0.5, min_gain: float = 0.0, min_their: float = 0.0, their_view: str = "espn",
+           sort: str = "gain", sims: int = 20, rescore_sims: int = 300, top: int = 25, max_cands: int = 12000) -> dict:
+    """Trade finder with user-set filters and valuation. Every deal is scored on our model
+    (``ctx``) and on ESPN's numbers (``espn``, what the partner's app shows). Your gain is
+    ``desk_weight`` x ours + (1 - desk_weight) x ESPN's over ``horizon`` ("ros", "reg" or
+    "playoffs"). The partner must gain ``min_their`` on ``their_view`` ("espn", "desk" or
+    "both"). Sort: "gain" (yours), "their" (partner, on their view) or "fair" (the smaller of
+    the two). Descriptive: Desk's gap with ESPN was overweighted ~4x in the weekly backtest, so a
+    deal that only wins on Desk deserves suspicion."""
+    exp = v.expected_ros_points(ctx.tbl, ctx.week, v.FANTASY_LAST_WEEK)
+    weeks = {"ros": range(ctx.week, v.FANTASY_LAST_WEEK + 1), "reg": ctx.reg_weeks, "playoffs": ctx.playoff_weeks}[horizon]
+    pos = lambda i: ctx.tbl.at[i, "position"]
+    mine = [i for i in ctx.rosters[team] if pos(i) in SKILL and i not in keep and (give_pool is None or i in give_pool or i in must_give)]
+    cands = []
+    for other, ids in ctx.rosters.items():
+        if other == team or (partners and other not in partners) or (must_get and not set(must_get) & set(ids)):
+            continue
+        theirs = [i for i in ids if pos(i) in SKILL and (pos(i) in get_pos or i in must_get)]
+        for shape in shapes:
+            cands += [(other, g, t) for g, t in _shape_cands(exp, mine, theirs, shape)
+                      if (not must_give or set(must_give) & set(g)) and (not must_get or set(must_get) & set(t))]
+    truncated = len(cands) > max_cands
+    if truncated:  # keep the closest swaps on raw points: lopsided ones rarely survive the filters
+        cands.sort(key=lambda c: abs(sum(exp[i] for i in c[2]) - sum(exp[i] for i in c[1])))
+        cands = cands[:max_cands]
+    base: Dict[tuple, float] = {}
+
+    def gain(c: Context, t: int, give, get, n: int):
+        if (id(c), t, n) not in base:
+            base[(id(c), t, n)] = _value(c, c.rosters[t], weeks, n)
+        return _value(c, _after(c, c.rosters[t], give, get), weeks, n) - base[(id(c), t, n)]
+
+    def their(d, e):
+        return {"espn": e, "desk": d, "both": min(d, e)}[their_view]
+
+    w = desk_weight
+    rows = []
+    for other, give, get in cands:
+        te = gain(espn, other, get, give, sims)
+        if their_view != "desk" and te < min_their - 5:  # small slack: the cheap pass is noisy
+            continue
+        td = gain(ctx, other, get, give, sims) if their_view != "espn" else 0.0
+        if their_view != "espn" and their(td, te) < min_their - 5:
+            continue
+        me = w * gain(ctx, team, give, get, sims) + (1 - w) * gain(espn, team, give, get, sims)
+        if me < min_gain - 5:
+            continue
+        rows.append((me, their(td, te), other, give, get))
+    key = {"gain": lambda r: -r[0], "their": lambda r: -r[1], "fair": lambda r: -min(r[0], r[1])}[sort]
+    rows.sort(key=lambda r: (r[0] < min_gain or r[1] < min_their, key(r)))  # clear passes first, slack ones after
+    hk = {"ros": "delta_total", "reg": "delta_regular_season", "playoffs": "delta_playoffs"}[horizon]
+    seen: Dict[tuple, int] = {}  # at most two deals per player(s) you'd get, so fillers don't crowd the list
+    rows = [r for r in rows if seen.setdefault((r[2], tuple(r[4])), 0) < 2 and not seen.update({(r[2], tuple(r[4])): seen[(r[2], tuple(r[4]))] + 1})]
+    out = []
+    for _, _, other, give, get in rows[: top * 2]:
+        ev, ee = evaluate(ctx, team, give, other, get, sims=rescore_sims), evaluate(espn, team, give, other, get, sims=rescore_sims)
+        me, them, me_e, them_e = ev["teams"][team], ev["teams"][other], ee["teams"][team], ee["teams"][other]
+        g = w * me[hk] + (1 - w) * me_e[hk]
+        tg = their(them[hk], them_e[hk])
+        if g < min_gain or tg < min_their:
+            continue
+        out.append({
+            "with": them["name"], "partner": other, "give_ids": list(give), "get_ids": list(get),
+            "give": [{"id": i, "name": ctx.tbl.at[i, "name"], "pos": pos(i), "ros": round(float(exp[i]), 1)} for i in give],
+            "get": [{"id": i, "name": ctx.tbl.at[i, "name"], "pos": pos(i), "ros": round(float(exp[i]), 1)} for i in get],
+            "shape": f"{len(give)}-{len(get)}", "you_drop": ", ".join(me["would_drop"]),
+            "your_gain": round(g, 1), "desk_gain": me[hk], "espn_gain": me_e[hk], "their_gain": round(tg, 1),
+            "their_desk": them[hk], "their_espn": them_e[hk], "playoffs_gain": round(w * me["delta_playoffs"] + (1 - w) * me_e["delta_playoffs"], 1),
+            # players' own ROS points swapped (Desk), and the rest of Desk's ROS gain: lineup fit
+            "players": me["raw_swap"], "fit": round(me["delta_total"] - me["raw_swap"], 1),
+            "p_right": win_probability(ctx, g), "trust": edge_label(g),
+            "why": " | ".join(f"{n}: {x}" for n, x in me["why"].items()),
+        })
+    out.sort(key={"gain": lambda r: -r["your_gain"], "their": lambda r: -r["their_gain"],
+                  "fair": lambda r: -min(r["your_gain"], r["their_gain"])}[sort])
+    return {"rows": out[:top], "candidates": len(cands), "kept": len(rows), "truncated": truncated}

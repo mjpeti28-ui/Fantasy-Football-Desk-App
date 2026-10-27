@@ -118,3 +118,27 @@ def start_ideas(partner: Optional[int], player: Optional[int] = None) -> dict:
 
 def ideas_status() -> dict:
     return _ideas
+
+
+_finder = {"state": "idle", "opts": None, "started": None, "finished": None, "rows": [], "error": None}
+
+
+def _run_finder(opts: dict) -> None:
+    try:
+        tv, ctx = _ctx(False)
+        _finder.update(state="done", finished=time.time(), **tv.search(ctx, _ctx(True)[1], ME, **opts))
+    except Exception as e:  # surface the reason in the UI
+        _finder.update(state="failed", error=str(e), finished=time.time())
+
+
+def start_finder(opts: dict) -> dict:
+    """Trade finder (trade_value.search) in the background; poll finder_status()."""
+    if _finder["state"] == "running":
+        return _finder
+    _finder.update(state="running", opts=opts, started=time.time(), finished=None, rows=[], error=None)
+    threading.Thread(target=_run_finder, args=(opts,), daemon=True).start()
+    return _finder
+
+
+def finder_status() -> dict:
+    return _finder

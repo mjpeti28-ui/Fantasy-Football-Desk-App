@@ -6,6 +6,7 @@ import { tradeApi } from "../../data";
 import { useFile } from "../../components/FileContext";
 import { Face } from "../../components/bits";
 import { type TeamColor, tilePalette } from "../../teamColor";
+import { Finder } from "./Finder";
 import "./trades.css";
 
 export interface Deal { partner: number | null; give: number[]; get: number[] }
@@ -192,7 +193,7 @@ export function Trades(p: Props) {
       </header>
       {!engineUp && <p className="tr-off">Start the engine to evaluate trades.</p>}
       <Partners {...p} fits={fits} />
-      {partner == null ? <><CallSheet {...p} /><Disagree {...p} /></> : (
+      {partner == null ? <><Finder me={p.me} teams={p.teams} live={p.live} engineUp={p.engineUp} setDeal={p.setDeal} /><CallSheet {...p} /><Disagree {...p} /></> : (
         <div className="desk">
           <Roster rows={myRows} picked={deal.give} onToggle={toggle("give")} title="Your roster" side="me" colors={p.teamColors} flags={flags} />
           <section className="center">
