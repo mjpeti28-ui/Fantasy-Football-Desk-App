@@ -7,6 +7,7 @@ import { useFile } from "../../components/FileContext";
 import { Face } from "../../components/bits";
 import { type TeamColor, tilePalette } from "../../teamColor";
 import { Finder } from "./Finder";
+import { HZ, HZ_SHORT, RankLine, fillerText, groupRows, loadValuation, n0, oddsTone, playoffScale, read, theirRead } from "./dealbits";
 import "./trades.css";
 
 export interface Deal { partner: number | null; give: number[]; get: number[] }
@@ -128,7 +129,7 @@ export function Trades(p: Props) {
     const n = ++seq.current;
     const t = window.setTimeout(async () => {
       try {
-        const e = await tradeApi.evaluate(partner, deal.give, deal.get);
+        const e = await tradeApi.evaluate(partner, deal.give, deal.get, loadValuation().horizon);
         if (n !== seq.current) return;
         setEv(e); setOddsBusy(true);
         const o = await tradeApi.odds(partner, deal.give, deal.get);
@@ -208,6 +209,8 @@ export function Trades(p: Props) {
             {!ev && deal.give.length > 0 && deal.get.length > 0 && !err && <p className="dim">Evaluating…</p>}
             {ev && m && mt && (
               <>
+                <DealScore ev={ev} me={me} partner={partner} />
+                {loadValuation().horizon !== "ros" && <p className="dim">Below: every week counted equally, rest of season (the finder's default view).</p>}
                 <GainChart ev={ev} me={me} partner={partner} pname={pname} />
                 {verdict()}
                 <div className="facts">
@@ -239,7 +242,10 @@ export function Trades(p: Props) {
                     context: `Model: ${signed(m.delta_total_calibrated)} for you (${m.edge_label}). ESPN's view for ${pname}: ${signed(et?.delta_total)}. History: ${h.text}.` })}>Log to journal…</button>}
                 </div>
                 <div className="why">
-                  {Object.entries(m.why).map(([n, w]) => <div key={n}><b>{n}</b><span>{w}</span></div>)}
+                  {Object.entries(m.why).map(([n, w]) => {
+                    const id = [...deal.give, ...deal.get].find((x) => byId.get(x)?.name === n), r = id != null ? byId.get(id) : undefined;
+                    return <div key={n}><b>{n}{r && <RankLine pos={r.pos} r={ev.ranks?.[String(id)]} />}</b><span>{w}</span></div>;
+                  })}
                 </div>
                 <DealSoFar an={p.an} give={deal.give} get={deal.get} pname={pname} />
               </>
@@ -306,6 +312,28 @@ export function fitTeams(a: LeagueAnalysis | undefined, me: number): Set<number>
     .sort((x, y) => y.s - x.s).slice(0, 3).map((x) => x.t));
 }
 
+/* The deal scored the way the finder scores it (the valuation you last ran it with), so a deal
+   reads the same here, in the finder and in Trade ideas. */
+function DealScore({ ev, me, partner }: { ev: TradeEval; me: number; partner: number }) {
+  const val = loadValuation(), po = playoffScale(val.horizon), lev = ev.leverage ?? {};
+  const hv = (x: TradeEval["model"]["teams"][string], t: number) => ({ ros: x.delta_total, reg: x.delta_regular_season, playoffs: x.delta_playoffs,
+    title: (lev[String(t)] ?? 1) * x.delta_regular_season + x.delta_playoffs })[val.horizon];
+  const [dm, de] = [hv(ev.model.teams[me], me), hv(ev.espn.teams[me], me)];
+  const [tm, te] = [hv(ev.model.teams[partner], partner), hv(ev.espn.teams[partner], partner)];
+  const g = val.desk_weight * dm + (1 - val.desk_weight) * de;
+  const cal = po ? ev.playoff_calibration : ev.calibration;
+  const p = cal?.find(([lo, hi]) => lo <= Math.abs(g) && Math.abs(g) < hi)?.[2] ?? 0.5;
+  const rd = read({ your_gain: g, desk_gain: dm, espn_gain: de }, po), th = theirRead(te, po);
+  return (
+    <div className="dscore" title={`Scored like the finder: ${Math.round(val.desk_weight * 100)}% Desk + ${100 - Math.round(val.desk_weight * 100)}% ESPN, starting-lineup points over the ${HZ[val.horizon]}.`}>
+      <div><span className="k">Your gain</span><b className={`num gain ${g >= (po ? 6 : 10) ? "up" : g < 0 ? "down" : ""}`}>{signed(g)}</b><small>Desk {n0(dm)} · ESPN {n0(de)}</small></div>
+      <div><span className="k">Desk vs ESPN</span><span className={`tag ${rd.tone}`} title={rd.tip}>{rd.t}</span></div>
+      <div><span className="k">Their side</span><span className={`tag ${th.tone}`}>{th.t}</span><small>ESPN {n0(te)} · Desk {n0(tm)}</small></div>
+      <div><span className="k">Odds</span><b className={`num odds ${oddsTone(p)}`}>{pct(p)}</b><small>{HZ_SHORT[val.horizon]}</small></div>
+    </div>
+  );
+}
+
 /* inspector: idea search */
 export function IdeasPanel({ partner, pname, engineUp, focus, onLoad }: { partner: number | null; pname: string; engineUp: boolean;
   focus: { id: number; name: string; mine: boolean } | null; onLoad: (partner: number, give: number[], get: number[]) => void }) {
@@ -316,13 +344,14 @@ export function IdeasPanel({ partner, pname, engineUp, focus, onLoad }: { partne
     const t = window.setInterval(() => tradeApi.ideas().then(setSt, () => undefined), 2000);
     return () => window.clearInterval(t);
   }, [st?.state]);
-  const start = async (p: number | null, player: number | null = null) => setSt(await tradeApi.startIdeas(p, player));
+  const start = async (p: number | null, player: number | null = null) => setSt(await tradeApi.startIdeas(p, player, loadValuation()));
+  const po = playoffScale(st?.opts?.horizon);
   const around = st?.player != null;
   const secs = st?.state === "running" && st.started ? Math.round(Date.now() / 1000 - st.started) : 0;
   return (
     <div className="ideas">
       <div><div style={{ font: "700 17px/1.2 var(--sys)" }}>Trade ideas</div>
-        <p className="ins-note">Searches 1-for-1, 2-for-1 and 1-for-2 deals where both sides gain by our numbers, ranked by your calibrated gain.</p></div>
+        <p className="ins-note">The trade finder's search with a partner or player filled in: 1-for-1, 2-for-1 and 1-for-2 deals, scored with the valuation you last ran the finder with{st?.opts ? `: ${Math.round((st.opts.desk_weight ?? 0.5) * 100)}% Desk, ${HZ_SHORT[st.opts.horizon ?? "ros"]}` : ""}.</p></div>
       <div className="ins-acts">
         <button className="tbtn pri" type="button" disabled={!engineUp || partner == null || st?.state === "running"} onClick={() => start(partner)}>With {pname || "partner"}</button>
         <button className="tbtn" type="button" disabled={!engineUp || st?.state === "running"} onClick={() => start(null)}>Whole league (~1 min)</button>
@@ -332,19 +361,23 @@ export function IdeasPanel({ partner, pname, engineUp, focus, onLoad }: { partne
           title="Select exactly one player on the desk: one of theirs to see what it takes to land him, one of yours to shop him">
           {!focus ? "Build around one player" : focus.mine ? `Shop ${focus.name} (~1 min)` : `What would it take for ${focus.name}?`}</button>
       </div>
-      {around && st?.state === "done" && <p className="ins-note">Deals the other team would see as fair or better on ESPN's numbers (what their app shows), best for you first. A negative gain means even the cheapest price costs you.</p>}
+      {around && st?.state === "done" && <p className="ins-note">Every deal includes that player. A negative gain means even the cheapest price costs you.</p>}
       {st?.state === "running" && <p className="ins-note">Searching… {secs}s</p>}
       {st?.state === "failed" && <p className="ins-note">Search failed: {st.error}</p>}
-      {st?.state === "done" && (st.rows ?? []).length === 0 && <p className="ins-note">{around ? "No package the other team would see as fair on ESPN's numbers." : "No deal helps both sides by our numbers."}</p>}
+      {st?.state === "done" && (st.rows ?? []).length === 0 && <p className="ins-note">No deal passes the finder's partner filter{around ? " with that player in it" : ""}.</p>}
       <div className="ilist">
-        {(st?.rows ?? []).map((r, i) => (
-          <button key={i} type="button" className="idea" title={r.why} onClick={() => onLoad(r.partner, r.give_ids, r.get_ids)} disabled={r.give_ids.some((x) => x == null) || r.get_ids.some((x) => x == null)}>
-            <span className="w">{r.with}</span>
-            <span className="g"><b>{r.give}</b> → <b>{r.get}</b></span>
-            <span className="n"><span className="num you">{signed(r.your_gain_calibrated)}</span> you · <span className="num them">{signed(r.their_gain)}</span> them{r.their_gain_espn != null && <> ({signed(r.their_gain_espn)} ESPN)</>} · {pct(r.p_right)} · <span className={`conf ${r.trust === "noise" ? "noise" : r.trust === "thin edge" ? "thin" : "yes"}`}>{r.trust}</span></span>
-            {r.you_drop && <span className="d">you'd drop {r.you_drop}</span>}
-          </button>
-        ))}
+        {groupRows(st?.rows ?? []).map((g, i) => {
+          const r = g.lead, rd = read(r, po), th = theirRead(r.their_espn, po), fill = fillerText(g);
+          return (
+            <button key={i} type="button" className="idea" title={r.why} onClick={() => onLoad(r.partner, r.give_ids, r.get_ids)}>
+              <span className="w">{r.with}</span>
+              <span className="g"><b>{r.give.map((x) => x.name).join(", ")}</b> → <b>{g.main.name}</b>{fill && <small className="dim"> {fill}</small>}</span>
+              <RankLine pos={g.main.pos} r={g.main.ranks} />
+              <span className="n"><span className="num you">{signed(r.your_gain)}</span> you <small className="dim">(Desk {n0(r.desk_gain)} · ESPN {n0(r.espn_gain)})</small> · {pct(r.p_right)}</span>
+              <span className="n"><span className={`tag ${rd.tone}`} title={rd.tip}>{rd.t}</span> <span className={`tag ${th.tone}`}>{th.t}</span> <small className="dim">ESPN {n0(r.their_espn)} · Desk {n0(r.their_desk)}</small></span>
+              {r.you_drop && <span className="d">you'd drop {r.you_drop}</span>}
+            </button>);
+        })}
       </div>
     </div>
   );

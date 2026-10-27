@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import type { FinderOpts, FinderPlayer, FinderRow, FinderState, LeagueLive, PowerTeam } from "../../types";
+import type { FinderOpts, FinderPlayer, FinderState, LeagueLive, PowerTeam } from "../../types";
 import { signed, tightName } from "../../format";
+import { HZ, POS_VAR, PlayerChip, fillerText, groupRows, loadValuation, n0, oddsTone, playoffScale, range, read, saveValuation, theirRead } from "./dealbits";
 import { tradeApi } from "../../data";
 import type { Deal } from "./Trades";
 
 const POS = ["QB", "RB", "WR", "TE"];
-const POS_VAR: Record<string, string> = { QB: "var(--qb)", RB: "var(--rb)", WR: "var(--wr)", TE: "var(--te)" };
 const SHAPES = ["1-1", "2-1", "1-2", "2-2", "3-1", "3-2"];
 const SLOW = new Set(["2-2", "3-1", "3-2"]);
 // search depth presets: sims in the cheap first pass, packages scored at most, sims when rescoring the shortlist
@@ -16,24 +16,6 @@ const DEFAULT: FinderOpts = { shapes: ["1-1", "2-1", "1-2"], keep: [], must_give
   horizon: "ros", desk_weight: 0.5, min_gain: 0, min_their: 0, their_view: "espn", sort: "gain", top: 25, ...DEPTH.normal };
 
 const toggle = <T,>(xs: T[], x: T) => (xs.includes(x) ? xs.filter((y) => y !== x) : [...xs, x]);
-const n0 = (x: number) => { const r = Math.round(x); return `${r > 0 ? "+" : r < 0 ? "−" : ""}${Math.abs(r)}`; };
-
-/** How the two views read a deal for you: agree, or most of the gain lives in one of them. */
-function read(r: FinderRow, po: boolean): { t: string; tone: string; tip: string } {
-  // playoff-week gains are ~1/3 the size of rest-of-season ones, so the cutoffs scale down
-  const gap = r.desk_gain - r.espn_gain, small = po ? 6 : 10, big = po ? 5 : 15;
-  if (r.your_gain < small) return { t: "Small edge", tone: "dim", tip: `Under ${small} points: in the 2021-25 backtest edges this size had the right sign only a bit more than half the time.` };
-  if (gap >= big) return { t: "Mostly our model", tone: "warn", tip: `Desk sees ${n0(gap)} more than ESPN. A bet that our model is right where ESPN isn't; Desk has beaten ESPN only narrowly.` };
-  if (gap <= -big) return { t: "Mostly ESPN", tone: "mid", tip: `ESPN sees ${n0(-gap)} more than Desk. Looks great on the app; our model is less sold.` };
-  return { t: "Both agree", tone: "good", tip: `Desk and ESPN both have you gaining ${small}+ points, within ${big} of each other.` };
-}
-
-/** Partner's side on what their app shows: our only (weak) proxy for whether they'd accept. */
-function theirRead(x: number, po: boolean): { t: string; tone: string } {
-  if (x >= (po ? 2 : 5)) return { t: "fair on their app", tone: "good" };
-  if (x >= 0) return { t: "barely fair", tone: "mid" };
-  return { t: "looks bad to them", tone: "warn" };
-}
 
 function Info({ tip }: { tip: string }) {
   return <i className="fi" title={tip} aria-label={tip}>?</i>;
@@ -42,7 +24,8 @@ function Info({ tip }: { tip: string }) {
 /* FantasyPros-style trade finder: filters on who moves, and a valuation you set (how much to trust
    Desk vs ESPN, which weeks count, how much the partner must gain and on whose numbers). */
 export function Finder({ me, teams, live, engineUp, setDeal }: { me: number; teams: PowerTeam[]; live: LeagueLive | null; engineUp: boolean; setDeal: (d: Deal) => void }) {
-  const [o, setO] = useState<FinderOpts>(DEFAULT);
+  const [o, setO] = useState<FinderOpts>(() => ({ ...DEFAULT, ...loadValuation() }));
+  const [open, setOpen] = useState<string | null>(null);  // the deal whose filler variants are showing
   const [st, setSt] = useState<FinderState | null>(null);
   const set = (x: Partial<FinderOpts>) => setO((p) => ({ ...p, ...x }));
   useEffect(() => { if (engineUp) tradeApi.finder().then(setSt, () => undefined); }, [engineUp]);
@@ -62,17 +45,17 @@ export function Finder({ me, teams, live, engineUp, setDeal }: { me: number; tea
     const m = mode(id);
     set({ must_give: m === "" ? [...o.must_give, id] : o.must_give.filter((x) => x !== id), keep: m === "must" ? [...o.keep, id] : o.keep.filter((x) => x !== id) });
   };
-  const run = async () => setSt(await tradeApi.startFinder(o));
+  const run = async () => { saveValuation(o); setSt(await tradeApi.startFinder(o)); };
   const secs = st?.state === "running" && st.started ? Math.round(Date.now() / 1000 - st.started) : 0;
   const w = Math.round(o.desk_weight * 100);
   const slow = o.shapes.some((s) => SLOW.has(s));
   const depth = (Object.keys(DEPTH) as Depth[]).find((k) => DEPTH[k].sims === o.sims && DEPTH[k].max_cands === o.max_cands) ?? "normal";
   const wide = o.partners == null && !o.must_get.length && !o.must_give.length;
   const est = wide ? { quick: "~30 s", normal: "~2 min", deep: "5+ min" }[depth] : "";
-  const HZ = { ros: "rest of season", reg: "regular season", playoffs: "playoff weeks", title: "season, weighted by title odds (in playoff points)" };
   const weeks = HZ[o.horizon];
-  const ppl = (xs: FinderPlayer[]) => xs.map((x) => (
-    <span key={x.id} className="fp"><i className="pd" style={{ background: POS_VAR[x.pos] }} /><b title={x.name}>{tightName(x.name, 18)}</b><small>{x.pos} · {Math.round(x.ros)} pts</small></span>));
+  const ppl = (xs: FinderPlayer[]) => xs.map((x) => <PlayerChip key={x.id} p={x} name={tightName(x.name, 18)} />);
+  const groups = groupRows(st?.rows ?? []);
+  const po = playoffScale(st?.opts?.horizon);
   const stale = st?.opts && (st.opts.desk_weight !== o.desk_weight || st.opts.horizon !== o.horizon);
 
   return (
@@ -146,30 +129,42 @@ export function Finder({ me, teams, live, engineUp, setDeal }: { me: number; tea
 
       {st?.state === "failed" && <p className="tr-off">Search failed: {st.error}</p>}
       {st?.state === "done" && (
-        <p className="f-sum"><b>{st.rows.length}</b> deals pass your filters out of {st.candidates?.toLocaleString()} scored{st.truncated ? " (hit the depth cap: try a deeper search)" : ""}.
+        <p className="f-sum"><b>{groups.length}</b> deals pass your filters out of {st.candidates?.toLocaleString()} scored{st.truncated ? " (hit the depth cap: try a deeper search)" : ""}.
           {stale && <span className="warn"> You changed the valuation since this search: run it again.</span>}</p>
       )}
       {(st?.rows ?? []).length > 0 && (<>
         <div className="f-key"><span><b>Your gain</b> = {st?.opts ? Math.round(st.opts.desk_weight * 100) : w}% Desk + {st?.opts ? 100 - Math.round(st.opts.desk_weight * 100) : 100 - w}% ESPN, starting-lineup points over the {st?.opts ? HZ[st.opts.horizon] : weeks}</span>
-          <span><b>Odds</b>: how often a gain this size went the predicted way, 2021-25</span><span>Hover a row for the players' notes</span></div>
+          <span><b>Odds</b>: how often a gain this size went the predicted way, 2021-25</span>
+          <span><b>Ranks</b>: position rank rest of season by FantasyPros · ESPN's projections · Desk; <i className="rk-split-key">underlined</i> when they disagree</span></div>
         <div className="ft-wrap"><table className="ft">
           <thead><tr><th>#</th><th>You give</th><th>You get</th>
             <th className="r">Your gain</th><th title="Do Desk and ESPN agree on your gain?">Desk vs ESPN</th><th title="Partner's gain on ESPN (their app) and on Desk">Their side</th><th className="r" title="How often a gain this size went the predicted way, 2021-25">Odds</th><th /></tr></thead>
-          <tbody>{st!.rows.map((r: FinderRow, i) => {
-            const po = st?.opts?.horizon === "playoffs" || st?.opts?.horizon === "title";
-            const rd = read(r, po), th = theirRead(r.their_espn, po);
-            return (
+          <tbody>{groups.map((g, i) => {
+            const r = g.lead, rd = read(r, po), th = theirRead(r.their_espn, po), fill = fillerText(g), many = g.variants.length > 1;
+            const gains = g.variants.map((v) => v.your_gain);
+            return [
               <tr key={i} title={r.why}>
                 <td className="rk">{i + 1}</td>
                 <td>{ppl(r.give)}</td>
-                <td>{ppl(r.get)}<small className="sub wrap">from {r.with}{r.you_drop && ` · then drop ${r.you_drop}`}</small></td>
-                <td className="r"><span className={`gain ${r.your_gain >= 10 ? "up" : r.your_gain < 0 ? "down" : ""}`}>{signed(r.your_gain)}</span>
-                  <small className="sub">Desk {n0(r.desk_gain)} · ESPN {n0(r.espn_gain)}</small></td>
+                <td>{ppl([g.main])}
+                  {fill && <button type="button" className="fill" onClick={() => setOpen(open === r.group ? null : r.group ?? null)} title="Same deal with different filler coming back. Click to compare them.">{fill} {many && (open === r.group ? "▾" : "▸")}</button>}
+                  <small className="sub wrap">from {r.with}{r.you_drop && ` · then drop ${r.you_drop}`}</small></td>
+                <td className="r"><span className={`gain ${r.your_gain >= (po ? 6 : 10) ? "up" : r.your_gain < 0 ? "down" : ""}`}>{signed(r.your_gain)}</span>
+                  <small className="sub">Desk {n0(r.desk_gain)} · ESPN {n0(r.espn_gain)}</small>
+                  {many && Math.max(...gains) - Math.min(...gains) >= 0.5 && <small className="sub">{range(gains)} by filler</small>}</td>
                 <td><span className={`tag ${rd.tone}`} title={rd.tip}>{rd.t}</span></td>
                 <td><span className={`tag ${th.tone}`}>{th.t}</span><small className="sub">ESPN {n0(r.their_espn)} · Desk {n0(r.their_desk)}</small></td>
-                <td className="r"><span className={`odds ${r.p_right >= 0.65 ? "good" : r.p_right >= 0.58 ? "mid" : "dim"}`}>{Math.round(r.p_right * 100)}%</span></td>
+                <td className="r"><span className={`odds ${oddsTone(r.p_right)}`}>{Math.round(r.p_right * 100)}%</span></td>
                 <td className="r"><button className="tbtn" type="button" onClick={() => setDeal({ partner: r.partner, give: r.give_ids, get: r.get_ids })}>Open →</button></td>
-              </tr>);
+              </tr>,
+              ...(open === r.group ? g.variants.map((v, j) => (
+                <tr key={`${i}-${j}`} className="variant">
+                  <td /><td /><td><small>{v.get.length === 1 ? "No filler" : `with ${v.get.filter((p) => p.id !== g.main.id).map((p) => `${p.name} (${p.ppg?.toFixed(1) ?? "–"} ppg)`).join(", ")}`}</small></td>
+                  <td className="r"><small>{signed(v.your_gain)}</small></td><td />
+                  <td><small>ESPN {n0(v.their_espn)} · Desk {n0(v.their_desk)}</small></td><td />
+                  <td className="r"><button className="tbtn" type="button" onClick={() => setDeal({ partner: v.partner, give: v.give_ids, get: v.get_ids })}>Open →</button></td>
+                </tr>)) : []),
+            ];
           })}</tbody>
         </table></div>
         <p className="tr-empty">Odds were calibrated on Desk's gains alone, so they're rough for a blend. "Mostly our model" deals are the ones to double-check: Desk has beaten ESPN only narrowly, and ESPN is what your partner will see.</p>

@@ -53,7 +53,7 @@ def history() -> Dict[int, dict]:
     return out
 
 
-def evaluate(partner: int, give: List[int], get: List[int]) -> dict:
+def evaluate(partner: int, give: List[int], get: List[int], horizon: str = "ros") -> dict:
     tv, ctx = _ctx(False)
     for team, ids in ((ME, give), (partner, get)):
         bad = [i for i in ids if i not in ctx.rosters.get(team, [])]
@@ -62,7 +62,11 @@ def evaluate(partner: int, give: List[int], get: List[int]) -> dict:
     model = tv.evaluate(ctx, ME, give, partner, get, sims=300)
     tv2, ctx2 = _ctx(True)
     espn = tv2.evaluate(ctx2, ME, give, partner, get, sims=300)
-    return {"model": model, "espn": espn, "calibration": ctx.calibration.get("sign_accuracy_by_abs_pred_edge", [])}
+    rk = tv.player_ranks(ctx, ctx2)
+    return {"model": model, "espn": espn, "calibration": ctx.calibration.get("sign_accuracy_by_abs_pred_edge", []),
+            "playoff_calibration": tv.PLAYOFF_SIGN_ACCURACY[:-1] + [(tv.PLAYOFF_SIGN_ACCURACY[-1][0], 1e9, tv.PLAYOFF_SIGN_ACCURACY[-1][2])],
+            "leverage": league.leverage() if horizon == "title" else None,
+            "ranks": {i: rk.get(i, {}) for i in list(give) + list(get)}}
 
 
 def odds(partner: int, give: List[int], get: List[int], sims: int = 2000) -> dict:
@@ -87,32 +91,34 @@ def odds(partner: int, give: List[int], get: List[int], sims: int = 2000) -> dic
                       for t in (ME, partner)}}
 
 
-def _run_ideas(partner: Optional[int], player: Optional[int] = None) -> None:
+# the finder's options a "Trade ideas" search starts from (the UI sends its current valuation)
+IDEAS_BASE = {"shapes": ["1-1", "2-1", "1-2"], "get_pos": ["QB", "RB", "WR", "TE"], "top": 12, "sims": 20, "max_cands": 12000, "rescore_sims": 300}
+VALUATION = ("horizon", "desk_weight", "their_view", "min_their", "sort")
+
+
+def _run_ideas(partner: Optional[int], player: Optional[int] = None, opts: Optional[dict] = None) -> None:
+    """Trade ideas run the finder's search (same scoring, same rows) with the partner or player
+    preset: with a player, every deal includes him (yours: shop him; theirs: land him)."""
     try:
         tv, ctx = _ctx(False)
-        if player is not None:  # deals built around one player: land him, or shop him
-            rows = tv.around(ctx, _ctx(True)[1], ME, player).to_dict("records")
-            _ideas.update(state="done", rows=[{k: (float(v) if isinstance(v, float) else v) for k, v in r.items()} for r in rows], finished=time.time())
-            return
-        df = tv.find(ctx, ME, partners=[partner] if partner else None)
-        names = {(t, ctx.tbl.at[i, "name"]): i for t, ids in ctx.rosters.items() for i in ids}
-        team_of = {ctx.team_name(t): t for t in ctx.rosters}
-        rows = []
-        for r in df.to_dict("records"):
-            other = team_of.get(r["with"])
-            rows.append({**{k: (float(v) if isinstance(v, (int, float)) else v) for k, v in r.items()}, "partner": other,
-                         "give_ids": [names.get((ME, n.strip())) for n in r["give"].split(",")],
-                         "get_ids": [names.get((other, n.strip())) for n in r["get"].split(",")]})
-        _ideas.update(state="done", rows=rows, finished=time.time())
+        o = {**IDEAS_BASE, **{k: v for k, v in (opts or {}).items() if k in VALUATION}}
+        if partner is not None:
+            o["partners"] = [partner]
+        if player is not None:
+            o["must_give" if player in ctx.rosters[ME] else "must_get"] = [player]
+        if o.get("horizon") == "title":
+            o["leverage"] = league.leverage()
+        res = tv.search(ctx, _ctx(True)[1], ME, **o)
+        _ideas.update(state="done", rows=res["rows"], opts=o, finished=time.time())
     except Exception as e:  # surface the reason in the UI
         _ideas.update(state="failed", error=str(e), finished=time.time())
 
 
-def start_ideas(partner: Optional[int], player: Optional[int] = None) -> dict:
+def start_ideas(partner: Optional[int], player: Optional[int] = None, opts: Optional[dict] = None) -> dict:
     if _ideas["state"] == "running":
         return _ideas
     _ideas.update(state="running", partner=partner, player=player, started=time.time(), finished=None, rows=[], error=None)
-    threading.Thread(target=_run_ideas, args=(partner, player), daemon=True).start()
+    threading.Thread(target=_run_ideas, args=(partner, player, opts), daemon=True).start()
     return _ideas
 
 

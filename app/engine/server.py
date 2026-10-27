@@ -315,12 +315,13 @@ class DealIn(BaseModel):
     partner: int
     give: List[int]
     get: List[int]
+    horizon: str = "ros"  # "title" adds each team's regular-season weight (league.leverage)
 
 
 @app.post("/api/trades/evaluate")
 def trades_evaluate(t: DealIn):
     try:
-        return _json(trades.evaluate(t.partner, t.give, t.get))
+        return _json(trades.evaluate(t.partner, t.give, t.get, t.horizon))
     except ValueError as e:
         raise HTTPException(400, str(e))
 
@@ -354,11 +355,12 @@ class FinderIn(BaseModel):  # trade_value.search() options
 class IdeasIn(BaseModel):
     partner: Optional[int] = None
     player: Optional[int] = None  # build deals around this player (yours: shop him; theirs: land him)
+    opts: Optional[dict] = None  # the finder's valuation settings, so ideas score the same way
 
 
 @app.post("/api/trades/ideas")
 def trades_ideas(i: IdeasIn):
-    return _json(trades.start_ideas(i.partner, i.player))
+    return _json(trades.start_ideas(i.partner, i.player, i.opts))
 
 
 @app.get("/api/trades/ideas")

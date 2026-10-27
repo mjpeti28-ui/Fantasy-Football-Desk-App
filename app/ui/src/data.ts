@@ -105,9 +105,9 @@ const post = <T,>(path: string, body: unknown) => getJSON<T>(`${ENGINE}${path}`,
 });
 export const tradeApi = {
   history: () => getJSON<Record<string, TradeHistory>>(`${ENGINE}/api/trades/history`),
-  evaluate: (partner: number, give: number[], get: number[]) => post<TradeEval>("/api/trades/evaluate", { partner, give, get }),
+  evaluate: (partner: number, give: number[], get: number[], horizon = "ros") => post<TradeEval>("/api/trades/evaluate", { partner, give, get, horizon }),
   odds: (partner: number, give: number[], get: number[]) => post<TradeOdds>("/api/trades/odds", { partner, give, get }),
-  startIdeas: (partner: number | null, player: number | null = null) => post<IdeasState>("/api/trades/ideas", { partner, player }),
+  startIdeas: (partner: number | null, player: number | null = null, opts: Partial<FinderOpts> | null = null) => post<IdeasState>("/api/trades/ideas", { partner, player, opts }),
   ideas: () => getJSON<IdeasState>(`${ENGINE}/api/trades/ideas`),
   startFinder: (opts: FinderOpts) => post<FinderState>("/api/trades/finder", opts),
   finder: () => getJSON<FinderState>(`${ENGINE}/api/trades/finder`),
