@@ -64,7 +64,9 @@ export default function App() {
   const [mode, setMode] = useState<"board" | "gameday" | "analysis">("board");
   const scrollKey = screen === "team" ? `team-${mode}` : screen;
   useLayoutEffect(() => { const m = mainEl.current; if (m) m.scrollTop = scrollAt.current[scrollKey] ?? 0; }, [scrollKey]);
-  const [plan, setPlan] = useState<Plan>({});
+  // the lineup being edited, tied to the team_week it was made from: a new snapshot (refresh,
+  // roster move) starts from ESPN's lineup again instead of rendering one frame with stale ids
+  const [planState, setPlanState] = useState<{ tw: unknown; plan: Plan }>({ tw: null, plan: {} });
   const [sel, setSel] = useState<Sel>(null);
   const [colorMode, setColorModeState] = useState<ColorMode>(loadMode);
   const setColorMode = (m: ColorMode) => { setColorModeState(m); try { localStorage.setItem("desk.colorMode", m); } catch { /* not persisted */ } };
@@ -231,7 +233,8 @@ export default function App() {
 
   const tw = snap?.team_week;
   const by = useMemo(() => new Map((tw?.players ?? []).map((p) => [p.id, p])), [tw]);
-  useEffect(() => { if (tw) setPlan(planFrom(tw.lineup.current)); }, [tw]);
+  const plan = useMemo<Plan>(() => (tw && planState.tw === tw ? planState.plan : tw ? planFrom(tw.lineup.current) : {}), [tw, planState]);
+  const setPlan = useCallback((p: Plan) => setPlanState({ tw, plan: p }), [tw]);
 
   // Refresh once on open when the roster pull is stale.
   useEffect(() => {
