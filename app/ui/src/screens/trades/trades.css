@@ -152,31 +152,66 @@
 .trades .dg-row .go { position: absolute; right: 6px; bottom: 4px; color: var(--you); font-size: 11.5px; opacity: 0; } /* on hover, in the "Likely" line's row */
 .trades .dg-row:hover .go { opacity: 1; }
 
-/* trade finder: filter bar, valuation row, results table */
-.trades .finder .fz { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px 16px; padding: 10px 12px; background: var(--field); border-radius: 8px; }
-.trades .finder .fz.val { align-items: end; }
-.trades .finder .fg { display: grid; gap: 5px; align-content: start; font: 12px var(--sys); }
-.trades .finder .fg.wide { grid-column: 1 / -1; }
-.trades .finder .fg label { font: 700 11px/1.2 var(--content); letter-spacing: .08em; text-transform: uppercase; color: var(--t-ink2); }
-.trades .finder .fg label small { text-transform: none; letter-spacing: 0; font-weight: 500; margin-left: 6px; }
-.trades .finder .fg.go { display: flex; gap: 6px; align-items: end; }
-.trades .finder .row { display: flex; gap: 6px; }
-.trades .finder input[type="number"] { width: 64px; }
-.trades .finder .chips { display: flex; flex-wrap: wrap; gap: 4px; }
-.trades .finder .ch { border: 1px solid var(--t-rule); background: var(--win); color: var(--t-ink); border-radius: 5px; padding: 3px 7px; font: 600 12px/1.2 var(--content); font-variation-settings: "wdth" 85; cursor: pointer; }
-.trades .finder .ch small { color: var(--t-ink2); font-weight: 500; }
-.trades .finder .ch.on { border-color: var(--you); box-shadow: inset 0 0 0 1px var(--you); }
+/* trade finder: two cards (who moves, how it's valued), then a results table that reads left to right:
+   the deal, your gain and where it comes from, the partner's side, how often gains that size held up */
+.trades .finder { display: grid; gap: 12px; margin-top: 6px; }
+.trades .finder .f-hd h3 { margin: 0; font: 800 18px/1.1 var(--content); font-variation-settings: "wdth" 110; text-transform: uppercase; letter-spacing: .02em; }
+.trades .finder .f-hd p { margin: 4px 0 0; color: var(--t-ink2); font: 13px/1.45 var(--sys); max-width: 90ch; }
+.trades .finder .f-card { display: grid; gap: 14px; padding: 14px 16px 16px; background: var(--field); border-radius: 10px; }
+.trades .finder .f-card h4 { margin: 0; font: 700 13px/1 var(--content); letter-spacing: .1em; text-transform: uppercase; color: var(--t-ink); }
+.trades .finder .f-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px 24px; }
+.trades .finder .f-row.four { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.trades .finder .fg { display: grid; gap: 7px; align-content: start; font: 12.5px var(--sys); min-width: 0; }
+.trades .finder .fg label { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font: 600 12px/1.2 var(--sys); color: var(--t-ink2); }
+.trades .finder .fg label small { font-weight: 400; color: var(--ink-3); }
+.trades .finder .lg-must { color: var(--you); font-weight: 600; }
+.trades .finder .fi { display: inline-grid; place-items: center; width: 15px; height: 15px; border-radius: 50%; border: 1px solid var(--line); font: 600 10px/1 var(--sys); font-style: normal; color: var(--ink-3); cursor: help; }
+.trades .finder .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.trades .finder .row small { color: var(--ink-3); }
+.trades .finder select.full { width: 100%; max-width: 420px; }
+.trades .finder input[type="number"] { width: 58px; }
+.trades .finder .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.trades .finder .ch { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--t-rule); background: var(--win); color: var(--t-ink); border-radius: 6px; padding: 4px 9px; font: 600 12.5px/1.2 var(--sys); cursor: pointer; }
+.trades .finder .ch:hover { border-color: var(--t-ink2); }
+.trades .finder .ch.on { border-color: var(--you); background: color-mix(in srgb, var(--you) 16%, var(--win)); }
 .trades .finder .ch.must { border-color: var(--you); background: var(--you); color: var(--on-you); }
-.trades .finder .ch.must small { color: inherit; }
-.trades .finder .ch.keep { opacity: .55; text-decoration: line-through; }
+.trades .finder .ch.keep { opacity: .45; text-decoration: line-through; border-style: dashed; }
+.trades .finder .ch.mono { font-variant-numeric: tabular-nums; }
+.trades .finder .pd { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.trades .finder .blend { display: grid; grid-template-columns: 80px minmax(0, 1fr) 80px; gap: 12px; align-items: center; max-width: 640px; }
+.trades .finder .blend span { font: 600 13px var(--sys); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.trades .finder .blend span:last-child { text-align: right; }
+.trades .finder .blend span.on { color: var(--t-ink); }
+.trades .finder .blend input { width: 100%; }
+.trades .finder .f-go { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; border-top: 1px solid var(--t-rule); padding-top: 14px; }
+.trades .finder .f-go .sp { flex: 1; }
+.trades .finder .seg { display: inline-flex; border: 1px solid var(--t-rule); border-radius: 6px; overflow: hidden; }
+.trades .finder .seg button { border: 0; background: var(--win); color: var(--t-ink2); padding: 4px 11px; font: 600 12.5px var(--sys); cursor: pointer; }
+.trades .finder .seg button + button { border-left: 1px solid var(--t-rule); }
+.trades .finder .seg button.on { background: var(--you); color: var(--on-you); }
+.trades .finder .tbtn.big { padding: 7px 16px; font-weight: 650; }
+.trades .finder .f-sum { margin: 2px 0 0; font: 13.5px var(--sys); color: var(--t-ink2); }
+.trades .finder .f-sum b { color: var(--t-ink); }
+.trades .finder .f-sum .warn { color: var(--alert); }
+.trades .finder .f-key { display: flex; flex-wrap: wrap; gap: 4px 22px; font: 12px var(--sys); color: var(--ink-3); }
+.trades .finder .f-key b { color: var(--t-ink2); font-weight: 600; }
 .trades .finder .ft-wrap { overflow-x: auto; }
-.trades .finder .ft { width: 100%; border-collapse: collapse; font: 12.5px var(--sys); }
-.trades .finder .ft th { text-align: left; font: 700 10.5px/1.2 var(--content); letter-spacing: .06em; text-transform: uppercase; color: var(--t-ink2); padding: 6px; border-bottom: 2px solid var(--t-ink); }
-.trades .finder .ft td { padding: 6px; border-bottom: 1px solid var(--t-rule); vertical-align: top; }
-.trades .finder .ft .fp { display: block; white-space: nowrap; }
-.trades .finder .ft .fp small, .trades .finder .ft .d { color: var(--t-ink2); }
-.trades .finder .ft .d { display: block; font-size: 11px; }
-.trades .finder .ft .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.trades .finder .ft .big { font-weight: 750; font-size: 14px; }
-.trades .finder .ft .up { color: var(--above); } .trades .finder .ft .down { color: var(--below); }
-.trades .finder .ft .warn { color: var(--alert); font-weight: 650; }
+.trades .finder .ft { width: 100%; border-collapse: collapse; font: 13px var(--sys); }
+.trades .finder .ft th { text-align: left; font: 600 11.5px/1.2 var(--sys); color: var(--t-ink2); padding: 8px 6px; border-bottom: 1px solid var(--t-ink2); white-space: nowrap; }
+.trades .finder .ft td { padding: 10px 6px; border-bottom: 1px solid var(--t-rule); vertical-align: top; }
+.trades .finder .ft tbody tr:hover td { background: var(--hover); }
+.trades .finder .ft .r { text-align: right; }
+.trades .finder .ft .rk { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.trades .finder .ft .fp { display: flex; align-items: center; gap: 6px; white-space: nowrap; line-height: 1.5; }
+.trades .finder .ft .fp b { font-weight: 650; }
+.trades .finder .ft .fp small { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.trades .finder .ft .sub { display: block; margin-top: 4px; font-size: 11.5px; color: var(--ink-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.trades .finder .ft .gain { font: 750 17px/1.2 var(--sys); font-variant-numeric: tabular-nums; }
+.trades .finder .ft .gain.up { color: var(--above); } .trades .finder .ft .gain.down { color: var(--below); }
+.trades .finder .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font: 600 12px/1.4 var(--sys); white-space: nowrap; border: 1px solid currentColor; }
+.trades .finder .tag.good, .trades .finder .odds.good { color: var(--above); }
+.trades .finder .tag.mid, .trades .finder .odds.mid { color: var(--t-ink2); }
+.trades .finder .tag.warn { color: var(--alert); }
+.trades .finder .tag.dim, .trades .finder .odds.dim { color: var(--ink-3); }
+.trades .finder .odds { font: 650 14px var(--sys); font-variant-numeric: tabular-nums; }
+.trades .finder .ft .sub.wrap { white-space: normal; max-width: 220px; }
