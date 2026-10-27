@@ -25,7 +25,7 @@ import sys
 import threading
 from datetime import datetime, timezone
 import time
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 import json
 from contextlib import asynccontextmanager
@@ -34,7 +34,7 @@ import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from . import accuracy, analytics, changes, draft, data as d, dossier, journal, league, matchups, matchups_card, matchups_pff, roles, shifts, snapshot, trades, waivers
 
@@ -330,6 +330,23 @@ def trades_odds(t: DealIn):
     return _json(trades.odds(t.partner, t.give, t.get))
 
 
+class FinderIn(BaseModel):  # trade_value.search() options
+    shapes: List[str] = ["1-1", "2-1", "1-2"]
+    give_pool: Optional[List[int]] = None
+    keep: List[int] = []
+    must_give: List[int] = []
+    must_get: List[int] = []
+    get_pos: List[str] = ["QB", "RB", "WR", "TE"]
+    partners: Optional[List[int]] = None
+    horizon: Literal["ros", "reg", "playoffs"] = "ros"
+    desk_weight: float = Field(0.5, ge=0, le=1)
+    min_gain: float = 0.0
+    min_their: float = 0.0
+    their_view: Literal["espn", "desk", "both"] = "espn"
+    sort: Literal["gain", "their", "fair"] = "gain"
+    top: int = Field(25, ge=1, le=60)
+
+
 class IdeasIn(BaseModel):
     partner: Optional[int] = None
     player: Optional[int] = None  # build deals around this player (yours: shop him; theirs: land him)
@@ -343,6 +360,16 @@ def trades_ideas(i: IdeasIn):
 @app.get("/api/trades/ideas")
 def trades_ideas_status():
     return _json(trades.ideas_status())
+
+
+@app.post("/api/trades/finder")
+def trades_finder(f: FinderIn):
+    return _json(trades.start_finder(f.model_dump()))
+
+
+@app.get("/api/trades/finder")
+def trades_finder_status():
+    return _json(trades.finder_status())
 
 
 @app.get("/api/player/{pid}")

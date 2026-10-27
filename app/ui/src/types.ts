@@ -144,6 +144,18 @@ export interface IdeaRow {
 }
 export interface IdeasState { state: "idle" | "running" | "done" | "failed"; partner: number | null; player?: number | null; started: number | null; rows: IdeaRow[]; error: string | null }
 
+export interface FinderOpts {
+  shapes: string[]; keep: number[]; must_give: number[]; must_get: number[]; get_pos: string[]; partners: number[] | null;
+  horizon: "ros" | "reg" | "playoffs"; desk_weight: number; min_gain: number; min_their: number; their_view: "espn" | "desk" | "both"; sort: "gain" | "their" | "fair";
+}
+export interface FinderPlayer { id: number; name: string; pos: Pos; ros: number }
+export interface FinderRow {
+  with: string; partner: number; give_ids: number[]; get_ids: number[]; give: FinderPlayer[]; get: FinderPlayer[]; shape: string; you_drop: string;
+  your_gain: number; desk_gain: number; espn_gain: number; their_gain: number; their_desk: number; their_espn: number; playoffs_gain: number;
+  players: number; fit: number; p_right: number; trust: string; why: string;
+}
+export interface FinderState { state: "idle" | "running" | "done" | "failed"; opts: FinderOpts | null; started: number | null; rows: FinderRow[]; error: string | null; candidates?: number; kept?: number; truncated?: boolean }
+
 export interface Usage { weeks: number[]; targets: (number | null)[]; carries: (number | null)[]; target_share: (number | null)[]; snap_pct: (number | null)[] }
 export interface WaiverRow {
   id: number; name: string; pos: Pos; team: string | null; headshot: string | null;

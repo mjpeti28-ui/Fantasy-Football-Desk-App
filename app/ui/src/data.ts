@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { IdeasState, JDraft, PlayerFile, RolesBoard, Shifts, JEntry, Journal, WaiverBoard, LeagueLive, OutItem, Snapshot, TradeEval, TradeHistory, TradeOdds, WhatIfResult } from "./types";
+import type { FinderOpts, FinderState, IdeasState, JDraft, PlayerFile, RolesBoard, Shifts, JEntry, Journal, WaiverBoard, LeagueLive, OutItem, Snapshot, TradeEval, TradeHistory, TradeOdds, WhatIfResult } from "./types";
 
 export const ENGINE = "http://127.0.0.1:8765";
 export const ENGINE_VERSION = 3;
@@ -109,6 +109,8 @@ export const tradeApi = {
   odds: (partner: number, give: number[], get: number[]) => post<TradeOdds>("/api/trades/odds", { partner, give, get }),
   startIdeas: (partner: number | null, player: number | null = null) => post<IdeasState>("/api/trades/ideas", { partner, player }),
   ideas: () => getJSON<IdeasState>(`${ENGINE}/api/trades/ideas`),
+  startFinder: (opts: FinderOpts) => post<FinderState>("/api/trades/finder", opts),
+  finder: () => getJSON<FinderState>(`${ENGINE}/api/trades/finder`),
 };
 
 export const waiverApi = {
