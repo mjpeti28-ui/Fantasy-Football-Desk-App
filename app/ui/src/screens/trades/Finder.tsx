@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import type { FinderOpts, FinderPlayer, FinderRow, FinderState, LeagueLive, PowerTeam } from "../../types";
-import { Ev } from "../../components/Analytics";
-import { pct, signed, tightName } from "../../format";
+import { signed, tightName } from "../../format";
 import { tradeApi } from "../../data";
 import type { Deal } from "./Trades";
 
 const POS = ["QB", "RB", "WR", "TE"];
+const POS_VAR: Record<string, string> = { QB: "var(--qb)", RB: "var(--rb)", WR: "var(--wr)", TE: "var(--te)" };
 const SHAPES = ["1-1", "2-1", "1-2", "2-2", "3-1", "3-2"];
 const SLOW = new Set(["2-2", "3-1", "3-2"]);
 // search depth presets: sims in the cheap first pass, packages scored at most, sims when rescoring the shortlist
@@ -16,7 +16,27 @@ const DEFAULT: FinderOpts = { shapes: ["1-1", "2-1", "1-2"], keep: [], must_give
   horizon: "ros", desk_weight: 0.5, min_gain: 0, min_their: 0, their_view: "espn", sort: "gain", top: 25, ...DEPTH.normal };
 
 const toggle = <T,>(xs: T[], x: T) => (xs.includes(x) ? xs.filter((y) => y !== x) : [...xs, x]);
-const tone = (x: number) => (x >= 10 ? "up" : x <= -10 ? "down" : "");
+const n0 = (x: number) => { const r = Math.round(x); return `${r > 0 ? "+" : r < 0 ? "−" : ""}${Math.abs(r)}`; };
+
+/** How the two views read a deal for you: agree, or most of the gain lives in one of them. */
+function read(r: FinderRow): { t: string; tone: string; tip: string } {
+  const gap = r.desk_gain - r.espn_gain;
+  if (r.your_gain < 10) return { t: "Small edge", tone: "dim", tip: "Under 10 points: in the 2021-25 backtest edges this size had the right sign only a bit more than half the time." };
+  if (gap >= 15) return { t: "Mostly our model", tone: "warn", tip: `Desk sees ${n0(gap)} more than ESPN. A bet that our model is right where ESPN isn't; Desk has beaten ESPN only narrowly.` };
+  if (gap <= -15) return { t: "Mostly ESPN", tone: "mid", tip: `ESPN sees ${n0(-gap)} more than Desk. Looks great on the app; our model is less sold.` };
+  return { t: "Both agree", tone: "good", tip: "Desk and ESPN both have you gaining 10+ points, within 15 of each other." };
+}
+
+/** Partner's side on what their app shows: our only (weak) proxy for whether they'd accept. */
+function theirRead(x: number): { t: string; tone: string } {
+  if (x >= 5) return { t: "fair on their app", tone: "good" };
+  if (x >= 0) return { t: "barely fair", tone: "mid" };
+  return { t: "looks bad to them", tone: "warn" };
+}
+
+function Info({ tip }: { tip: string }) {
+  return <i className="fi" title={tip} aria-label={tip}>?</i>;
+}
 
 /* FantasyPros-style trade finder: filters on who moves, and a valuation you set (how much to trust
    Desk vs ESPN, which weeks count, how much the partner must gain and on whose numbers). */
@@ -48,75 +68,108 @@ export function Finder({ me, teams, live, engineUp, setDeal }: { me: number; tea
   const depth = (Object.keys(DEPTH) as Depth[]).find((k) => DEPTH[k].sims === o.sims && DEPTH[k].max_cands === o.max_cands) ?? "normal";
   const wide = o.partners == null && !o.must_get.length && !o.must_give.length;
   const est = wide ? { quick: "~30 s", normal: "~2 min", deep: "5+ min" }[depth] : "";
-  const ppl = (xs: FinderPlayer[]) => xs.map((x) => <span key={x.id} className="fp"><b title={x.name}>{tightName(x.name, 18)}</b> <small>{x.pos} · {Math.round(x.ros)}</small></span>);
+  const weeks = { ros: "rest of season", reg: "regular season", playoffs: "playoff weeks" }[o.horizon];
+  const ppl = (xs: FinderPlayer[]) => xs.map((x) => (
+    <span key={x.id} className="fp"><i className="pd" style={{ background: POS_VAR[x.pos] }} /><b title={x.name}>{tightName(x.name, 18)}</b><small>{x.pos} · {Math.round(x.ros)} pts</small></span>));
+  const stale = st?.opts && (st.opts.desk_weight !== o.desk_weight || st.opts.horizon !== o.horizon);
 
   return (
-    <section className="calls finder" aria-label="Trade finder">
-      <h3>Trade finder <Ev l="descriptive" tip="Ranks deals by the valuation you set. Gains are change in your starting-lineup points over the weeks you pick. Under ~10 points is noise in the backtest." /><span>set who moves and how a deal is valued, then search</span></h3>
-      <div className="fz">
-        <div className="fg wide"><label>Trade away <small>click: tradeable → must include → untouchable</small></label>
-          <div className="chips">{mine.map((r) => <button key={r.id} type="button" className={`ch ${mode(r.id)}`} onClick={() => cycle(r.id)} title={`${r.name} (${r.pos})`}>{tightName(r.name, 14)} <small>{mode(r.id) === "keep" ? "keep" : mode(r.id) === "must" ? "must go" : r.pos}</small></button>)}</div></div>
-        <div className="fg"><label>Trade for</label>
-          <div className="chips">{POS.map((p) => <button key={p} type="button" className={`ch ${o.get_pos.includes(p) ? "on" : ""}`} onClick={() => set({ get_pos: toggle(o.get_pos, p) })}>{p}</button>)}</div>
-          <select value={o.must_get[0] ?? ""} onChange={(e) => set({ must_get: e.target.value ? [Number(e.target.value)] : [] })}>
-            <option value="">Any player</option>
-            {theirs.map((r) => <option key={r.id} value={r.id}>{r.name} ({r.pos}, {name(r.owner)})</option>)}
-          </select></div>
-        <div className="fg"><label>Trade with</label>
+    <section className="finder" aria-label="Trade finder">
+      <header className="f-hd">
+        <h3>Trade finder</h3>
+        <p>Pick who can move and how a deal should be valued. Every deal is scored twice: on <b>Desk</b> (our model) and on <b>ESPN</b> (what your partner's app shows).</p>
+      </header>
+
+      <div className="f-card">
+        <h4>Who's in the deal</h4>
+        <div className="fg">
+          <label>You'd trade away <small>click a player: open → <b className="lg-must">must go</b> → <s>untouchable</s></small></label>
+          <div className="chips">{mine.map((r) => (
+            <button key={r.id} type="button" className={`ch ${mode(r.id)}`} onClick={() => cycle(r.id)} title={`${r.name} (${r.pos}): ${mode(r.id) === "must" ? "every deal includes him" : mode(r.id) === "keep" ? "never traded" : "may be traded"}`}>
+              <i className="pd" style={{ background: POS_VAR[r.pos] }} />{tightName(r.name, 14)}</button>))}</div>
+        </div>
+        <div className="f-row">
+          <div className="fg"><label>You want</label>
+            <div className="chips">{POS.map((p) => <button key={p} type="button" className={`ch ${o.get_pos.includes(p) ? "on" : ""}`} onClick={() => set({ get_pos: toggle(o.get_pos, p) })}><i className="pd" style={{ background: POS_VAR[p] }} />{p}</button>)}</div>
+            <select className="full" value={o.must_get[0] ?? ""} onChange={(e) => set({ must_get: e.target.value ? [Number(e.target.value)] : [] })}>
+              <option value="">Any player at those positions</option>
+              {theirs.map((r) => <option key={r.id} value={r.id}>{r.name} ({r.pos}, {name(r.owner)})</option>)}
+            </select></div>
+          <div className="fg"><label>Deal shape <small>players you send – players you get</small></label>
+            <div className="chips">{SHAPES.map((s) => <button key={s} type="button" className={`ch mono ${o.shapes.includes(s) ? "on" : ""}`} onClick={() => set({ shapes: toggle(o.shapes, s) })}>{s.replace("-", " for ")}</button>)}</div>
+            {slow && <small className="dim">2-for-2 and 3-player shapes make the search a lot slower.</small>}</div>
+        </div>
+        <div className="fg"><label>With</label>
           <div className="chips">
-            <button type="button" className={`ch ${o.partners == null ? "on" : ""}`} onClick={() => set({ partners: null })}>All</button>
+            <button type="button" className={`ch ${o.partners == null ? "on" : ""}`} onClick={() => set({ partners: null })}>Any team</button>
             {others.map((t) => <button key={t.id} type="button" className={`ch ${o.partners?.includes(t.id) ? "on" : ""}`}
-              onClick={() => { const n = toggle(o.partners ?? [], t.id); set({ partners: n.length ? n : null }); }}>{tightName(t.name, 14)}</button>)}</div></div>
-        <div className="fg"><label>Trade type <small>you send-you get{slow ? ", wide shapes take minutes" : ""}</small></label>
-          <div className="chips">{SHAPES.map((s) => <button key={s} type="button" className={`ch ${o.shapes.includes(s) ? "on" : ""}`} onClick={() => set({ shapes: toggle(o.shapes, s) })}>{s}</button>)}</div></div>
+              onClick={() => { const n = toggle(o.partners ?? [], t.id); set({ partners: n.length ? n : null }); }}>{t.name}</button>)}</div></div>
       </div>
-      <div className="fz val">
-        <div className="fg wide"><label>Your gain = {w}% Desk + {100 - w}% ESPN <Ev l="weak" tip="Desk's rest-of-season level only barely beats ESPN's (error 3.67 vs 3.74 ppg, next 4 weeks), and in the weekly backtest Desk overweighted its gap with ESPN about 4x. 50% is a hedge, not a fitted number." /></label>
-          <input type="range" min={0} max={100} step={10} value={w} onChange={(e) => set({ desk_weight: Number(e.target.value) / 100 })} />
-          <small className="dim">0% = what ESPN's app shows you · 100% = our model alone</small></div>
-        <div className="fg"><label>Weeks that count</label>
-          <select value={o.horizon} onChange={(e) => set({ horizon: e.target.value as FinderOpts["horizon"] })}>
-            <option value="ros">Rest of season</option><option value="reg">Regular season only</option><option value="playoffs">Playoff weeks only</option></select></div>
-        <div className="fg"><label>Your gain at least</label><input type="number" step={5} value={o.min_gain} onChange={(e) => set({ min_gain: Number(e.target.value) })} /></div>
-        <div className="fg"><label>Their gain at least <Ev l="weak" tip="Accepted offers in this league have looked fair on ESPN's numbers, but that's ~20 answered proposals: an assumption, not a fitted acceptance model." /></label>
-          <span className="row"><input type="number" step={5} value={o.min_their} onChange={(e) => set({ min_their: Number(e.target.value) })} />
-            <select value={o.their_view} onChange={(e) => set({ their_view: e.target.value as FinderOpts["their_view"] })}>
-              <option value="espn">on ESPN</option><option value="desk">on Desk</option><option value="both">on both</option></select></span></div>
-        <div className="fg"><label>Sort by</label>
-          <select value={o.sort} onChange={(e) => set({ sort: e.target.value as FinderOpts["sort"] })}>
-            <option value="gain">Your gain</option><option value="their">Their gain</option><option value="fair">Fairest win (smaller of the two)</option></select></div>
-        <div className="fg"><label>Search depth <Ev l="descriptive" tip="Quick: 10 sims per package, at most 3,000 packages. Normal: 20 sims, 12,000. Deep: 40 sims, 40,000, and the shortlist rescored at 600 sims. Deeper = fewer good deals missed to noise or the package cap, and slower." /></label>
-          <span className="row"><select value={depth} onChange={(e) => set(DEPTH[e.target.value as Depth])}>
-            <option value="quick">Quick</option><option value="normal">Normal</option><option value="deep">Deep</option></select>
-            <input type="number" min={1} max={60} value={o.top} onChange={(e) => set({ top: Math.max(1, Math.min(60, Number(e.target.value) || 25)) })} title="Results to show" /></span>
-          <small className="dim">depth · results to show</small></div>
-        <div className="fg go"><button className="tbtn pri" type="button" disabled={!engineUp || st?.state === "running" || !o.shapes.length || !o.get_pos.length} onClick={run}>
-          {st?.state === "running" ? `Searching… ${secs}s` : est ? `Find trades (${est})` : "Find trades"}</button>
-          <button className="tbtn" type="button" onClick={() => setO(DEFAULT)}>Reset</button></div>
+
+      <div className="f-card">
+        <h4>How to value it</h4>
+        <div className="fg">
+          <label>Whose numbers count for you <Info tip="Your gain = this blend of Desk and ESPN. Desk's rest-of-season level beats ESPN's only narrowly (3.67 vs 3.74 ppg error, next 4 weeks), and in the weekly backtest Desk overweighted its disagreements with ESPN about 4x. 50/50 is a hedge (opinion), not a fitted number." /></label>
+          <div className="blend">
+            <span className={w <= 50 ? "on" : ""}>ESPN {100 - w}%</span>
+            <input type="range" min={0} max={100} step={10} value={w} onChange={(e) => set({ desk_weight: Number(e.target.value) / 100 })} aria-label="Desk weight" />
+            <span className={w >= 50 ? "on" : ""}>Desk {w}%</span>
+          </div>
+        </div>
+        <div className="f-row four">
+          <div className="fg"><label>Weeks that count</label>
+            <select value={o.horizon} onChange={(e) => set({ horizon: e.target.value as FinderOpts["horizon"] })}>
+              <option value="ros">Rest of season</option><option value="reg">Regular season only</option><option value="playoffs">Playoff weeks only</option></select></div>
+          <div className="fg"><label>You gain at least</label>
+            <span className="row"><input type="number" step={5} value={o.min_gain} onChange={(e) => set({ min_gain: Number(e.target.value) })} /><small>pts</small></span></div>
+          <div className="fg"><label>They gain at least <Info tip="Accepted offers in this league have looked fair on ESPN's numbers, which is what their app shows. That's from ~20 answered proposals: an assumption, not a fitted acceptance model." /></label>
+            <span className="row"><input type="number" step={5} value={o.min_their} onChange={(e) => set({ min_their: Number(e.target.value) })} /><small>pts</small>
+              <select value={o.their_view} onChange={(e) => set({ their_view: e.target.value as FinderOpts["their_view"] })}>
+                <option value="espn">on ESPN</option><option value="desk">on Desk</option><option value="both">on both</option></select></span></div>
+          <div className="fg"><label>Sort by</label>
+            <select value={o.sort} onChange={(e) => set({ sort: e.target.value as FinderOpts["sort"] })}>
+              <option value="gain">Your gain</option><option value="their">Their gain</option><option value="fair">Fairest win (smaller of the two)</option></select></div>
+        </div>
+        <div className="f-go">
+          <div className="fg"><label>Search depth <Info tip="Quick: 10 sims per deal, up to 3,000 deals (keeps the most even swaps if there are more). Normal: 20 sims, 12,000 deals. Deep: 40 sims, 40,000 deals, shortlist rescored at 600 sims. Deeper misses fewer good deals and takes longer." /></label>
+            <span className="row"><span className="seg">{(Object.keys(DEPTH) as Depth[]).map((k) => <button key={k} type="button" className={depth === k ? "on" : ""} onClick={() => set(DEPTH[k])}>{k[0].toUpperCase() + k.slice(1)}</button>)}</span>
+              <small>show</small><input type="number" min={1} max={60} value={o.top} onChange={(e) => set({ top: Math.max(1, Math.min(60, Number(e.target.value) || 25)) })} /><small>deals</small></span></div>
+          <span className="sp" />
+          <button className="tbtn" type="button" onClick={() => setO(DEFAULT)}>Reset</button>
+          <button className="tbtn pri big" type="button" disabled={!engineUp || st?.state === "running" || !o.shapes.length || !o.get_pos.length} onClick={run}>
+            {st?.state === "running" ? `Searching… ${secs}s` : est ? `Find trades · ${est}` : "Find trades"}</button>
+        </div>
       </div>
+
       {st?.state === "failed" && <p className="tr-off">Search failed: {st.error}</p>}
-      {st?.state === "done" && <p className="tr-empty">{st.candidates} packages scored{st.truncated ? " (capped: the closest swaps on raw points)" : ""}, {st.rows.length} pass your filters.
-        {st.opts && st.opts.desk_weight !== o.desk_weight && " Weights changed since this search: run it again."}</p>}
-      {(st?.rows ?? []).length > 0 && (
-        <div className="ft-wrap"><table className="ft">
-          <thead><tr><th>#</th><th>You give</th><th>You get</th><th>With</th>
-            <th title="Blend you set">Your gain</th><th title="Desk / ESPN">Desk · ESPN</th><th title="Desk minus ESPN: how much of this only exists on our numbers">Gap</th>
-            <th title="Partner's gain on ESPN (what their app shows) / on Desk">Them: ESPN · Desk</th>
-            <th title="Desk's gain split: the players' own rest-of-season points vs lineup fit (bench, byes, drops)">Players · fit</th><th>Trust</th><th /></tr></thead>
-          <tbody>{st!.rows.map((r: FinderRow, i) => (
-            <tr key={i} title={r.why}>
-              <td className="num">{i + 1}</td><td>{ppl(r.give)}</td><td>{ppl(r.get)}</td><td>{tightName(r.with, 16)}{r.you_drop && <small className="dim d">you drop {r.you_drop}</small>}</td>
-              <td className={`num big ${tone(r.your_gain)}`}>{signed(r.your_gain)}</td>
-              <td className="num">{signed(r.desk_gain)} · {signed(r.espn_gain)}</td>
-              <td className={`num ${Math.abs(r.desk_gain - r.espn_gain) >= 15 ? "warn" : ""}`}>{signed(r.desk_gain - r.espn_gain)}</td>
-              <td className="num">{signed(r.their_espn)} · {signed(r.their_desk)}</td>
-              <td className="num">{signed(r.players)} · {signed(r.fit)}</td>
-              <td><span className={`conf ${r.trust === "noise" ? "noise" : r.trust === "thin edge" ? "thin" : "yes"}`}>{r.trust}</span> <small className="dim">{pct(r.p_right)}</small></td>
-              <td><button className="tbtn" type="button" onClick={() => setDeal({ partner: r.partner, give: r.give_ids, get: r.get_ids })}>Open desk →</button></td>
-            </tr>))}</tbody>
-        </table></div>
+      {st?.state === "done" && (
+        <p className="f-sum"><b>{st.rows.length}</b> deals pass your filters out of {st.candidates?.toLocaleString()} scored{st.truncated ? " (hit the depth cap: try a deeper search)" : ""}.
+          {stale && <span className="warn"> You changed the valuation since this search: run it again.</span>}</p>
       )}
-      <p className="tr-empty">Gains are points over the weeks you picked. Gap = Desk minus ESPN for you: a deal that only wins on Desk is a bet on our model, which has beaten ESPN only narrowly. "Trust" and the percentage (how often a gain this size had the right sign, 2021-25) were calibrated on Desk's gains, so they're rough for blended numbers.</p>
+      {(st?.rows ?? []).length > 0 && (<>
+        <div className="f-key"><span><b>Your gain</b> = {st?.opts ? Math.round(st.opts.desk_weight * 100) : w}% Desk + {st?.opts ? 100 - Math.round(st.opts.desk_weight * 100) : 100 - w}% ESPN, starting-lineup points over the {st?.opts ? { ros: "rest of season", reg: "regular season", playoffs: "playoff weeks" }[st.opts.horizon] : weeks}</span>
+          <span><b>Odds</b>: how often a gain this size went the predicted way, 2021-25</span><span>Hover a row for the players' notes</span></div>
+        <div className="ft-wrap"><table className="ft">
+          <thead><tr><th>#</th><th>You give</th><th>You get</th>
+            <th className="r">Your gain</th><th title="Do Desk and ESPN agree on your gain?">Desk vs ESPN</th><th title="Partner's gain on ESPN (their app) and on Desk">Their side</th><th className="r" title="How often a gain this size went the predicted way, 2021-25">Odds</th><th /></tr></thead>
+          <tbody>{st!.rows.map((r: FinderRow, i) => {
+            const rd = read(r), th = theirRead(r.their_espn);
+            return (
+              <tr key={i} title={r.why}>
+                <td className="rk">{i + 1}</td>
+                <td>{ppl(r.give)}</td>
+                <td>{ppl(r.get)}<small className="sub wrap">from {r.with}{r.you_drop && ` · then drop ${r.you_drop}`}</small></td>
+                <td className="r"><span className={`gain ${r.your_gain >= 10 ? "up" : r.your_gain < 0 ? "down" : ""}`}>{signed(r.your_gain)}</span>
+                  <small className="sub">Desk {n0(r.desk_gain)} · ESPN {n0(r.espn_gain)}</small></td>
+                <td><span className={`tag ${rd.tone}`} title={rd.tip}>{rd.t}</span></td>
+                <td><span className={`tag ${th.tone}`}>{th.t}</span><small className="sub">ESPN {n0(r.their_espn)} · Desk {n0(r.their_desk)}</small></td>
+                <td className="r"><span className={`odds ${r.p_right >= 0.65 ? "good" : r.p_right >= 0.58 ? "mid" : "dim"}`}>{Math.round(r.p_right * 100)}%</span></td>
+                <td className="r"><button className="tbtn" type="button" onClick={() => setDeal({ partner: r.partner, give: r.give_ids, get: r.get_ids })}>Open →</button></td>
+              </tr>);
+          })}</tbody>
+        </table></div>
+        <p className="tr-empty">Odds were calibrated on Desk's gains alone, so they're rough for a blend. "Mostly our model" deals are the ones to double-check: Desk has beaten ESPN only narrowly, and ESPN is what your partner will see.</p>
+      </>)}
     </section>
   );
 }
