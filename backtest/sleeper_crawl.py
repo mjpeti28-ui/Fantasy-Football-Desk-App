@@ -32,7 +32,8 @@ SEED_USERS = ["matthewberry", "adamlevitan", "fantasypros", "rotounderworld", "s
 SEED_LEAGUES = ["289646328504385536", "378845311639904256"]
 MAX_KEPT_PER_USER = 3  # keep a single power user's leagues from dominating
 
-STATS = {"net_calls": 0, "cache_hits": 0, "errors": 0, "best_ball_skipped": 0}
+STATS = {"net_calls": 0, "cache_hits": 0, "errors": 0, "best_ball_skipped": 0, "no_matchups": 0}
+FILTER = False
 _last = [0.0]
 
 
@@ -95,16 +96,28 @@ def league_meta(lg):
 def fetch_league(lid):
     base = f"{BASE}/league/{lid}"
     users = get(f"{base}/users") or []
+    members = [u["user_id"] for u in users if u.get("user_id")]
+    if not get(f"{base}/matchups/1"):  # ~18% of leagues have matchup data purged; skip the rest
+        STATS["no_matchups"] += 1
+        return members, False
     get(f"{base}/rosters")
     get(f"{base}/drafts")
     for w in WEEKS:
         get(f"{base}/matchups/{w}")
         get(f"{base}/transactions/{w}")
-    return [u["user_id"] for u in users if u.get("user_id")]
+    return members, True
 
 
-def crawl(target):
-    t0 = time.time()
+def backtest_ok(lg):
+    """Cheap pre-filter from the league object: managed redraft/keeper/dynasty, 8-14 teams, PPR/half."""
+    s = lg.get("settings") or {}
+    return (s.get("type", 0) in (0, 1, 2) and 8 <= (lg.get("total_rosters") or 0) <= 14
+            and (lg.get("scoring_settings") or {}).get("rec") in (0.5, 1))
+
+
+def crawl(target, clean_target=None, max_hours=None):
+    t0 = last_log = time.time()
+    clean = 0
     rng = random.Random(7)
     kept = {}  # league_id -> meta
     seen_leagues, seen_users = set(), set()
@@ -116,11 +129,22 @@ def crawl(target):
     seed_lgs = [get(f"{BASE}/league/{lid}") for lid in SEED_LEAGUES]
     for lg in seed_lgs:
         if lg and lg.get("league_id"):
-            for uid in fetch_league(lg["league_id"]):  # pull members as seeds
+            for uid in fetch_league(lg["league_id"])[0]:  # pull members as seeds
                 queue.append(uid)
     print(f"seed users in queue: {len(queue)}", flush=True)
 
-    while queue and len(kept) < target:
+    def log(done=False):
+        (DATA / "kept_leagues.json").write_text(json.dumps(list(kept.values()), indent=1))
+        with open(DATA / "crawl.log", "a") as f:
+            f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} kept={len(kept)} clean={clean} "
+                    f"calls={STATS['net_calls']} elapsed={(time.time() - t0) / 3600:.2f}h{' DONE' if done else ''}\n")
+
+    def more():
+        if clean_target:
+            return clean < clean_target and (time.time() - t0) / 3600 < (max_hours or 1e9)
+        return len(kept) < target
+
+    while queue and more():
         uid = queue.popleft()
         if uid in seen_users:
             continue
@@ -136,24 +160,35 @@ def crawl(target):
                 if (lg.get("settings") or {}).get("best_ball"):  # no lineups/waivers to manage
                     STATS["best_ball_skipped"] += 1
                     continue
+                if FILTER and not backtest_ok(lg):
+                    continue
                 cands.append(lg)
         rng.shuffle(cands)
         for lg in cands[:MAX_KEPT_PER_USER]:
-            if len(kept) >= target:
+            if not more():
                 break
-            kept[lg["league_id"]] = league_meta(lg)
-            members = fetch_league(lg["league_id"])
+            members, ok = fetch_league(lg["league_id"])
+            if ok:
+                meta = league_meta(lg)
+                meta["owners"] = {r["roster_id"]: [r.get("owner_id")] + (r.get("co_owners") or [])
+                                  for r in get(f"{BASE}/league/{lg['league_id']}/rosters") or []}
+                kept[lg["league_id"]] = meta
+                q = analyze_league(meta)
+                clean += q["complete"] and q["inactive_strict"] == 0
+            if time.time() - last_log > 300:
+                log()
+                last_log = time.time()
             rng.shuffle(members)
             queue.extend(m for m in members if m not in seen_users)
             print(f"[{len(kept)}/{target}] {lg['season']} {lg.get('name')!r} "
                   f"calls={STATS['net_calls']} t={time.time() - t0:.0f}s", flush=True)
 
     runtime = time.time() - t0
-    (DATA / "kept_leagues.json").write_text(json.dumps(list(kept.values()), indent=1))
+    log(done=True)
     runlog = DATA / "runs.json"
     runs = json.loads(runlog.read_text()) if runlog.exists() else []
-    runs = [r for r in runs if r["target"] == target]  # report counts this target's runs only
-    runs.append({"target": target, "kept": len(kept), "runtime_s": round(runtime, 1),
+    runs = [r for r in runs if r["target"] == (clean_target or target)]  # report counts this target's runs only
+    runs.append({"target": clean_target or target, "kept": len(kept), "runtime_s": round(runtime, 1),
                  "users_expanded": len(seen_users), "leagues_seen": len(seen_leagues), **STATS})
     runlog.write_text(json.dumps(runs, indent=1))
 
@@ -272,7 +307,11 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["crawl", "report"])
     ap.add_argument("--target", type=int, default=200)
+    ap.add_argument("--clean-target", type=int, help="stop at N clean league-seasons (overrides --target)")
+    ap.add_argument("--max-hours", type=float)
+    ap.add_argument("--backtest-only", action="store_true", help="pre-filter leagues to backtest-usable ones")
     a = ap.parse_args()
+    FILTER = a.backtest_only
     if a.cmd == "crawl":
-        crawl(a.target)
+        crawl(a.target, a.clean_target, a.max_hours)
     report()
