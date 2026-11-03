@@ -151,3 +151,14 @@ def test_team_value_levels_reduce_to_point_model():
 def test_best_lineup_bt_chooses_on_belief_scores_truth():
     pools = {"QB": [(20.0, 5.0), (10.0, 30.0)]}
     assert v.best_lineup_points_bt(pools, ["QB"]) == 5.0
+
+
+def test_live_season_prior_uses_week1_projection(tmp_path, monkeypatch):
+    monkeypatch.setattr(v, "HIST", tmp_path)
+    v.load_season.cache_clear()
+    # mid-season the stored "season projection" is a rest-of-season total (here 10 games x 15)
+    weekly = [{"week": w, "espn_id": i, "espn_proj": 15.0} for i in range(1, 11) for w in (1, 2, 3)]
+    _write_season(tmp_path, [150.0] * 10, weekly)
+    s = v.load_season(1999)
+    assert abs(s.prior_total[1] / v.GAMES_PER_SEASON - 15.0 * v.WK1_TO_SEASON) < 1e-9
+    v.load_season.cache_clear()

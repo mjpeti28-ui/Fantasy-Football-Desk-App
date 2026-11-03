@@ -3,8 +3,9 @@
 Writes history/actuals/<season>/:
 - players_weekly.csv  every player's weekly fantasy points under that season's league
                       scoring (week>=1), plus ESPN's season projection as week 0
-                      (``kind=espn_season_proj``; it is stored static -- it did not move
-                      during 2025 -- so it is treated as preseason, with that caveat)
+                      (``kind=espn_season_proj``). Fetched after a season ends it is the
+                      preseason total; fetched mid-season it is a REST-OF-SEASON total, so
+                      valuation.load_season ignores it for the live season (uses wk-1 proj)
 - rosters_by_week.csv every team's roster each week (lineup slot, injury status)
 - team_weekly.csv     each team's actual score each week
 - draft.csv           draft picks (round, pick, team, player) -- a no-lookahead prior

@@ -45,6 +45,8 @@ SLOT_ELIGIBILITY = {
     "RB/WR": ("RB", "WR"), "WR/TE": ("WR", "TE"), "FLEX": ("RB", "WR", "TE"),
 }
 GAMES_PER_SEASON = 17
+# live-season prior: ESPN's week-1 weekly projection x this = season total / 17 (2021-25 sum ratio 0.89-0.96)
+WK1_TO_SEASON = 0.93
 FANTASY_LAST_WEEK = 17
 
 OUT_STATUSES = {"OUT", "INJURY_RESERVE", "SUSPENSION", "IR", "PUP"}
@@ -155,6 +157,14 @@ def load_season(season: int) -> Season:
         bad = [int(w) for w, z in zero_share.items() if z > 0.4]
         if bad:
             espn_weekly = espn_weekly[~espn_weekly["week"].isin(bad)]
+    # While a season is in progress ESPN serves stat 10<season> as a REST-OF-SEASON total, and
+    # every refresh refetches it, so it shrinks each week (2026: ~11.7 games' worth after wk6,
+    # ~9.4 after wk8, read here as 17). Past seasons were fetched after they ended and hold the
+    # preseason total. For the live season, use ESPN's week-1 weekly projection (published
+    # preseason) instead; players without one fall back to the weekly-mean prior.
+    if weekly["week"].max() < 17 and espn_weekly is not None:
+        w1 = espn_weekly[(espn_weekly["week"] == 1) & (espn_weekly["espn_proj"] > 0)]
+        prior_total = {int(i): float(x) * WK1_TO_SEASON * GAMES_PER_SEASON for i, x in zip(w1["espn_id"], w1["espn_proj"])}
     return Season(
         season=season,
         weekly=weekly,
