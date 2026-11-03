@@ -41,8 +41,8 @@ export function WhatIfPanel({ team, isMe, isOpp, live, engineUp, whatif, scenari
       <div><div className="wi-name">{team.name}</div>
         <div className="dim">{isMe ? "Your team" : isOpp ? "This week's opponent" : "League"} · {team.record.w}–{team.record.l} · {f1(team.pf)} pts</div></div>
       <div className={`lcd ${busy ? "busy" : ""}`} aria-live="polite">
-        {readout("#1 seed", "seed1")}{readout("Top-2", "top2")}{readout("Playoffs", "playoffs")}{readout("Title", "title")}
-        <div className="foot">{now ? `Proj. final ${f1(now.reg_pts)}${d && Math.abs(d.reg_pts) >= 1 ? ` (${signed(d.reg_pts)})` : ""}` : engineUp ? "Simulating…" : "Engine not running"}</div>
+        {readout("#1 seed", "seed1")}{readout("Playoffs", "playoffs")}{readout("Title", "title")}
+        <div className="foot">{now ? `${now.reg_wins != null ? `Proj. wins ${f1(now.reg_wins)} · ` : ""}Proj. final ${f1(now.reg_pts)}${d && Math.abs(d.reg_pts) >= 1 ? ` (${signed(d.reg_pts)})` : ""}` : engineUp ? "Simulating…" : "Engine not running"}</div>
       </div>
       <section>
         <h6>What if he misses… <span>weeks, from this week</span></h6>

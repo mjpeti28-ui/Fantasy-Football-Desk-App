@@ -62,12 +62,11 @@ export function TeamInspector({ t, isMe, isOpp, shifts }: { t: PowerTeam; isMe: 
         <h6>Rest of season</h6>
         <dl className="kv">
           <dt>Projected final points</dt><dd>{f1(t.proj_final_pts)}</dd>
-          <dt>Top-2 seed</dt><dd>{pct(t.odds.top2)}</dd>
           <dt>Playoffs</dt><dd>{pct(t.odds.playoffs)}</dd>
           <dt>Title</dt><dd className="dim">{pct(t.odds.title)}</dd>
         </dl>
       </section>}
-      <p className="ins-note">Seeding is by total points. Above-projection points count for seeding but haven't carried over in past seasons. Title odds are close to a lottery.</p>
+      <p className="ins-note">Seeding is by record; total points only break ties. No byes, so a higher seed just means a weaker first-round opponent. Title odds are close to a lottery.</p>
     </div>
   );
 }

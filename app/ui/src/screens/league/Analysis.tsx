@@ -85,22 +85,22 @@ function Seeds({ a, teams, order, myId, oppId, onSelect }: Props) {
   const n = order.length, cut = a.playoff_teams;
   return (
     <section className="an-card">
-      <header><h4>Where each team finishes</h4><p>Chance of each final seed. Seeding is by total points; 1–2 face the 7–8 seeds, 9–10 miss.</p></header>
+      <header><h4>Where each team finishes</h4><p>Chance of each final seed. Seeding is by record, total points break ties. No byes: 1 plays 8, 2 plays 7, 3 plays 6, 4 plays 5; below the line misses.</p></header>
       <div className="seeds" style={{ gridTemplateColumns: `78px repeat(${n}, minmax(0, 1fr))` }}>
         <span />
-        {Array.from({ length: n }, (_, k) => <span key={k} className={`sh ${k === 1 ? "cut2" : ""} ${k === cut - 1 ? "cutp" : ""}`}>{k + 1}</span>)}
+        {Array.from({ length: n }, (_, k) => <span key={k} className={`sh ${k === cut - 1 ? "cutp" : ""}`}>{k + 1}</span>)}
         {order.map((t) => {
           const d = a.seed_dist[t], r = role(t, myId, oppId);
           return [
             <button key={`n${t}`} type="button" className={`tn ${r}`} onClick={() => onSelect(t)}>{short(teams.find((x) => x.id === t)!.name, teams)}</button>,
             ...d.map((p, k) => (
-              <span key={`${t}-${k}`} className={`cell ${r} ${k === 1 ? "cut2" : ""} ${k === cut - 1 ? "cutp" : ""}`} style={{ ["--a" as string]: Math.min(1, p * 2.2).toFixed(2) }}
+              <span key={`${t}-${k}`} className={`cell ${r} ${k === cut - 1 ? "cutp" : ""}`} style={{ ["--a" as string]: Math.min(1, p * 2.2).toFixed(2) }}
                 title={`${teams.find((x) => x.id === t)!.name}: seed ${k + 1}, ${pct(p)}`}>{p >= 0.1 ? Math.round(p * 100) : ""}</span>
             )),
           ];
         })}
       </div>
-      <p className="an-note">Numbers are percent, shown at 10% and up. The solid rule marks the top-2 seeds, the dashed rule the playoff line.</p>
+      <p className="an-note">Numbers are percent, shown at 10% and up. The dashed rule is the playoff line.</p>
     </section>
   );
 }
@@ -162,7 +162,7 @@ function Scatter({ a, teams, order, myId, oppId, onSelect }: Props) {
   );
 }
 
-/* 0 ─ the points race: seeding is by total points, so this is the standings that matter.
+/* 0 ─ points for: the seeding tiebreaker and the best read of team strength (wins are mostly luck).
    Cumulative points against the league average each week, played weeks solid and the simulated
    average dashed; hover a line to pull it forward. */
 function Race({ a, teams, order, myId, oppId, onSelect }: Props) {
@@ -192,12 +192,11 @@ function Race({ a, teams, order, myId, oppId, onSelect }: Props) {
   const nameOf = (t: number) => short(teams.find((x) => x.id === t)!.name, teams);
   const fin = [...rel].map(([t, ys]) => ({ t, v: ys[ys.length - 1], now: ys[played - 1] ?? 0 })).sort((p, q) => q.v - p.v);
   const me = fin.find((f) => f.t === myId), myRank = fin.findIndex((f) => f.t === myId) + 1;
-  const third = fin[2], second = fin[1];
   const ticks = [-Math.round(ym * 0.6 / 10) * 10, 0, Math.round(ym * 0.6 / 10) * 10].filter((v, i, arr) => arr.indexOf(v) === i);
   const cls = (t: number) => `ln ${role(t, myId, oppId)} ${hover === t ? "hv" : ""} ${hover != null && hover !== t ? "dim" : ""}`;
   return (
     <section className="an-card wide race">
-      <header><h4>The points race</h4><p>Seeding is by total points, so this is the table that decides seeds: each team's season total against the league average, week by week. Solid = played; dashed = the simulation's average for the rest of the regular season.</p></header>
+      <header><h4>Points for</h4><p>Seeding is by record, and total points break ties. Points are also the best read of strength, since wins carry a lot of matchup luck: each team's season total against the league average, week by week. Solid = played; dashed = the simulation's average for the rest of the regular season.</p></header>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" className="rc" role="img" aria-label="Cumulative points above the league average by week, played and projected" onMouseLeave={() => setHover(null)}>
         <rect x={X(played)} y={T} width={X(weeks.length) - X(played)} height={H - T - B} className="future" />
         <text x={X(played) + 6} y={T + 12} className="tk">projected →</text>
@@ -220,7 +219,6 @@ function Race({ a, teams, order, myId, oppId, onSelect }: Props) {
       </svg>
       <p className="an-note">
         {me ? <>You're {Math.round(me.now) >= 0 ? "+" : "−"}{Math.abs(Math.round(me.now))} against the average now and finish about {Math.round(me.v) >= 0 ? "+" : "−"}{Math.abs(Math.round(me.v))} on the simulation's averages (#{myRank}). </> : null}
-        {myRank <= 2 && third ? <>The #3 team ends about {Math.round((me?.v ?? 0) - third.v)} points behind you: that's the cushion for a top-2 seed. </> : second && me ? <>You'd need about {Math.round(second.v - me.v)} more points than projected to reach #2. </> : null}
         {a.reg_end > played ? <>One team's weekly score swings about ±23 points, so {a.reg_end - played} weeks of luck can move a line roughly ±{Math.round(22.6 * Math.sqrt(a.reg_end - played) / 5) * 5}: read the dashed part as the middle of the outcomes, not the final order.</> : null}
       </p>
     </section>

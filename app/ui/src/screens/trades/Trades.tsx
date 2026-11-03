@@ -169,7 +169,7 @@ export function Trades(p: Props) {
       `| ${pname} | ${signed(mt.delta_total_calibrated)} | ${signed(et.delta_total)} |`, "",
       `Direction right at this edge: ${pct(m.p_direction_right)} (${m.edge_label}). Regular season / playoffs: ${signed(m.delta_regular_season)} / ${signed(m.delta_playoffs)}.`,
       m.would_drop.length ? `You'd drop: ${m.would_drop.join(", ")}.` : "",
-      o ? `Season odds after: you top-2 ${pct(o[me].after.top2)} (${signed(100 * o[me].delta.top2)} pts), playoffs ${pct(o[me].after.playoffs)}; ${pname} top-2 ${pct(o[partner].after.top2)}, playoffs ${pct(o[partner].after.playoffs)}.` : "",
+      o ? `Season odds after: you playoffs ${pct(o[me].after.playoffs)} (${signed(100 * o[me].delta.playoffs)} pts), title ${pct(o[me].after.title)} (${signed(100 * o[me].delta.title)} pts); ${pname} playoffs ${pct(o[partner].after.playoffs)}, title ${pct(o[partner].after.title)}.` : "",
       `History with ${pname}: ${h.text} (2021–25).`, "", "Why:", ...Object.entries(m.why).map(([n, w]) => `- ${n}: ${w}`),
       ...(p.an ? ["", "Season so far (points per game / what usage usually produces / model rest of season; scoring over usage fades, ~9% carries):",
         ...[...deal.give, ...deal.get].map((id) => p.an!.players.find((x) => x.id === id)).filter((x): x is APlayer => !!x)
@@ -179,11 +179,11 @@ export function Trades(p: Props) {
 
   const oddsRow = (t: number, label: string, cls: string) => {
     const d = odds?.teams[t]?.delta, a = odds?.teams[t]?.after, nz = (odds?.noise_pp ?? 1.1) / 100;
-    const cell = (k: "top2" | "playoffs" | "seed1") => d && a ? (
+    const cell = (k: "title" | "playoffs" | "seed1") => d && a ? (
       <span><b className="num">{pct(a[k])}</b> <em className={Math.abs(d[k]) < 2 * nz ? "flat" : d[k] > 0 ? "up" : "down"}>{Math.abs(d[k]) < 2 * nz ? "≈" : `${d[k] > 0 ? "+" : "−"}${Math.round(Math.abs(d[k]) * 100)}`}</em></span>) : <span className="dim">–</span>;
     const sm = d?.seed_med != null && a?.seed_med != null ? (
       <span><b className="num">{a.seed_med}</b> <em className={d.seed_med === 0 ? "flat" : d.seed_med < 0 ? "up" : "down"}>{d.seed_med === 0 ? "≈" : `${d.seed_med < 0 ? "↑" : "↓"}${Math.abs(d.seed_med)}`}</em></span>) : <span className="dim">–</span>;
-    return <div className={`orow ${cls}`}><span className="who">{label}</span>{cell("seed1")}{cell("top2")}{cell("playoffs")}{sm}</div>;
+    return <div className={`orow ${cls}`}><span className="who">{label}</span>{cell("seed1")}{cell("playoffs")}{cell("title")}{sm}</div>;
   };
 
   return (
@@ -226,7 +226,7 @@ export function Trades(p: Props) {
                 </div>
                 {(m.would_drop.length > 0 || mt.would_drop.length > 0) && <p className="dim drops">Roster limits: {m.would_drop.length ? `you'd drop ${m.would_drop.join(", ")}` : ""}{m.would_drop.length && mt.would_drop.length ? "; " : ""}{mt.would_drop.length ? `${pname} would drop ${mt.would_drop.join(", ")}` : ""}.</p>}
                 <div className="odds">
-                  <div className="orow head"><span className="who">After trade</span><span>#1 seed</span><span>Top-2</span><span>Playoffs</span><span>Median seed</span></div>
+                  <div className="orow head"><span className="who">After trade</span><span>#1 seed</span><span>Playoffs</span><span>Title</span><span>Median seed</span></div>
                   {oddsRow(me, "You", "me")}
                   {oddsRow(partner, pname, "them")}
                   <p className="dim">{oddsBusy ? "Simulating 2,000 seasons… (about 10 seconds the first time)" : odds ? `Same simulated seasons as the League screen, so changes come from the trade. ≈ means inside noise.${odds.week != null && odds.week < 6 ? " Early season: seed and playoff odds only gain real skill around week 6 in backtests, so read these loosely." : ""}` : ""}</p>

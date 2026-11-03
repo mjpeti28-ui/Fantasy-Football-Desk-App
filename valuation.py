@@ -84,6 +84,7 @@ class Season:
     position: Dict[int, str]
     name: Dict[int, str]
     espn_weekly: Optional[pd.DataFrame] = None  # week, espn_id, espn_proj (ESPN's published weekly projection)
+    matchups: Optional[pd.DataFrame] = None  # week, home_id, away_id: regular-season fantasy schedule
 
     @property
     def slots(self) -> List[str]:
@@ -166,6 +167,7 @@ def load_season(season: int) -> Season:
         position=dict(zip(ids["espn_id"].astype(int), ids["position"])),
         name=dict(zip(ids["espn_id"].astype(int), ids["name"])),
         espn_weekly=espn_weekly,
+        matchups=pd.read_csv(d / "matchups.csv") if (d / "matchups.csv").exists() else None,
     )
 
 

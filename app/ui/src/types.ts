@@ -117,7 +117,7 @@ export interface Snapshot {
   engine_version?: number;
 }
 
-export interface LiveOdds { seed1: number; top2: number; playoffs: number; title: number; reg_pts: number }
+export interface LiveOdds { seed1: number; top2: number; playoffs: number; title: number; reg_pts: number; reg_wins?: number }
 export interface RosterRow { id: number; name: string; pos: Pos; est_ppg: number | null; avail: number | null; status: string; ir: boolean; headshot: string | null; team?: string | null }
 export interface LeagueAnalysis {
   weeks: number[]; positions: Pos[]; reg_end: number; playoff_teams: number;

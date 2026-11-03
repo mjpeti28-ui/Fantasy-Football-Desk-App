@@ -155,12 +155,23 @@ def fetch_league(season: int, last_week: int = 17) -> Dict[str, pd.DataFrame]:
             "trades": pd.DataFrame(trades), "draft": draft, "byes": byes_df, "settings": settings}
 
 
+def fetch_matchups(season: int) -> pd.DataFrame:
+    """Regular-season fantasy schedule (all weeks, played or not): week, home_id, away_id.
+    Seeding is by head-to-head record, so the season sims need who plays whom."""
+    p = _client(season).fetch_endpoint(view=["mMatchupScore"])
+    rows = [{"week": m["matchupPeriodId"], "home_id": m["home"]["teamId"], "away_id": m["away"]["teamId"]}
+            for m in p.get("schedule", [])
+            if m.get("playoffTierType") in (None, "NONE") and m.get("home") and m.get("away")]
+    return pd.DataFrame(rows).sort_values(["week", "home_id"])
+
+
 def build_season(season: int, last_week: int = 17) -> None:
     d = out_dir(season)
     fetch_players(season).to_csv(d / "players_weekly.csv", index=False)
     lg = fetch_league(season, last_week=last_week)
     for name in ("rosters_by_week", "team_weekly", "trades", "draft", "byes"):
         lg[name].to_csv(d / f"{name}.csv", index=False)
+    fetch_matchups(season).to_csv(d / "matchups.csv", index=False)
     (d / "settings.json").write_text(json.dumps(lg["settings"], indent=2))
 
 
@@ -176,6 +187,10 @@ if __name__ == "__main__":
         t0 = time.time()
         build_weekly_projections(yr, range(lo, hi + 1))
         print(f"{yr} weekly projections {lo}-{hi}: done in {time.time() - t0:.0f}s")
+    elif args and args[0] == "matchups":  # python espn_history.py matchups 2021 2022 ...
+        for yr in [int(a) for a in args[1:]]:
+            fetch_matchups(yr).to_csv(out_dir(yr) / "matchups.csv", index=False)
+            print(f"{yr}: matchups.csv written")
     else:
         for yr in [int(a) for a in args]:
             t0 = time.time()
