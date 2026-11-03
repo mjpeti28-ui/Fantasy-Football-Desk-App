@@ -19,7 +19,7 @@ _lock = threading.Lock()
 _ctx_lock = threading.Lock()
 _cache: dict = {}
 SEED = 7
-FIELDS = ("seed1", "top2", "playoffs", "title", "reg_pts")
+FIELDS = ("seed1", "top2", "playoffs", "title", "reg_pts", "reg_wins")
 
 
 def _ctx():
@@ -58,6 +58,7 @@ def simulate_crn(out: Dict[int, Optional[int]], sims: int, extras: Optional[dict
     n_playoff = int(s.settings.get("playoff_teams", 8))
     tw = s.team_weekly
     so_far = {t: float(tw[(tw["team_id"] == t) & (tw["week"] < week)]["points"].sum()) for t in teams}
+    w0, games = ss.wins_so_far(s, week, teams), ss.reg_matchups(s, week)
     pos = {i: tbl.at[i, "position"] for ids in list(rosters.values()) + list(base_rosters.values()) for i in ids}
     est = {i: float(tbl.at[i, "est_ppg"]) for ids in list(rosters.values()) + list(base_rosters.values()) for i in ids}
     streamer = {p: -(k + 1) for k, p in enumerate(ss.POS_ORDER)}
@@ -78,7 +79,7 @@ def simulate_crn(out: Dict[int, Optional[int]], sims: int, extras: Optional[dict
     U_ratio = rng.random((sims, len(weeks), len(players)), dtype=np.float32)
     rs_by_pos = {p: np.asarray(r) for p, r in ratios.items()}
 
-    counts = {t: {"seed1": 0, "top2": 0, "playoffs": 0, "title": 0, "reg_pts": 0.0} for t in teams}
+    counts = {t: {"seed1": 0, "top2": 0, "playoffs": 0, "title": 0, "reg_pts": 0.0, "reg_wins": 0.0} for t in teams}
     # extras for the League analysis: rank distribution, mean points by week, starter points by
     # position (regular season), and how often a waiver streamer had to start at each position
     nT, nW = len(teams), len(weeks)
@@ -114,7 +115,13 @@ def simulate_crn(out: Dict[int, Optional[int]], sims: int, extras: Optional[dict
             return tot
 
         total = {t: so_far[t] + sum(score(t, w) for w in range(week, reg_end + 1)) for t in teams}
-        order = sorted(teams, key=lambda t: -total[t])
+        wins = dict(w0)
+        for w, a, b in games:
+            if a in wins and b in wins:
+                dd = score(a, w) - score(b, w)
+                wins[a] += 1.0 if dd > 0 else 0.5 if dd == 0 else 0.0
+                wins[b] += 1.0 if dd < 0 else 0.5 if dd == 0 else 0.0
+        order = ss.seed_order(teams, wins, total)
         if extras is not None:
             for rank, t in enumerate(order):
                 rank_ct[tix[t], rank] += 1
@@ -124,6 +131,7 @@ def simulate_crn(out: Dict[int, Optional[int]], sims: int, extras: Optional[dict
         seeds = order[:n_playoff]
         for rank, t in enumerate(order):
             counts[t]["reg_pts"] += total[t]
+            counts[t]["reg_wins"] += wins[t]
             if rank == 0:
                 counts[t]["seed1"] += 1
             if rank < 2:
@@ -163,7 +171,7 @@ def base(sims: int = 2000) -> Dict[int, dict]:
         if key not in _cache:
             # Same draws (fixed seed) on the same inputs give the same answer, so a saved run with
             # this exact key is reused across app launches.
-            dk = ("league-base", sims, SEED, d.load().week, d.ages_key())
+            dk = ("league-base", "seed-by-record", sims, SEED, d.load().week, d.ages_key())
             hit = store.get(f"league_base_{sims}", dk)
             if hit is not None:
                 res, ex = hit[0]
@@ -213,7 +221,7 @@ def leverage(sims: int = 2000) -> Dict[int, float]:
     playoffs only, on the same draws. Locked-in teams land near 0 (clamped to LEVERAGE_FLOOR);
     bubble teams ~.2-.4, since their regular-season points buy a playoff spot."""
     b = base(sims)
-    dk = ("league-leverage", sims, SEED, LEVERAGE_BONUS, d.load().week, d.ages_key())
+    dk = ("league-leverage", "seed-by-record", sims, SEED, LEVERAGE_BONUS, d.load().week, d.ages_key())
     hit = store.get(f"league_leverage_{sims}", dk)
     if hit is not None:
         return {int(t): x for t, x in hit[0].items()}

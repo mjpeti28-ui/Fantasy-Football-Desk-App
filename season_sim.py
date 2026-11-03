@@ -1,6 +1,6 @@
 """Season simulator: rest-of-season points, playoff seeding, and title odds.
 
-Why: seeding is by total points (so the regular season is a points race) but the
+Why: seeding is by head-to-head record (total points only break ties) and the
 title is three single-week knockout games, where week-to-week noise (~23 pts SD per
 team) dwarfs the gap between teams' averages (~8 pts SD). Expected points alone
 can't tell you how much a move changes your *championship* odds; this can.
@@ -13,8 +13,10 @@ Model:
   distribution per position.
 - Each team starts its best lineup *by expectation* among players available that
   week (managers can't see the outcome), plus a waiver streamer at every position.
-- Seeds: top ``playoff_teams`` by total regular-season points (points so far +
-  simulated). Bracket: 1v8, 4v5, 2v7, 3v6 in week 15, winners meet in 16, final 17.
+- Seeds: top ``playoff_teams`` by regular-season wins (actual so far + simulated
+  matchups from the league schedule, ties count half), then total points (ESPN's
+  tiebreaker setting). Checked against 2021-25 final seeds. No byes, no reseeding.
+  Bracket: 1v8, 4v5, 2v7, 3v6 in week 15, winners meet in 16, final 17.
 
 League size is read from the data (12 teams 2021-2025, 10 in 2026; 8 playoff teams).
 """
@@ -28,6 +30,38 @@ import pandas as pd
 import valuation as v
 
 POS_ORDER = v.POSITIONS
+
+
+def reg_matchups(s: v.Season, week: int) -> List[tuple]:
+    """(week, team_a, team_b) for regular-season games from ``week`` on. Empty if the
+    season has no saved schedule (seeding then falls back to points alone)."""
+    m = s.matchups
+    if m is None:
+        return []
+    m = m[(m["week"] >= week) & (m["week"] <= s.reg_weeks)]
+    return [(int(w), int(a), int(b)) for w, a, b in zip(m["week"], m["home_id"], m["away_id"])]
+
+
+def wins_so_far(s: v.Season, week: int, teams) -> Dict[int, float]:
+    """Actual regular-season wins before ``week`` (ties = 0.5), from the schedule + team scores."""
+    out = {int(t): 0.0 for t in teams}
+    if s.matchups is None:
+        return out
+    pts = {(int(w), int(t)): float(p) for w, t, p in zip(s.team_weekly["week"], s.team_weekly["team_id"], s.team_weekly["points"])}
+    m = s.matchups[(s.matchups["week"] < week) & (s.matchups["week"] <= s.reg_weeks)]
+    for w, a, b in zip(m["week"], m["home_id"], m["away_id"]):
+        pa, pb = pts.get((int(w), int(a))), pts.get((int(w), int(b)))
+        if pa is None or pb is None or (pa == 0 and pb == 0):  # unplayed weeks are stored as 0
+            continue
+        for t, d in ((int(a), pa - pb), (int(b), pb - pa)):
+            if t in out:
+                out[t] += 1.0 if d > 0 else 0.5 if d == 0 else 0.0
+    return out
+
+
+def seed_order(teams, wins: Dict[int, float], points: Dict[int, float]) -> List[int]:
+    """League standings: wins, then total points for."""
+    return sorted(teams, key=lambda t: (-wins.get(t, 0.0), -points[t]))
 
 
 def fit_ratio_dist(seasons: List[int], params_for, weeks=range(3, 15)) -> Dict[str, np.ndarray]:
@@ -78,6 +112,7 @@ def simulate(
     n_playoff = int(s.settings.get("playoff_teams", 8))
     tw = s.team_weekly
     so_far = {t: float(tw[(tw["team_id"] == t) & (tw["week"] < week)]["points"].sum()) for t in teams}
+    w0, games = wins_so_far(s, week, teams), reg_matchups(s, week)
 
     pos = {i: tbl.at[i, "position"] for ids in rosters.values() for i in ids}
     est = {i: float(tbl.at[i, "est_ppg"]) for ids in rosters.values() for i in ids}
@@ -118,15 +153,23 @@ def simulate(
                 tot += est[i] * r
         return tot
 
-    counts = {t: {"seed1": 0, "top2": 0, "playoffs": 0, "title": 0, "final": 0, "reg_pts": 0.0} for t in teams}
+    counts = {t: {"seed1": 0, "top2": 0, "playoffs": 0, "title": 0, "final": 0, "reg_pts": 0.0, "reg_wins": 0.0} for t in teams}
     for _ in range(n_sims):
         if levels:
             draw_levels()
-        total = {t: so_far[t] + sum(week_score(t, w) for w in range(week, reg_end + 1)) for t in teams}
-        order = sorted(teams, key=lambda t: -total[t])
+        sc = {(t, w): week_score(t, w) for t in teams for w in range(week, reg_end + 1)}
+        total = {t: so_far[t] + sum(sc[(t, w)] for w in range(week, reg_end + 1)) for t in teams}
+        wins = dict(w0)
+        for w, a, b in games:
+            if a in wins and b in wins:
+                d = sc[(a, w)] - sc[(b, w)]
+                wins[a] += 1.0 if d > 0 else 0.5 if d == 0 else 0.0
+                wins[b] += 1.0 if d < 0 else 0.5 if d == 0 else 0.0
+        order = seed_order(teams, wins, total)
         seeds = order[:n_playoff]
         for rank, t in enumerate(order):
             counts[t]["reg_pts"] += total[t]
+            counts[t]["reg_wins"] += wins[t]
             if rank == 0:
                 counts[t]["seed1"] += 1
             if rank < 2:
@@ -149,4 +192,5 @@ def simulate(
     for c in ("seed1", "top2", "playoffs", "final", "title"):
         out[c] = out[c] / n_sims
     out["reg_pts"] = out["reg_pts"] / n_sims
+    out["reg_wins"] = out["reg_wins"] / n_sims
     return out.sort_values("title", ascending=False)

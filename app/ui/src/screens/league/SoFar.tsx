@@ -53,7 +53,7 @@ function Bench({ lg, myId, oppId, onSelect }: Props) {
   return (
     <section className="an-card">
       <header><h4>Scored vs best possible <Ev l="noise" tip={`Lineup efficiency repeated at r ${r2(eff?.repeat)} in 2021–25: not a stable habit.`} /></h4>
-        <p>Solid = points your lineups scored; hatched = what the best lineup from the same roster would have added. Seeding is by total points, so every one counts.
+        <p>Solid = points your lineups scored; hatched = what the best lineup from the same roster would have added. Every point can swing a matchup, and total points break seeding ties.
           Leaving points hasn't been a repeatable habit (r {r2(eff?.repeat)}).</p></header>
       <div className="sf-bars">
         {order.map((t) => (

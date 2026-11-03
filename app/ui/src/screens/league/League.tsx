@@ -6,8 +6,8 @@ import { f1, pct, signed } from "../../format";
 import { Analysis } from "./Analysis";
 import "./league.css";
 
-type SortKey = "proj" | "pf" | "top2" | "playoffs" | "luck" | "bench" | "vsespn";
-type OddsKey = "seed1" | "top2" | "playoffs" | "title";
+type SortKey = "proj" | "pf" | "wins" | "playoffs" | "luck" | "bench" | "vsespn";
+type OddsKey = "seed1" | "playoffs" | "title";
 
 interface Props {
   power: Power;
@@ -67,14 +67,14 @@ export function League(p: Props) {
       proj: (t) => odds(t)?.reg_pts ?? t.proj_final_pts ?? t.pf, pf: (t) => t.pf, luck: (t) => t.luck ?? 0,
       bench: (t) => p.alg?.teams.find((x) => x.id === t.id)?.left ?? 0,
       vsespn: (t) => p.alg?.teams.find((x) => x.id === t.id)?.vs_espn ?? 0,
-      top2: (t) => odds(t)?.top2 ?? 0, playoffs: (t) => odds(t)?.playoffs ?? 0,
+      wins: (t) => odds(t)?.reg_wins ?? t.record.w, playoffs: (t) => odds(t)?.playoffs ?? 0,
     };
     return [...teams].sort((a, b) => key[sort](b) - key[sort](a));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teams, sort, p.live, p.whatif, p.alg]);
 
   const me = teams.find((t) => t.id === p.myId)!;
-  const top2Race = [...teams].sort((a, b) => (odds(b)?.top2 ?? 0) - (odds(a)?.top2 ?? 0)).slice(0, 3);
+  const bubble = [...teams].sort((a, b) => (odds(a)?.playoffs ?? 1) - (odds(b)?.playoffs ?? 1)).slice(0, 3);
   const lead = me.pf - Math.max(...teams.filter((t) => t.id !== me.id).map((t) => t.pf));
   const src = p.whatif ? `What-if · ${p.whatif.sims.toLocaleString()} simulated seasons` : p.live ? `Live · ${p.live.sims.toLocaleString()} simulated seasons, current rosters`
     : `From Tuesday's run (week ${p.power.odds_as_of_week})${p.engineUp ? " · live odds loading…" : ""}`;
@@ -103,8 +103,8 @@ export function League(p: Props) {
         <div>
           <h2>League</h2>
           <p className="take">
-            You lead the league by <b className="num">{f1(lead)}</b> points. Seeding is by total points.
-            Top-2 race: {top2Race.map((t, i) => <span key={t.id}>{i ? ", " : " "}<b className={t.id === p.myId ? "you" : ""}>{t.id === p.myId ? "you" : t.name}</b> {pct(odds(t)?.top2)}</span>)}.
+            You're <b className="num">{me.record.w}–{me.record.l}</b>{lead > 0 ? <> and lead the league in points by <b className="num">{f1(lead)}</b></> : null}. Seeding is by record; points break ties; {p.live?.analysis?.playoff_teams ?? 8} of {teams.length} make it, no byes.
+            Least likely in: {bubble.map((t, i) => <span key={t.id}>{i ? ", " : " "}<b className={t.id === p.myId ? "you" : ""}>{t.id === p.myId ? "you" : t.name}</b> {pct(odds(t)?.playoffs)}</span>)}.
           </p>
         </div>
         <span className={`src ${p.whatif ? "wi" : ""}`}>{src}</span>
@@ -140,7 +140,7 @@ export function League(p: Props) {
             {p.alg && th("vsespn", "vs ESPN-best lineup", "r", "Points scored minus what the lineup with the highest ESPN projections (same roster) actually scored, season so far. In 2021–25 every manager in this league trailed it, by 1.2 points a week on average.")}
             {th("proj", "Proj. final")}
             {th(null, "#1 seed")}
-            {th("top2", "Top-2")}
+            {th("wins", "Proj. W", "r", "Expected regular-season wins: actual so far plus simulated matchups.")}
             {th("playoffs", "Playoffs")}
           </tr></thead>
           <tbody>
@@ -160,7 +160,7 @@ export function League(p: Props) {
                   {p.alg && <td className="r num dim">{signed(p.alg.teams.find((x) => x.id === t.id)?.vs_espn ?? null)}</td>}
                   <td className="r num">{f1(o?.reg_pts ?? null)}{d && Math.abs(d.reg_pts) >= 1 && <small className={d.reg_pts > 0 ? "above" : "below"}> {signed(d.reg_pts)}</small>}</td>
                   {oddsCell(t, "seed1", false, false)}
-                  {oddsCell(t, "top2")}
+                  <td className="r num">{f1(o?.reg_wins ?? null)}</td>
                   {oddsCell(t, "playoffs", false, false)}
                 </tr>
               );
@@ -169,7 +169,7 @@ export function League(p: Props) {
         </table>
       </div>
       <p className="fig">
-        Click a team to see its roster and test injuries. Proj. final = expected regular-season points (seeding is by points).
+        Click a team to see its roster and test injuries. Proj. final = expected regular-season points (the seeding tiebreaker).
         {p.liveErr && ` Live odds failed: ${p.liveErr}.`} Seed and playoff odds start meaning something around week 6. Title odds are in the side panel only: three single-week playoff games make them close to a lottery.
       </p>
       {p.live?.analysis && <div id="lg-analysis" className="lg-sec"><Analysis a={p.live.analysis} teams={teams} order={rows.map((t) => t.id)} myId={p.myId} oppId={p.oppId} onSelect={p.onSelect} onTrade={p.onTrade} /></div>}
@@ -184,11 +184,11 @@ export function leagueMarkdown(power: Power, live: LeagueLive | null, whatif: Wh
   const odds = (t: PowerTeam) => whatif?.scenario[t.id] ?? live?.odds[t.id] ?? (t.odds as LiveOdds | null);
   const L = [`## League after week ${power.through_week} (from Desk)`, "",
     scenario.length ? `What-if: ${scenario.map((o) => `${o.name} out ${o.weeks ? o.weeks + " wk" : "for the season"}`).join("; ")}` : "Current rosters.",
-    "", "| Team | W-L | Points | vs projection | Proj. final | #1 seed | Top-2 | Playoffs | Title |", "|---|---|---|---|---|---|---|---|---|"];
+    "", "| Team | W-L | Points | vs projection | Proj. final | Proj. W | #1 seed | Playoffs | Title |", "|---|---|---|---|---|---|---|---|---|"];
   for (const t of [...power.teams].sort((a, b) => (odds(b)?.reg_pts ?? 0) - (odds(a)?.reg_pts ?? 0))) {
     const o = odds(t), d = whatif?.delta[t.id];
     const c = (k: OddsKey) => `${pct(o?.[k])}${d ? ` (${d[k] >= 0 ? "+" : "−"}${Math.round(Math.abs(d[k]) * 100)})` : ""}`;
-    L.push(`| ${t.name} | ${t.record.w}-${t.record.l} | ${f1(t.pf)} | ${signed(t.luck)} | ${f1(o?.reg_pts ?? null)} | ${c("seed1")} | ${c("top2")} | ${c("playoffs")} | ${c("title")} |`);
+    L.push(`| ${t.name} | ${t.record.w}-${t.record.l} | ${f1(t.pf)} | ${signed(t.luck)} | ${f1(o?.reg_pts ?? null)} | ${f1(o?.reg_wins ?? null)} | ${c("seed1")} | ${c("playoffs")} | ${c("title")} |`);
   }
   if (alg) {
     L.push("", `Season so far through week ${alg.through_week} (descriptive; lineup efficiency and luck didn't repeat in 2021-25):`, "",
@@ -196,6 +196,6 @@ export function leagueMarkdown(power: Power, live: LeagueLive | null, whatif: Wh
     for (const t of [...alg.teams].sort((a, b) => b.pts - a.pts))
       L.push(`| ${t.name} | ${f1(t.pts)} | ${f1(t.opt)} | ${f1(t.left)} | ${t.pts ? Math.round(100 * (1 - t.drafted / t.pts)) : 0}% | ${f1(t.best)} | ${f1(t.worst)} |`);
   }
-  L.push("", `Odds: ${whatif ? `${whatif.sims} simulated seasons, same draws as the base` : live ? `${live.sims} simulated seasons on current rosters` : "Tuesday ledger"}. Seeding is by total points; title odds are close to a lottery.`);
+  L.push("", `Odds: ${whatif ? `${whatif.sims} simulated seasons, same draws as the base` : live ? `${live.sims} simulated seasons on current rosters` : "Tuesday ledger"}. Seeding is by record, total points break ties; title odds are close to a lottery.`);
   return L.join("\n");
 }
