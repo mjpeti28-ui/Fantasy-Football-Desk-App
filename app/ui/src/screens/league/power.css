@@ -1,0 +1,91 @@
+/* League › Power — same almanac language as the table and Analysis: hairlines, condensed type,
+   one pts/wk scale everywhere; you = cobalt, opponent = plum, above/below only for luck and change. */
+.power { display: grid; gap: 14px; }
+.power .pw-hd { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 18px; align-items: end; border-top: 3px solid var(--l-ink); padding-top: 12px; }
+@media (max-width: 1100px) { .power .pw-hd { grid-template-columns: minmax(0, 1fr); } }
+.power h3 { margin: 0; font: 800 22px/1 var(--content); font-variation-settings: "wdth" 75; text-transform: uppercase; display: flex; align-items: baseline; gap: 10px; }
+.power h3 .num { font: 800 34px/1 var(--content); font-variation-settings: "wdth" 70; color: var(--you); text-transform: none; }
+.power h3 small { font: 600 12px/1 var(--content); letter-spacing: .06em; color: var(--l-ink2); }
+.power .take { margin: 6px 0 0; color: var(--l-ink2); font-size: 13px; max-width: 95ch; }
+.power .take b { color: var(--l-ink); }
+.power .pw-def { margin: 0; color: var(--l-ink2); font-size: 11.5px; line-height: 1.4; }
+.power .pw-card { border: 1px solid var(--l-rule); border-radius: 10px; padding: 12px 16px; display: grid; gap: 8px; align-content: start; min-width: 0;
+  background: color-mix(in srgb, var(--field) 25%, transparent); }
+.power .pw-card h4 { margin: 0; font: 700 16px/1.2 var(--content); font-variation-settings: "wdth" 85; }
+.power .pw-card h4 small { font: 500 11.5px var(--content); color: var(--l-ink2); margin-left: 6px; }
+.power .pw-note { margin: 0; color: var(--l-ink2); font-size: 11.5px; max-width: 110ch; }
+.power .pw-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr); gap: 14px; }
+.power .ledger-wrap { overflow-x: auto; }
+@media (max-width: 1250px) { .power .pw-row { grid-template-columns: minmax(0, 1fr); } }
+.power .num { font-variant-numeric: tabular-nums; }
+.power .above { color: var(--above); } .power .below { color: var(--below); } .power .dim { color: var(--l-ink2); }
+
+/* strip */
+.pw-strip { width: 100%; height: auto; display: block; }
+.pw-strip .band.t1 { fill: color-mix(in srgb, var(--l-ink) 7%, transparent); }
+.pw-strip .band.t0 { fill: color-mix(in srgb, var(--l-ink) 3.5%, transparent); }
+.pw-strip .tierlab { fill: var(--l-ink2); font: 600 10px var(--content); letter-spacing: .08em; text-transform: uppercase; }
+.pw-strip .axis { stroke: var(--l-ink2); stroke-width: 1; }
+.pw-strip .tk, .pw-trend .tk { fill: var(--l-ink2); font: 500 10.5px var(--mono); }
+.pw-strip .pt { cursor: pointer; }
+.pw-strip .stem { stroke: var(--l-rule); }
+.pw-strip .dot { fill: var(--l-ink2); stroke: var(--l-bg); stroke-width: 2; }
+.pw-strip .nm { fill: var(--l-ink); font: 600 11.5px var(--content); font-variation-settings: "wdth" 80; }
+.pw-strip .me .dot { fill: var(--you); } .pw-strip .me .nm { fill: var(--you); font-weight: 800; }
+.pw-strip .opp .dot { fill: var(--them); } .pw-strip .opp .nm { fill: var(--them); }
+
+/* table */
+.power .pw-tbl { overflow-x: auto; }
+.power .pw-tbl table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.power .pw-tbl th { font: 600 11px/1.2 var(--content); letter-spacing: .04em; color: var(--l-ink2); padding: 6px 6px; border-bottom: 1px solid var(--l-ink); white-space: nowrap; }
+.power .pw-tbl td { padding: 6px 6px; border-bottom: 1px solid var(--l-rule); white-space: nowrap; }
+.power .pw-tbl .r { text-align: right; } .power .pw-tbl .l { text-align: left; }
+.power .pw-tbl tbody tr:not(.tier) { cursor: pointer; }
+.power .pw-tbl tbody tr:not(.tier):hover { background: var(--hover); }
+.power .pw-tbl tr.tier td { font: 700 11px/1 var(--content); letter-spacing: .08em; text-transform: uppercase; color: var(--l-ink); padding-top: 12px; border-bottom: 1px solid var(--l-ink); }
+.power .pw-tbl tr.tier td span { font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--l-ink2); }
+.power .pw-tbl .nm { font: 600 13px var(--content); font-variation-settings: "wdth" 85; }
+.power .pw-tbl .nm em { font-style: normal; font: 700 10px var(--content); letter-spacing: .06em; text-transform: uppercase; color: var(--you); margin-left: 6px; }
+.power .pw-tbl .nm em.o { color: var(--them); }
+.power .pw-tbl tr.me .nm, .power .pw-tbl tr.me .big { color: var(--you); }
+.power .pw-tbl tr.opp .nm { color: var(--them); }
+.power .pw-tbl .big { font: 800 16px/1 var(--content); font-variation-settings: "wdth" 75; }
+.power .pw-tbl small { color: var(--l-ink2); font-size: 10.5px; }
+.power .pw-tbl .rk { color: var(--l-ink2); }
+
+/* trend */
+.pw-trend { width: 100%; height: auto; display: block; }
+.pw-trend .grid { stroke: var(--l-rule); }
+.pw-trend .ln { cursor: pointer; }
+.pw-trend .ln .hit { fill: none; stroke: transparent; stroke-width: 10; }
+.pw-trend .ln .path { fill: none; stroke: var(--l-ink2); stroke-width: 1.3; opacity: .35; }
+.pw-trend .ln.opp .path { stroke: var(--them); opacity: .7; }
+.pw-trend .ln.on .path { stroke: var(--l-ink); opacity: 1; stroke-width: 2; }
+.pw-trend .ln.me .path { stroke: var(--you); opacity: 1; stroke-width: 2.6; }
+.pw-trend .ln .dot { fill: var(--l-ink); } .pw-trend .ln.me .dot { fill: var(--you); }
+.pw-trend .end { fill: var(--l-ink2); font: 500 10.5px var(--content); font-variation-settings: "wdth" 80; }
+.pw-trend .end.me { fill: var(--you); font-weight: 800; } .pw-trend .end.opp { fill: var(--them); } .pw-trend .end.on { fill: var(--l-ink); font-weight: 700; }
+
+/* ledger */
+.power .ledger { width: 100%; border-collapse: collapse; font-size: 12px; }
+.power .ledger th { font: 600 10.5px/1.2 var(--content); color: var(--l-ink2); padding: 4px 4px; border-bottom: 1px solid var(--l-ink); text-align: left; white-space: nowrap; }
+.power .ledger th.r, .power .ledger td.r { text-align: right; }
+.power .ledger td { padding: 4px 4px; border-bottom: 1px solid var(--l-rule); white-space: nowrap; }
+.power .ledger tr { cursor: pointer; } .power .ledger tr:hover { background: var(--hover); }
+.power .ledger .nm { font: 600 12px var(--content); font-variation-settings: "wdth" 80; }
+.power .ledger tr.me .nm { color: var(--you); } .power .ledger tr.opp .nm { color: var(--them); }
+.power .ledger .parts { vertical-align: middle; margin-right: 4px; }
+.power .ledger .parts .base { fill: color-mix(in srgb, var(--l-ink2) 45%, transparent); }
+.power .ledger .parts .up { fill: var(--above); } .power .ledger .parts .down { fill: var(--below); opacity: .85; }
+.power .ledger .parts .mark { stroke: var(--l-ink); stroke-width: 1; }
+.power .ledger b { font-weight: 700; }
+
+/* context */
+.power .ctx { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
+.power .cx { display: grid; gap: 3px; text-align: left; border: 1px solid var(--l-rule); background: var(--win); border-radius: 8px; padding: 8px 11px; cursor: pointer; color: var(--l-ink); }
+.power .cx:hover { border-color: var(--you); }
+.power .cx b { font: 700 13.5px/1.2 var(--content); font-variation-settings: "wdth" 80; }
+.power .cx.me b { color: var(--you); } .power .cx.opp b { color: var(--them); }
+.power .cx .fl { font-size: 11.5px; color: var(--l-ink2); }
+.power .cx em { font-style: normal; font-weight: 600; color: var(--l-ink); }
+.power .cx em.above { color: var(--above); } .power .cx em.below { color: var(--below); }

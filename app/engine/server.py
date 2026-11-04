@@ -36,7 +36,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from . import accuracy, analytics, changes, draft, data as d, dossier, journal, league, matchups, matchups_card, matchups_pff, roles, shifts, snapshot, trades, waivers
+from . import accuracy, analytics, power, changes, draft, data as d, dossier, journal, league, matchups, matchups_card, matchups_pff, roles, shifts, snapshot, trades, waivers
 
 # ---------- warm-up: precompute the slow views in the background as soon as the engine starts ----------
 _warm: dict = {"state": "idle", "started": None, "finished": None, "steps": {}, "again": False}
@@ -487,6 +487,15 @@ def analytics_league():
         return _json(analytics.league())
     except Exception as e:  # noqa: BLE001
         raise HTTPException(500, f"league analytics failed: {type(e).__name__}: {e}")
+
+
+@app.get("/api/power")
+def power_view(sims: int = 2000):
+    """League › Power: Power Score, tiers, luck ledger and context (first call runs the +1 pt/wk sims)."""
+    try:
+        return _json(power.view(sims))
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(500, f"power failed: {type(e).__name__}: {e}")
 
 
 @app.get("/api/journal")
