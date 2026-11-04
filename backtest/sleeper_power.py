@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from scipy.stats import pearsonr, spearmanr
+from scipy.stats import pearsonr, rankdata
 
 sys.path.insert(0, str(Path(__file__).parent))
 import sleeper_crawl as sc  # noqa: E402
@@ -23,6 +23,8 @@ CHECKPOINTS = (4, 6, 8, 10)
 LOOKAHEAD = 3  # avg best-lineup projection over the next 3 weeks
 PREDICTORS = ("record", "pf_g", "allplay", "strength", "blend")
 TARGETS = ("ros_allplay", "ros_pf_g", "ros_h2h", "made_playoffs")
+FAIR_TARGETS = ("final_wins", "made_playoffs")
+DIFFS = (("strength", "pf_g"), ("strength", "allplay"), ("blend", "strength"))
 SLOT_ELIG = {
     "QB": {"QB"}, "RB": {"RB"}, "WR": {"WR"}, "TE": {"TE"}, "K": {"K"}, "DEF": {"DEF"},
     "DL": {"DL"}, "LB": {"LB"}, "DB": {"DB"},
@@ -115,6 +117,8 @@ def league_rows(m, lg, proj, act):
                 "strength": float(np.mean([best_lineup(roster[r], proj[season][k], slots) for k in fut])),
                 "ros_allplay": mean(ap, r, ros), "ros_pf_g": mean(score, r, ros),
                 "ros_h2h": sum(h2h[w].get(r, 0) for w in ros), "made_playoffs": float(r in seeds),
+                "banked": sum(h2h[w].get(r, 0) for w in past), "n_ros": sum(r in h2h[w] for w in ros),
+                "final_wins": sum(h2h[w].get(r, 0) for w in weeks),
             })
     return out
 
@@ -124,53 +128,103 @@ def z(x):
     return (x - x.mean()) / s if s > 0 else x * 0
 
 
-def corr_table(rows, blend_a):
-    """{(league, cp): {(pred, target): spearman}} with blend from per-season weight."""
-    groups = collections.defaultdict(list)
+def rcorr(x, y):
+    if x.std() == 0 or y.std() == 0:
+        return np.nan
+    return float(np.corrcoef(rankdata(x), rankdata(y))[0, 1])
+
+
+def pct(x):
+    return (rankdata(x) - 1) / max(len(x) - 1, 1)
+
+
+def group(rows):
+    g = collections.defaultdict(list)
     for r in rows:
-        groups[(r["league"], r["cp"])].append(r)
+        g[(r["league"], r["cp"])].append(r)
+    return {k: {c: np.array([r[c] for r in v]) for c in v[0] if c not in ("league",)} for k, v in g.items()}
+
+
+def fit_blend(groups):
+    """Leave-one-season-out weight on strength (vs PF/game), maximizing ROS PF/game Spearman."""
+    grid = np.linspace(0, 1, 21)
+    keys = list(groups)
+    seas = np.array([groups[k]["season"][0] for k in keys])
+    M = np.array([[rcorr(a * z(groups[k]["strength"]) + (1 - a) * z(groups[k]["pf_g"]), groups[k]["ros_pf_g"])
+                   for a in grid] for k in keys])
+    return {int(s): float(grid[np.nanargmax(np.nanmean(M[seas != s], 0))]) for s in np.unique(seas)}
+
+
+def corr_table(groups, blend_a):
+    """{(league, cp): {(pred, target): spearman}}; w_* = banked wins + ROS games * within-league pct(pred)."""
     res = {}
-    for key, g in groups.items():
-        a = blend_a[g[0]["season"]]
-        col = {k: np.array([r[k] for r in g]) for k in PREDICTORS[:-1] + TARGETS}
-        col["blend"] = a * z(col["strength"]) + (1 - a) * z(col["pf_g"])
-        res[key] = {}
+    for key, c in groups.items():
+        a = blend_a[int(c["season"][0])]
+        c["blend"] = a * z(c["strength"]) + (1 - a) * z(c["pf_g"])
+        d = {(p, t): rcorr(c[p], c[t]) for p in PREDICTORS for t in TARGETS}
         for p in PREDICTORS:
-            for t in TARGETS:
-                if col[p].std() > 0 and col[t].std() > 0:
-                    res[key][(p, t)] = spearmanr(col[p], col[t])[0]
+            w = c["banked"] + c["n_ros"] * pct(c[p])
+            for t in FAIR_TARGETS:
+                d[("w_" + p, t)] = rcorr(w, c[t])
+        res[key] = d
     return res
 
 
-def fit_blend(rows):
-    """Leave-one-season-out weight on strength (vs PF/game), maximizing ROS PF/game Spearman."""
-    seasons = sorted({r["season"] for r in rows})
-    grid = np.linspace(0, 1, 21)
-    out = {}
-    for s in seasons:
-        train = [r for r in rows if r["season"] != s]
-        scores = []
-        for a in grid:
-            ct = corr_table(train, collections.defaultdict(lambda: a))
-            scores.append(np.mean([v[("blend", "ros_pf_g")] for v in ct.values() if ("blend", "ros_pf_g") in v]))
-        out[s] = float(grid[int(np.argmax(scores))])
-    return out
+def league_matrix(ct, combos, keep):
+    """Per-league mean correlation over the kept (league, cp) keys -> (leagues, combos) array."""
+    by = collections.defaultdict(list)
+    for k, d in ct.items():
+        if keep(k):
+            by[k[0]].append([d.get(c, np.nan) for c in combos])
+    return np.array([np.nanmean(v, 0) for v in by.values()])
 
 
-def summarize(ct, cps, rng, reps=1000):
-    keys = [k for k in ct if k[1] in cps]
-    leagues = sorted({k[0] for k in keys})
-    by_lg = collections.defaultdict(list)
-    for k in keys:
-        by_lg[k[0]].append(ct[k])
-    out = {}
-    for p in PREDICTORS:
-        for t in TARGETS:
-            per = {lg: [d[(p, t)] for d in by_lg[lg] if (p, t) in d] for lg in leagues}
-            flat = lambda lgs: np.mean([v for lg in lgs for v in per[lg]])
-            boots = [flat(rng.choice(leagues, len(leagues))) for _ in range(reps)]
-            out[(p, t)] = (flat(leagues), *np.percentile(boots, [2.5, 97.5]))
-    return out, len(leagues)
+def boot(M, rng, reps=2000):
+    idx = rng.integers(0, len(M), (reps, len(M)))
+    b = np.nanmean(M[idx], 1)
+    return np.nanmean(M, 0), np.percentile(b, 2.5, 0), np.percentile(b, 97.5, 0)
+
+
+def summarize(ct, rng, meta):
+    L = []
+    combos = [(p, t) for p in PREDICTORS for t in TARGETS]
+    M = league_matrix(ct, combos, lambda k: True)
+    m, lo, hi = boot(M, rng)
+    L += [f"Pooled over checkpoints (n={len(M)} leagues), Spearman [95% CI]:\n",
+          "| predictor | " + " | ".join(TARGETS) + " |", "|---|" + "---|" * len(TARGETS)]
+    for i, p in enumerate(PREDICTORS):
+        j = i * len(TARGETS)
+        L.append(f"| {p} | " + " | ".join(f"{m[j + q]:.2f} [{lo[j + q]:.2f},{hi[j + q]:.2f}]"
+                                          for q in range(len(TARGETS))) + " |")
+    L.append("\nPaired differences (league bootstrap), Spearman diff [95% CI]:\n")
+    cols = [("pooled", lambda k: True)] + [(f"wk{c}", lambda k, c=c: k[1] == c) for c in CHECKPOINTS]
+    L += ["| comparison | target | " + " | ".join(c for c, _ in cols) + " |", "|---|---|" + "---|" * len(cols)]
+    for a, b in DIFFS:
+        for t in ("ros_pf_g", "ros_allplay"):
+            cells = []
+            for _, keep in cols:
+                M = league_matrix(ct, [(a, t), (b, t)], keep)
+                mm, l2, h2 = boot(M[:, :1] - M[:, 1:], rng)
+                cells.append(f"{mm[0]:+.3f} [{l2[0]:+.3f},{h2[0]:+.3f}]")
+            L.append(f"| {a} - {b} | {t} | " + " | ".join(cells) + " |")
+    fc = [("w_" + p, t) for p in PREDICTORS for t in FAIR_TARGETS]
+    M = league_matrix(ct, fc, lambda k: True)
+    m, lo, hi = boot(M, rng)
+    L += ["\nFair playoff comparison: predictor = banked wins + ROS games x within-league pct(predictor), pooled:\n",
+          "| predictor | " + " | ".join(FAIR_TARGETS) + " |", "|---|" + "---|" * len(FAIR_TARGETS)]
+    for i, p in enumerate(PREDICTORS):
+        j = i * len(FAIR_TARGETS)
+        L.append(f"| {p} | " + " | ".join(f"{m[j + q]:.2f} [{lo[j + q]:.2f},{hi[j + q]:.2f}]"
+                                          for q in range(len(FAIR_TARGETS))) + " |")
+    L += ["\nBy season, ROS PF/g (pooled checkpoints):\n", "| season | n lg | pf_g | allplay | strength | blend | strength - pf_g |",
+          "|---|---|---|---|---|---|---|"]
+    for s in sorted({v for v in meta.values()}):
+        keep = lambda k, s=s: meta[k[0]] == s
+        M = league_matrix(ct, [(p, "ros_pf_g") for p in ("pf_g", "allplay", "strength", "blend")], keep)
+        m = np.nanmean(M, 0)
+        mm, l2, h2 = boot(M[:, 2:3] - M[:, :1], rng)
+        L.append(f"| {s} | {len(M)} | " + " | ".join(f"{x:.2f}" for x in m) + f" | {mm[0]:+.3f} [{l2[0]:+.3f},{h2[0]:+.3f}] |")
+    return L
 
 
 def sanity(seasons):
@@ -208,22 +262,15 @@ def main():
          "Blend = a*z(strength)+(1-a)*z(PF/g), a fit leave-one-season-out on ROS PF/g.\n"]
     for name, ms in sets.items():
         rows = [r for m in ms for r in league_rows(m, objs[m["league_id"]], proj, act)]
-        blend_a = fit_blend(rows)
-        ct = corr_table(rows, blend_a)
+        groups = group(rows)
+        blend_a = fit_blend(groups)
+        ct = corr_table(groups, blend_a)
         L.append(f"## {name}: {len(ms)} league-seasons, {len({(r['league'], r['rid']) for r in rows})} teams\n")
         L.append(f"Blend weight on strength by held-out season: {blend_a}\n")
-        L.append("Teams per checkpoint: " + ", ".join(
-            f"wk{c}: {sum(r['cp'] == c for r in rows)} ({len({r['league'] for r in rows if r['cp'] == c})} lg)"
-            for c in CHECKPOINTS) + "\n")
-        for label, cps in [("all checkpoints pooled", CHECKPOINTS)] + [(f"week {c}", (c,)) for c in CHECKPOINTS]:
-            summ, nl = summarize(ct, cps, rng)
-            L.append(f"### {label} (n={nl} leagues)\n")
-            L.append("| predictor | " + " | ".join(TARGETS) + " |")
-            L.append("|---|" + "---|" * len(TARGETS))
-            for p in PREDICTORS:
-                L.append(f"| {p} | " + " | ".join(
-                    f"{summ[(p, t)][0]:.2f} [{summ[(p, t)][1]:.2f},{summ[(p, t)][2]:.2f}]" for t in TARGETS) + " |")
-            L.append("")
+        L.append("Leagues per checkpoint: " + ", ".join(
+            f"wk{c}: {len({r['league'] for r in rows if r['cp'] == c})}" for c in CHECKPOINTS) + "\n")
+        L += summarize(ct, rng, {m["league_id"]: m["season"] for m in ms})
+        L.append("")
     L.extend(sanity(seasons))
     text = "\n".join(L) + "\n"
     (sc.DATA / "power_backtest.md").write_text(text)
