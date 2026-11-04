@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import type { ALeague, DraftRecap as DRec, LeagueLive, LiveOdds, OutItem, Power, PowerTeam, WhatIfResult } from "../../types";
+import type { ALeague, DraftRecap as DRec, LeagueLive, LiveOdds, OutItem, Power, PowerTeam, PowerView, WhatIfResult } from "../../types";
+import { Power as PowerPanel, powerMarkdown } from "./Power";
 import { SoFar } from "./SoFar";
 import { DraftRecap } from "./DraftRecap";
 import { f1, pct, signed } from "../../format";
@@ -28,6 +29,9 @@ interface Props {
   alg?: ALeague | null;
   /** draft recap (GET /api/draft) */
   draft?: DRec | null;
+  /** Power Score, tiers and luck ledger (GET /api/power) */
+  pw?: PowerView | null;
+  pwErr?: string | null;
 }
 
 function Weekly({ t, max }: { t: PowerTeam; max: number }) {
@@ -123,9 +127,12 @@ export function League(p: Props) {
       )}
 
       <nav className="lg-jump" aria-label="League sections">
-        {([["lg-table", "Table"], ...(p.live?.analysis ? [["lg-analysis", "Analysis"]] : []), ...(p.alg ? [["lg-sofar", "Season so far"]] : []), ...(p.draft ? [["lg-draft", "Draft recap"]] : [])] as [string, string][]).map(([id, l]) =>
+        {([...(p.pw?.teams.length ? [["lg-power", "Power"]] : []), ["lg-table", "Table"], ...(p.live?.analysis ? [["lg-analysis", "Analysis"]] : []), ...(p.alg ? [["lg-sofar", "Season so far"]] : []), ...(p.draft ? [["lg-draft", "Draft recap"]] : [])] as [string, string][]).map(([id, l]) =>
           <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })}>{l}</button>)}
       </nav>
+
+      {p.pw?.teams.length ? <div id="lg-power" className="lg-sec"><PowerPanel pw={p.pw} myId={p.myId} oppId={p.oppId} onSelect={p.onSelect} /></div>
+        : p.engineUp && <p className="fig">{p.pwErr ? `Power failed: ${p.pwErr}` : p.pw?.message ?? "Power loads after the live simulation (first run takes about half a minute)."}</p>}
 
       <div className="tbl" id="lg-table">
         <table>
@@ -180,7 +187,7 @@ export function League(p: Props) {
   );
 }
 
-export function leagueMarkdown(power: Power, live: LeagueLive | null, whatif: WhatIfResult | null, scenario: OutItem[], alg?: ALeague | null) {
+export function leagueMarkdown(power: Power, live: LeagueLive | null, whatif: WhatIfResult | null, scenario: OutItem[], alg?: ALeague | null, pw?: PowerView | null, myId?: number) {
   const odds = (t: PowerTeam) => whatif?.scenario[t.id] ?? live?.odds[t.id] ?? (t.odds as LiveOdds | null);
   const L = [`## League after week ${power.through_week} (from Desk)`, "",
     scenario.length ? `What-if: ${scenario.map((o) => `${o.name} out ${o.weeks ? o.weeks + " wk" : "for the season"}`).join("; ")}` : "Current rosters.",
@@ -196,6 +203,7 @@ export function leagueMarkdown(power: Power, live: LeagueLive | null, whatif: Wh
     for (const t of [...alg.teams].sort((a, b) => b.pts - a.pts))
       L.push(`| ${t.name} | ${f1(t.pts)} | ${f1(t.opt)} | ${f1(t.left)} | ${t.pts ? Math.round(100 * (1 - t.drafted / t.pts)) : 0}% | ${f1(t.best)} | ${f1(t.worst)} |`);
   }
+  if (pw?.teams.length && myId != null) L.push("", powerMarkdown(pw, myId));
   L.push("", `Odds: ${whatif ? `${whatif.sims} simulated seasons, same draws as the base` : live ? `${live.sims} simulated seasons on current rosters` : "Tuesday ledger"}. Seeding is by record, total points break ties; title odds are close to a lottery.`);
   return L.join("\n");
 }

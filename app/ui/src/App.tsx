@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { copyText, runWhatIf, useLeague, useSnapshot } from "./data";
+import { copyText, runWhatIf, useLeague, usePower, useSnapshot } from "./data";
 import { League, leagueMarkdown } from "./screens/league/League";
 import { WhatIfPanel } from "./screens/league/WhatIf";
 import type { OutItem, RosterRow, TradeHistory, WhatIfResult } from "./types";
@@ -80,6 +80,7 @@ export default function App() {
   // switching screens is instant), or right away if you open that screen first.
   const warm = useWarm(source === "engine", refresh.state);
   const dataKey = snap ? `${snap.data_age.rosters}|${snap.data_age.espn_proj}|${snap.data_age.ledger}` : "";
+  const { pw, err: pwErr } = usePower(source === "engine" && screen === "league", dataKey);
   const { live, err: liveErr } = useLeague(source === "engine" && (screen === "league" || screen === "trades" || warmed(warm, "league")), dataKey);
   const [deal, setDeal] = useState<Deal>({ partner: null, give: [], get: [] });
   const [tHistory, setTHistory] = useState<Record<string, TradeHistory>>({});
@@ -361,7 +362,7 @@ export default function App() {
           {screen === "journal" && journal && <button className="tbtn" type="button" onClick={async () => flash((await copyText(journalMarkdown(journal))) ? "Copied as Markdown" : "Copy failed")}>Copy for Claude</button>}
           {screen === "matchups" && mx && <button className="tbtn" type="button" onClick={async () => flash((await copyText(mxCopy.current?.() ?? "")) ? "Copied as Markdown" : "Copy failed")}>Copy for Claude</button>}
           {screen === "live" && liveB && <button className="tbtn" type="button" onClick={async () => flash((await copyText(liveMarkdown(liveB))) ? "Copied as Markdown" : "Copy failed")}>Copy for Claude</button>}
-          {screen === "league" && <button className="tbtn" type="button" onClick={async () => flash((await copyText(leagueMarkdown(snap.power, live, whatif, scenario, anLg))) ? "Copied as Markdown" : "Copy failed")}>Copy for Claude</button>}
+          {screen === "league" && <button className="tbtn" type="button" onClick={async () => flash((await copyText(leagueMarkdown(snap.power, live, whatif, scenario, anLg, pw, tw.team_id))) ? "Copied as Markdown" : "Copy failed")}>Copy for Claude</button>}
           {screen === "team" && <>
             <div className="seg" role="group" aria-label="My Team view">
               <button type="button" aria-pressed={mode === "board"} onClick={() => setMode("board")}>Board</button>
@@ -425,7 +426,7 @@ export default function App() {
           {screen === "team" && mode !== "analysis" && (mode === "board"
             ? <Board tw={tw} plan={plan} setPlan={setPlan} selected={selPlayer?.id ?? null} onSelect={(id) => setSel({ kind: "player", id })} ratioQ={snap.ratio_q} colorMode={colorMode} teamColors={snap.team_colors} roles={roles} dropCost={wboard?.drop_cost ?? null} freeAgents={wboard?.candidates ?? null} onWaivers={() => setScreen("waivers")} onCopy={async (t) => flash((await copyText(t)) ? "Copied the moves" : "Copy failed")} />
             : <GameDay tw={tw} plan={plan} live={liveB} selected={selPlayer?.id ?? null} onSelect={(id) => setSel({ kind: "player", id })} />)}
-          {screen === "league" && <League alg={source === "engine" ? anLg : null} draft={source === "engine" ? dRec : null} power={snap.power} myId={tw.team_id} oppId={tw.matchup?.opp_id ?? null} live={live} liveErr={liveErr}
+          {screen === "league" && <League pw={source === "engine" ? pw : null} pwErr={pwErr} alg={source === "engine" ? anLg : null} draft={source === "engine" ? dRec : null} power={snap.power} myId={tw.team_id} oppId={tw.matchup?.opp_id ?? null} live={live} liveErr={liveErr}
             engineUp={source === "engine"} whatif={whatif} scenario={scenario} busy={busy} selected={leagueSel}
             onSelect={setLeagueSel} onTrade={(t) => { setDeal({ partner: t, give: [], get: [] }); setScreen("trades"); }} onRemove={(id) => void applyScenario(scenario.filter((o) => o.id !== id))} onClear={() => void applyScenario([])} />}
           {screen === "trades" && <Trades an={source === "engine" ? an : null} me={tw.team_id} teams={snap.power.teams} live={live} engineUp={source === "engine"} teamColors={snap.team_colors}

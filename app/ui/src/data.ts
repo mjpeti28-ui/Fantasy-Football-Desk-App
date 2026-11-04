@@ -93,6 +93,18 @@ export function useLeague(enabled: boolean, stamp: unknown) {
   return { live, err };
 }
 
+export function usePower(enabled: boolean, stamp: unknown) {
+  const [pw, setPw] = useState<import("./types").PowerView | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const got = useRef<unknown>(undefined);
+  useEffect(() => {
+    if (!enabled || got.current === stamp) return;
+    got.current = stamp;
+    getJSON<import("./types").PowerView>(`${ENGINE}/api/power`).then((v) => { setPw(v); setErr(null); }, (e) => { got.current = undefined; setErr(String(e)); });
+  }, [enabled, stamp]);
+  return { pw, err };
+}
+
 export async function runWhatIf(out: OutItem[]): Promise<WhatIfResult> {
   return getJSON<WhatIfResult>(`${ENGINE}/api/whatif`, {
     method: "POST", headers: { "content-type": "application/json" },
