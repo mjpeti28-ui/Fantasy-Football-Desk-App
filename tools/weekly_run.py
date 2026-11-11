@@ -281,7 +281,7 @@ def main(argv=None) -> int:
         timing_check()
     except Exception as e:  # noqa: BLE001
         print(f"[FAIL] timing check: {e}")
-    run("health check", ["tools/health_check.py"])
+    run("health check", ["tools/health_check.py", "--rankings", "FantasyPros_ROS_rankings.csv", "--projections", "FantasyPros_ROS_projections.csv"])
     _archive_ledger()  # a rerun later in the week (e.g. Desk's Full refresh) keeps the earlier forecasts
     ctx, tvals, odds = ledger_step()
     briefing(ctx, tvals, odds)
