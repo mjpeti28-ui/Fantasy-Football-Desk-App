@@ -217,11 +217,13 @@ def ppr(L: dict) -> float:
     return round(0.04 * L.get("pass_yd", 0) + 4 * L.get("pass_td", 0) - 2 * L.get("ints", 0)
                  + 0.1 * L.get("rush_yd", 0) + 6 * L.get("rush_td", 0)
                  + L.get("rec", 0) + 0.1 * L.get("rec_yd", 0) + 6 * L.get("rec_td", 0)
-                 - 2 * L.get("fl", 0) + 2 * L.get("two_pt", 0), 2)
+                 - 2 * L.get("fl", 0) + 2 * L.get("two_pt", 0)
+                 # league bonuses (ESPN scoringItems 17, 38, 35, 46): +1 each
+                 + (300 <= L.get("pass_yd", 0) < 400) + (L.get("rush_yd", 0) >= 200) + L.get("long_td", 0), 2)
 
 
 def _fg_points(dist: float) -> float:
-    return 5.0 if dist >= 50 else 4.0 if dist >= 40 else 3.0
+    return 6.0 if dist >= 60 else 5.0 if dist >= 50 else 4.0 if dist >= 40 else 3.0
 
 
 def kicker_points(plays: List[dict], name_short: str) -> float:
@@ -242,7 +244,7 @@ def kicker_points(plays: List[dict], name_short: str) -> float:
     return pts
 
 
-PA_TIERS = [(0, 5), (6, 4), (13, 3), (17, 1), (21, 0), (27, -1), (34, -4), (45, -6), (999, -10)]
+PA_TIERS = [(0, 5), (6, 4), (13, 3), (17, 1), (27, 0), (34, -1), (45, -3), (999, -5)]  # league's, not ESPN default
 YA_TIERS = [(99, 5), (199, 3), (299, 2), (349, 0), (399, -1), (449, -3), (499, -5), (549, -6), (9999, -7)]
 
 
@@ -319,10 +321,10 @@ def play_events(plays: List[dict], ids: set, team_ids: Dict[str, str]) -> Tuple[
                 catch = typ in CATCH_TYPES
                 td = typ == "passing touchdown"
                 e.update(kind="catch" if catch else "target", yards=yd if catch else 0, td=td,
-                         pts=(1 + 0.1 * yd + (6 if td else 0)) if catch else 0.0)
+                         pts=(1 + 0.1 * yd + (6 if td else 0) + (td and yd >= 50)) if catch else 0.0)
             elif role == "rusher" and typ in RUSH_TYPES:
                 td = typ == "rushing touchdown"
-                e.update(kind="carry", yards=yd, td=td, pts=0.1 * yd + (6 if td else 0))
+                e.update(kind="carry", yards=yd, td=td, pts=0.1 * yd + (6 if td else 0) + (td and yd >= 40))
             elif role == "passer" and is_pass:
                 td = typ == "passing touchdown"
                 comp = typ in CATCH_TYPES
@@ -588,6 +590,8 @@ def board(snap: dict, player_file: Callable[[int], dict] = None) -> dict:
             tp = two_points(plays.get(g["event"], []), short_name(p["name"]))
             if tp:
                 L["two_pt"] = len(tp)
+            L["long_td"] = sum(1 for e in events.get(aid, []) if e.get("td") and (
+                (e["kind"] == "carry" and e["yards"] >= 40) or (e["kind"] == "catch" and e["yards"] >= 50)))
             p["line"] = {k: v for k, v in L.items() if k != "team"}
             p["pts"] = ppr(L)
             p["events"] = sorted(events.get(aid, []) + tp, key=lambda e: e["seq"])
