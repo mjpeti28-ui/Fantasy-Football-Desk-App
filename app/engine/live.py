@@ -676,15 +676,31 @@ def _series(me, opp, ratio_q, games, plays) -> List[dict]:
         for e in p["events"]:
             if e["pts"]:
                 marks.append((e.get("wall") or "", e["seq"], p["event"], e["elapsed"], e["score"], p["id"], e["pts"], e["text"], e["period"], e["clock"]))
-    marks.sort(key=lambda m: (m[0], m[1]))
-    # each game's plays in wall order, so a player in another game can be put back where his game stood
+    # each game's plays in play order, keyed (wall, seq) with the wall clock made non-decreasing: ESPN's
+    # wallclocks sometimes run backwards, and plays in two games can share a second. One key orders
+    # marks and puts other games back, so a play is never counted at a mark sorted before its own.
     tl = {}
     for ev, pls in plays.items():
-        rows = sorted(((pl.get("wallclock") or "", int(pl.get("sequenceNumber") or 0), pl) for pl in pls if pl.get("wallclock")),
-                      key=lambda r: (r[0], r[1]))
-        tl[ev] = ([r[0] for r in rows], [r[2] for r in rows])
-    out = []
-    for wall, seq, ev, el, score, who, dpts, text, per, clk in marks[-120:]:
+        keys, rows, w = [], [], ""
+        for pl in sorted(pls, key=lambda x: int(x.get("sequenceNumber") or 0)):
+            w = max(w, pl.get("wallclock") or "")
+            if w:
+                keys.append((w, int(pl.get("sequenceNumber") or 0)))
+                rows.append(pl)
+        tl[ev] = (keys, rows)
+
+    seqs = {ev: [k[1] for k in keys] for ev, (keys, _) in tl.items()}
+
+    def key(ev, seq, wall):
+        j = bisect.bisect_right(seqs.get(ev, []), seq) - 1
+        return (tl[ev][0][j][0] if j >= 0 else wall, seq)
+    # a touchdown is both a score change and the scorer's own play: keep the player's mark only
+    scored = {(m[2], m[1]) for m in marks if m[5] is not None and m[6]}
+    marks = [m for m in marks if m[5] is not None or (m[2], m[1]) not in scored]
+    marks = [(key(m[2], m[1], m[0]),) + m for m in marks]
+    marks.sort(key=lambda m: m[0])
+    out, done = [], set()
+    for mk, wall, seq, ev, el, score, who, dpts, text, per, clk in marks[-120:]:
         def at(p):
             q = dict(p)
             if p["event"] is None or p["state"] not in ("in", "post"):
@@ -693,9 +709,9 @@ def _series(me, opp, ratio_q, games, plays) -> List[dict]:
             if p["event"] != ev:
                 # another game: put it back to its last play at or before this wall time
                 walls, pls = tl.get(p["event"], ([], []))
-                if not walls or not wall:
+                if not walls:
                     return q
-                i = bisect.bisect_right(walls, wall) - 1
+                i = bisect.bisect_right(walls, mk) - 1
                 if i < 0:
                     q.update(state="pre", pts=0.0)
                     return q
@@ -707,7 +723,9 @@ def _series(me, opp, ratio_q, games, plays) -> List[dict]:
             if p["pos"] == "K":
                 pts = kicker_points([x for x in plays.get(p["event"], []) if int(x.get("sequenceNumber") or 0) <= s_], short_name(p["name"]))
             else:
-                pts = sum(e["pts"] for e in p["events"] if e["seq"] <= s_)
+                # one play can score for two tracked players (QB and receiver): each gets his own mark
+                pts = sum(e["pts"] for e in p["events"] if e["seq"] < s_ or (e["seq"] == s_ and (
+                    p["event"] != ev or p["id"] == who or (ev, s_, p["id"]) in done)))
             q.update(state="in", elapsed=el_, pts=pts, tilt=1.0)
             if p["pos"] == "DST" and p.get("dst"):
                 g = gstate.get(p["event"])
@@ -718,6 +736,7 @@ def _series(me, opp, ratio_q, games, plays) -> List[dict]:
                                 banked=p["dst"]["banked"] * min(1.0, frac))
             return q
         sim = simulate([at(p) for p in me], [at(p) for p in opp], ratio_q, n=3000, seed=11)
+        done.add((ev, seq, who))
         out.append({"wall": wall, "elapsed": el, "event": ev, "p_win": sim["p_win"], "lev": sim["lev"], "who": who,
                     "pts": round(dpts, 1), "text": text[:140], "period": per, "clock": clk})
     return out
