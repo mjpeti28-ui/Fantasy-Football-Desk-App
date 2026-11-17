@@ -18,9 +18,12 @@ SCORABLE_GROUPS = {"QB", "RB", "WR", "TE"}
 def client() -> TestClient:
     if TestClient is None:
         pytest.skip("fastapi not installed")
+    import os
     from api.main import app
 
-    return TestClient(app)
+    # .env.local may set PFF_API_KEY (loaded on import), which makes the API require it
+    key = os.environ.get("PFF_API_KEY")
+    return TestClient(app, headers={"X-API-Key": key} if key else None)
 
 
 @pytest.fixture(scope="module")

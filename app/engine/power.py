@@ -81,7 +81,10 @@ def _values(inp: d.Inputs, week: int) -> Dict[int, float]:
     pj = inp.espn_proj
     mean = pj[pj["week"] < week].groupby("espn_id")["espn_proj"].mean()
     v = {int(i): float(x) for i, x in mean.items()}
-    v.update({int(i): float(x) for i, x in zip(pj[pj["week"] == week]["espn_id"], pj[pj["week"] == week]["espn_proj"])})
+    lp = inp.ledger_players
+    on_bye = set(lp.loc[lp["bye"] == week, "espn_id"].astype(int)) if "bye" in lp else set()
+    v.update({int(i): float(x) for i, x in zip(pj[pj["week"] == week]["espn_id"], pj[pj["week"] == week]["espn_proj"])
+              if int(i) not in on_bye or int(i) not in v})  # a bye keeps the mean so far, not ESPN's 0
     return v
 
 
