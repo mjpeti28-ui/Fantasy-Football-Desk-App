@@ -99,8 +99,10 @@ def run_health_check(
 
     # -- matching
     unmatched = sorted({k for k, v in amap.items() if v is None})
+    match_finding = None
     if unmatched:
-        findings.append(Finding("ERROR", "matching", f"{len(unmatched)} rostered players match nothing in the rankings and are left out of the evaluation", unmatched))
+        match_finding = Finding("ERROR", "matching", f"{len(unmatched)} rostered players match nothing in the rankings and are left out of the evaluation", unmatched)
+        findings.append(match_finding)
     else:
         findings.append(Finding("INFO", "matching", f"all {len(amap)} rostered players matched"))
 
@@ -145,6 +147,17 @@ def run_health_check(
                 st = st or "INJURY_RESERVE"
             status[p.full_name] = st
             owner[p.full_name] = team.name
+
+    # ROS rankings drop long-term IR players, so an unmatched player who is out/IR isn't a matching bug
+    if match_finding:
+        hurt = [n for n in match_finding.players if status.get(n) in OUT_STATUSES]
+        if hurt:
+            match_finding.players = [n for n in match_finding.players if n not in hurt]
+            findings.append(Finding("INFO", "matching", "out/IR and not in the ROS rankings (expected)", hurt))
+            if match_finding.players:
+                match_finding.message = f"{len(match_finding.players)} rostered players match nothing in the rankings and are left out of the evaluation"
+            else:
+                findings.remove(match_finding)
 
     out = sorted(f"{n} ({s}, {owner[n]})" for n, s in status.items() if s in OUT_STATUSES)
     if out:
