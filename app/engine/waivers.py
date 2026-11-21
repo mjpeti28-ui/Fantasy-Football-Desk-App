@@ -96,7 +96,7 @@ def save_keep(ids: Iterable[int]) -> List[int]:
 
 def board(top: int = 6) -> dict:
     keep = tuple(load_keep())
-    key = ("board2", top, d.load().week, d.ages_key(), _tags_stamp(), keep)
+    key = ("board3", top, d.load().week, d.ages_key(), _tags_stamp(), keep)
     with _lock:
         if key in _cache:
             return _cache[key]
@@ -137,6 +137,43 @@ def _next_week(ctx, t, mine, pool, nfl, v, n: int = 9) -> dict | None:
     adds = [a for k, a in enumerate(adds) if sum(b["pos"] == a["pos"] for b in adds[:k]) < 3]  # top 3 per position
     byes = [{"id": int(i), "name": str(t.at[i, "name"]), "pos": t.at[i, "position"]} for i in active if t.at[i, "bye"] == wk]
     return {"week": wk, "byes": byes, "lineup": round(base, 1), "adds": adds[:n]}
+
+
+def kdst_week(pos: str, espn: float, game: dict | None) -> tuple[float, str] | None:
+    """This week's K / D/ST points: ESPN's weekly projection pulled toward the betting line. OLS on
+    2021-25 (backtest/kdst_vegas.py): ESPN's K/DST numbers are ~2.5x too spread out, and the line
+    ranks them better (top-20 rank corr D/ST .19 -> .25, K .04 -> .14, 5/5 seasons LOSO)."""
+    if not espn or espn <= 0 or not game or game.get("bye") or game.get("implied_total") is None or game.get("game_total") is None:
+        return None
+    imp, tot = game["implied_total"], game["game_total"]
+    opp_imp, spread = tot - imp, 2 * imp - tot
+    vs = f"{'vs' if game['home'] else '@'} {game['opp']}"
+    if pos == "DST":
+        return 3.635 + 0.408 * espn - 0.463 * (opp_imp - 22.5), f"{vs}, who are expected to score {opp_imp:.1f}"
+    sp = round(spread * 2) / 2  # implied totals are rounded; lines move in half points
+    fav = f"favored by {sp:g}" if sp > 0 else (f"{-sp:g}-pt underdog" if sp < 0 else "even game")
+    return 4.599 + 0.394 * espn + 0.084 * spread + 1.002 * bool(game.get("indoor")), f"{vs}, {fav}" + (", indoors" if game.get("indoor") else "")
+
+
+def _stream(ctx, t, mine, pool, nfl, n: int = 3) -> dict:
+    """K and D/ST for this week only: your starter vs the best free agents by kdst_week."""
+    from .views import _nfl_game
+    inp, out = d.load(), {}
+    for pos in ("DST", "K"):
+        def rows(ids, mine=False):
+            r = []
+            for i in ids:
+                if t.at[i, "position"] != pos:
+                    continue
+                e = float(t.at[i, "espn_now"]) if pd.notna(t.at[i, "espn_now"]) else 0.0
+                g = _nfl_game(inp, nfl.get(int(i)), ctx.week)
+                k = (0.0, "on bye") if mine and g and g.get("bye") else kdst_week(pos, e, g)
+                if k:
+                    r.append({"id": int(i), "name": str(t.at[i, "name"]), "team": nfl.get(int(i)), "pts": round(k[0], 1),
+                              "espn": round(e, 1), "why": k[1]})
+            return sorted(r, key=lambda z: -z["pts"])
+        out[pos] = {"mine": rows([i for i in mine if i not in ctx.ir_slot], True), "adds": rows(pool.index)[:n]}
+    return {"week": ctx.week, **out}
 
 
 def _build(top: int, keep: Iterable[int] = ()) -> dict:
@@ -198,7 +235,7 @@ def _build(top: int, keep: Iterable[int] = ()) -> dict:
                              "avail": round(float(t.at[i, "avail"]), 3), "ir": int(i) in ctx.ir_slot, "team": nfl.get(int(i)),
                              "usage": usage.get(int(i)), "drop_cost": None if int(i) not in cost else round(cost[int(i)], 1),
                              "kept": int(i) in keep})
-    out = {"week": ctx.week, "next_week": _next_week(ctx, t, mine, pool, nfl, v), "candidates": sorted(cands, key=lambda c: -c["gain"]), "depth": depth,
+    out = {"week": ctx.week, "next_week": _next_week(ctx, t, mine, pool, nfl, v), "stream": _stream(ctx, t, mine, pool, nfl),"candidates": sorted(cands, key=lambda c: -c["gain"]), "depth": depth,
            "keep": sorted(int(i) for i in mine if int(i) in keep),
            "replacement": {p: round(float(ctx.replacement.get(p, 0.0)), 2) for p in POS},
            "left_off": [{"name": str(n), "tag": str(g)} for n, g in zip(hurt["name"], hurt["tag"])],

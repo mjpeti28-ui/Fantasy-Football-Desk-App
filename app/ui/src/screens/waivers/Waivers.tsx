@@ -168,6 +168,34 @@ function NextWeek({ board, onSel }: { board: WaiverBoard; onSel: (id: number) =>
   );
 }
 
+function StreamWeek({ board, onSel }: { board: WaiverBoard; onSel: (id: number) => void }) {
+  const { open } = useFile();
+  const s = board.stream;
+  if (!s) return null;
+  const inList = new Set(board.candidates.map((c) => c.id));
+  const yours = (["DST", "K"] as const).map((p) => s[p].mine[0]).filter((m) => m);
+  const cards = (["DST", "K"] as const).flatMap((pos) => {
+    const m = s[pos].mine[0];
+    return s[pos].adds.filter((a) => !m || a.pts > m.pts).map((a) => ({ ...a, pos, over: m ? { name: m.name, gain: a.pts - m.pts } : null }));
+  });
+  return (
+    <section className="risers" aria-label={`Week ${s.week} K and D/ST streamers`}>
+      <h3>Week {s.week} K and D/ST <span>{yours.length ? `yours: ${yours.map((m) => `${ladderName(m.name)} ${m.why === "on bye" ? "on bye" : f1(m.pts)}`).join(", ")} · ` : ""}this week only, ESPN's number pulled toward the betting line</span></h3>
+      {cards.length ? (
+        <div className="rs-grid">
+          {cards.map((a) => (
+            <button key={a.id} type="button" className="rs" onClick={() => (inList.has(a.id) ? onSel(a.id) : open(a.id, cards.map((x) => x.id)))}>
+              <span className="rs-top"><i className="pchip" style={{ background: POS_VAR[a.pos], color: "var(--pos-ink)" }}>{a.pos}</i><b>{a.name}</b><small>{a.team ?? "FA"}</small></span>
+              <span className="rs-bot"><em>{a.over ? `+${f1(a.over.gain)} over ${ladderName(a.over.name)}` : `${f1(a.pts)} this week`}</em><span className="dim">{f1(a.pts)} (ESPN {f1(a.espn)}) · {a.why}</span></span>
+            </button>
+          ))}
+        </div>
+      ) : <p className="dim">Nobody on the wire beats your K or D/ST this week.</p>}
+      <p className="dim">Each point the opponent is expected to score costs a D/ST about 0.46. Kickers gain about 0.6 when favored by 7 and 1 indoors. ESPN's K and D/ST numbers swing about 2.5 times too far, so this shrinks them toward the middle. Since 2021, the top 5 by this number beat ESPN's top 5 by about 0.6 points a week (2026 so far: D/ST +1.0, kickers +0.7 but not clear of noise). A single week is mostly luck.</p>
+    </section>
+  );
+}
+
 export function Waivers({ board, err, sel, onSel, players, roles, shifts, onKeep, busy }: { board: WaiverBoard | null; err: string | null; sel: number | null; onSel: (id: number) => void; players: Player[]; roles: RolesBoard | null; shifts?: Shifts | null; onKeep?: (ids: number[]) => void; busy?: boolean }) {
   const [filter, setFilter] = useState<Pos | "ALL">("ALL");
   const [pick, setPick] = useState(false);
@@ -201,6 +229,7 @@ export function Waivers({ board, err, sel, onSel, players, roles, shifts, onKeep
       </section>
       <p className="wv-key"><span className="k-mine" /> yours <span className="k-fa" /> best free agents <span className="k-repl" /> replacement level · height is rest-of-season points per game when playing (hover for numbers), same scale everywhere</p>
       <NextWeek board={board} onSel={onSel} />
+      <StreamWeek board={board} onSel={onSel} />
       <Risers shifts={shifts ?? null} board={board} onSel={onSel} />
       <section className="wv-list">
         <div className="wv-tools">
