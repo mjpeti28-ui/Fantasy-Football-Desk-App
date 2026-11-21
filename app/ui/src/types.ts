@@ -174,7 +174,10 @@ export interface WaiverBoard {
   /** next week's byes on your roster and the free agents that add most to that one week's lineup */
   next_week?: { week: number; byes: { id: number; name: string; pos: Pos }[]; lineup: number;
     adds: { id: number; name: string; pos: Pos; team: string | null; pts: number; gain: number; tag: string }[] } | null;
+  /** this week's K / D/ST: ESPN's projection pulled toward the betting line, yours vs the best free agents */
+  stream?: { week: number } & Record<"K" | "DST", { mine: StreamRow[]; adds: StreamRow[] }>;
 }
+export interface StreamRow { id: number; name: string; team: string | null; pts: number; espn: number; why: string }
 
 export type JKind = "lineup" | "waiver" | "trade" | "note";
 export type JStatus = "done" | "offered" | "skipped";

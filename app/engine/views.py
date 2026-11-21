@@ -54,9 +54,11 @@ def _nfl_game(inp: d.Inputs, abbrev: Optional[str], week: int) -> Optional[dict]
     implied = None
     if spread is not None and total is not None:  # nflverse spread_line > 0 means home favored
         implied = round((total + spread) / 2 if home else (total - spread) / 2, 1)
+    # roof is only filled in for retractable stadiums after the game; they're closed ~85% of the time
+    indoor = g.get("roof") == "dome" or (g["home_team"] in {"ARI", "ATL", "DAL", "HOU", "IND"} and g.get("roof") != "outdoors")
     return {"bye": False, "opp": opp, "home": bool(home), "day": str(g.get("weekday", ""))[:3],
             "date": str(g.get("gameday", "")), "time": str(g.get("gametime", "")),
-            "implied_total": implied, "game_total": total}
+            "implied_total": implied, "game_total": total, "indoor": bool(indoor)}
 
 
 def _range(inp: d.Inputs, pos: str, center: Optional[float]) -> Optional[List[float]]:
