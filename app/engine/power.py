@@ -113,7 +113,13 @@ def view(sims: int = 2000) -> dict:
     pts = {(int(w), int(t)): float(p) for w, t, p in zip(tw["week"], tw["team_id"], tw["points"])}
     roster_now = int(inp.rosters["week"].max())
     started = inp.rosters[inp.rosters["lineup_slot"].isin(STARTER_SLOTS)]
-    pjw = started.merge(inp.espn_proj, on=["week", "espn_id"], how="left").groupby(["week", "team_id"])["espn_proj"].sum()
+    sp = started.merge(inp.espn_proj, on=["week", "espn_id"], how="left")
+    pj = inp.espn_proj
+    for w in sp.loc[sp["espn_proj"].isna(), "week"].unique():  # no projection: mean projection before that week (as _values)
+        m = sp["espn_proj"].isna() & (sp["week"] == w)
+        sp.loc[m, "espn_proj"] = sp.loc[m, "espn_id"].map(pj[pj["week"] < w].groupby("espn_id")["espn_proj"].mean())
+    pjw = sp.groupby(["week", "team_id"])["espn_proj"].sum(min_count=1).where(sp.groupby(["week", "team_id"])["espn_proj"].count()
+                                                                             == sp.groupby(["week", "team_id"]).size())
     proj = {(int(w), int(t)): float(p) for (w, t), p in pjw.items() if p > 0}
 
     # strength by week: roster during week w, values known before week w+1
