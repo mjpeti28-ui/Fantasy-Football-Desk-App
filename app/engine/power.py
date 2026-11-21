@@ -2,9 +2,10 @@
 and the in-season context behind it. Method and every trust note come from the Sleeper backtests in
 backtest/ (1,000 public leagues, 2021-25) and the face-validity run on this league (2021-25).
 
-Power Score = w * strength + (1 - w) * PF/g, where strength = points the best legal lineup from the
+Power Score = w * strength + (1 - w) * (projected PF/g + OVER_SHRINK * over/under), where strength = points the best legal lineup from the
 roster would score on ESPN's next-week projections (byes/absent filled with the player's mean
-projection so far), averaged over the last 3 weeks of rosters. Read-only; reuses league.simulate_crn.
+projection so far), averaged over the last 3 weeks of rosters, and projected PF/g = ESPN projections of the
+starters actually used. Read-only; reuses league.simulate_crn.
 """
 from __future__ import annotations
 
@@ -14,7 +15,7 @@ from typing import Dict, List, Optional
 import numpy as np
 
 from . import analytics, data as d, league, store
-from .views import _records, best_lineup, power_table
+from .views import STARTER_SLOTS, _records, best_lineup, power_table
 
 TIER_GAP = 5.5        # pts/wk: P(leader finishes ahead) = 60% at this gap
 LOGIT_B = 0.074       # P(A finishes ahead ROS) = 1/(1+exp(-b*gap)); fits 60/70/80% at 5.5/11.4/18.7 (Sleeper)
@@ -22,6 +23,7 @@ P_CAP = 0.70          # shown as "70%+": beyond ~11 pts/wk this league ran less 
 GOOD_TRADE = 2.6      # pts/wk, Sleeper median of the winning side of a trade
 BONUS = 5.0           # pts/wk added in the sim for "what +1 pt/wk buys" (scaled back to 1)
 SMOOTH = 3            # weeks of strength averaged (same accuracy, about 35% less churn than 1 week)
+OVER_SHRINK = 0.4     # share of over/under-vs-projection kept in the scoring term (Sleeper raw-pts LOSO fit .35-.49)
 
 NOTES = {
     "power": "Expected points per week from here on. In 1,000 Sleeper leagues it ordered pairs of teams right 68% of "
@@ -110,6 +112,9 @@ def view(sims: int = 2000) -> dict:
     tw = inp.team_weekly[inp.team_weekly["week"] <= W]
     pts = {(int(w), int(t)): float(p) for w, t, p in zip(tw["week"], tw["team_id"], tw["points"])}
     roster_now = int(inp.rosters["week"].max())
+    started = inp.rosters[inp.rosters["lineup_slot"].isin(STARTER_SLOTS)]
+    pjw = started.merge(inp.espn_proj, on=["week", "espn_id"], how="left").groupby(["week", "team_id"])["espn_proj"].sum()
+    proj = {(int(w), int(t)): float(p) for (w, t), p in pjw.items() if p > 0}
 
     # strength by week: roster during week w, values known before week w+1
     st: Dict[int, Dict[int, float]] = {}
@@ -126,7 +131,9 @@ def view(sims: int = 2000) -> dict:
         for t in teams:
             s = np.mean([(cur or st[w])[t]] + [st[w - j][t] for j in range(1, SMOOTH) if w - j >= 1])
             pf = np.mean([pts[(k, t)] for k in range(1, w + 1)])
-            out[t] = {"strength": float(s), "pf_g": float(pf), "power": float(a * s + (1 - a) * pf)}
+            pj = np.mean([proj.get((k, t), pts[(k, t)]) for k in range(1, w + 1)])  # no projection -> count as on-projection
+            adj = pj + OVER_SHRINK * (pf - pj)
+            out[t] = {"strength": float(s), "pf_g": float(pf), "pf_adj": float(adj), "power": float(a * s + (1 - a) * adj)}
         return out
     hist = {w: power_at(w) for w in range(3, W)}
     hist[W] = power_at(W, st_now)
@@ -193,7 +200,7 @@ def view(sims: int = 2000) -> dict:
         a = strength_weight(W)
         d_rank = (prank[t] - rank[t]) if prank else 0
         if prank and d_rank:
-            ds, dp = a * (c["strength"] - prev[t]["strength"]), (1 - a) * (c["pf_g"] - prev[t]["pf_g"])
+            ds, dp = a * (c["strength"] - prev[t]["strength"]), (1 - a) * (c["pf_adj"] - prev[t]["pf_adj"])
             driver = "roster" if abs(ds) > abs(dp) else "scoring"
         else:
             driver = None
@@ -202,7 +209,7 @@ def view(sims: int = 2000) -> dict:
         out.append({
             "id": t, "name": inp.team_name(t), "power": round(c["power"], 1), "rank": rank[t], "tier": tier[t],
             "rank_change": d_rank, "driver": driver,
-            "strength": round(c["strength"], 1), "pf_g": round(c["pf_g"], 1), "weight": round(a, 2),
+            "strength": round(c["strength"], 1), "pf_g": round(c["pf_g"], 1), "pf_adj": round(c["pf_adj"], 1), "weight": round(a, 2),
             "record": {"w": r["w"], "l": r["l"], "t": r["t"]},
             "ledger": {"wins": r["w"] + 0.5 * r["t"], "allplay_wins": round(ap[t], 2),
                        "sched_luck": round(r["w"] + 0.5 * r["t"] - ap[t], 2),
@@ -217,5 +224,5 @@ def view(sims: int = 2000) -> dict:
         })
     out.sort(key=lambda z: z["rank"])
     return {"season": inp.season, "through_week": W, "roster_week": roster_now, "sims": sims,
-            "weight": round(strength_weight(W), 2), "tier_gap": TIER_GAP, "good_trade": GOOD_TRADE,
+            "weight": round(strength_weight(W), 2), "over_shrink": OVER_SHRINK, "tier_gap": TIER_GAP, "good_trade": GOOD_TRADE,
             "logit_b": LOGIT_B, "p_cap": P_CAP, "teams": out, "notes": NOTES}

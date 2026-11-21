@@ -365,7 +365,7 @@ export interface Accuracy {
 /** GET /api/power — League › Power (Power Score = expected pts/wk from here on) */
 export interface PwTeam {
   id: number; name: string; power: number; rank: number; tier: number; rank_change: number; driver: "roster" | "scoring" | null;
-  strength: number; pf_g: number; weight: number; record: { w: number; l: number; t: number };
+  strength: number; pf_g: number; pf_adj: number; weight: number; record: { w: number; l: number; t: number };
   ledger: { wins: number; allplay_wins: number; sched_luck: number; proj_g: number; over_g: number; opp_over: number; lineup_cost_g: number | null };
   fragility: { share: number; player: string | null };
   trajectory: number | null; moves: { name: string; dir: "in" | "out"; v: number }[];
@@ -373,6 +373,6 @@ export interface PwTeam {
   history: { week: number; power: number }[];
 }
 export interface PowerView {
-  season: number; through_week: number; roster_week: number; sims: number; weight: number; tier_gap: number; good_trade: number;
+  season: number; through_week: number; roster_week: number; sims: number; weight: number; over_shrink: number; tier_gap: number; good_trade: number;
   logit_b: number; p_cap: number; teams: PwTeam[]; notes: Record<string, string>; message?: string;
 }

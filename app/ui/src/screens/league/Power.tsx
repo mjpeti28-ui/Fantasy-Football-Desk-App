@@ -117,7 +117,7 @@ export function Power(p: Props) {
     const lead = above ? <>You're <b>#{me.rank}</b>, {f1(above.power - me.power)} pts/wk behind {above.name} (they finish ahead {pAhead(pw, above.power - me.power)} of the time)</>
       : <>You're <b>#1</b>{below ? <>, {f1(me.power - below.power)} pts/wk ({f1((me.power - below.power) / pw.good_trade)} good trades) ahead of {below.name}</> : null}</>;
     return <>{lead}. {myTier.length ? <>Same tier: {myTier.map((t) => t.name).join(", ")}. </> : <>Nobody else in your tier. </>}
-      Your points are {signed(me.ledger.over_g)} a week {me.ledger.over_g >= 0 ? "above" : "below"} your starters' projections; that part hasn't carried over in past seasons.</>;
+      Your points are {signed(me.ledger.over_g)} a week {me.ledger.over_g >= 0 ? "above" : "below"} your starters' projections; Power keeps {Math.round(pw.over_shrink * 100)}% of that, since most of it hasn't carried over in past seasons.</>;
   })();
 
   return (
@@ -128,7 +128,7 @@ export function Power(p: Props) {
           <p className="take">{take}</p>
         </div>
         <p className="pw-def" title={n.power}>
-          Power Score = expected points per week from here on: {Math.round(pw.weight * 100)}% roster strength (best lineup on ESPN's projections, 3-week average) + {Math.round((1 - pw.weight) * 100)}% points per game so far. {n.power.replace(/^Expected points per week from here on\. /, "")}
+          Power Score = expected points per week from here on: {Math.round(pw.weight * 100)}% roster strength (best lineup on ESPN's projections, 3-week average) + {Math.round((1 - pw.weight) * 100)}% points per game so far (starters' projected points plus {Math.round(pw.over_shrink * 100)}% of the over/under). {n.power.replace(/^Expected points per week from here on\. /, "")}
         </p>
       </header>
 
@@ -225,7 +225,7 @@ export function Power(p: Props) {
 export function powerMarkdown(pw: PowerView, myId: number) {
   const me = pw.teams.find((t) => t.id === myId)!;
   const L = [`## Power after week ${pw.through_week} (from Desk)`, "",
-    `Power Score = expected pts/wk from here on (${Math.round(pw.weight * 100)}% roster strength, ${Math.round((1 - pw.weight) * 100)}% points per game). Tiers: within ${pw.tier_gap} pts/wk of the tier's top team.`, "",
+    `Power Score = expected pts/wk from here on (${Math.round(pw.weight * 100)}% roster strength, ${Math.round((1 - pw.weight) * 100)}% points per game, over/under vs projections counted at ${Math.round(pw.over_shrink * 100)}%). Tiers: within ${pw.tier_gap} pts/wk of the tier's top team.`, "",
     "| # | Tier | Team | Power | Roster | Pts/g | You finish ahead | Wins = exp + luck | Pts/g over proj | Lineup vs ESPN-best | Playoffs | Title |",
     "|---|---|---|---|---|---|---|---|---|---|---|---|"];
   for (const t of pw.teams)
