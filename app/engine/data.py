@@ -92,11 +92,35 @@ def load(season: int = 2026) -> Inputs:
         ledger_players=pd.read_csv(LEDGER / str(season) / f"wk{latest:02d}_players.csv"),
         ledger_teams={w: pd.read_csv(p) for w, p in sorted(lw.items())},
         pro_teams=pd.read_csv(a / "byes.csv"),
-        nfl_sched=nfl[nfl["season"] == season].copy(),
+        nfl_sched=_espn_kickoffs(nfl[nfl["season"] == season].copy(), season, int(week)),
         league_sched=pd.read_csv(ROOT / "schedule.csv"),
         ids=pd.read_csv(NFLVERSE / "ids.csv"),
         ratios=ratios, ages=ages,
     )
+
+
+def _espn_kickoffs(sched: pd.DataFrame, season: int, week: int) -> pd.DataFrame:
+    """Overwrite this week's kickoff day/date/time with ESPN's scoreboard, which picks up flexed
+    games within minutes (nflverse's schedule can lag by days). Offline: keep nflverse's times."""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    from . import live
+    try:
+        js = live._get(f"{live.SITE}/scoreboard?seasontype=2&week={week}&dates={season}", 300)
+    except Exception:
+        return sched
+    nv = {v: k for k, v in ESPN_TO_NFLVERSE.items()}
+    for ev in js.get("events", []):
+        teams = {c.get("homeAway"): live._team((c.get("team") or {}).get("abbreviation"))
+                 for c in (ev.get("competitions") or [{}])[0].get("competitors", [])}
+        try:
+            ko = datetime.fromisoformat(ev["date"].replace("Z", "+00:00")).astimezone(ZoneInfo("America/New_York"))
+        except (KeyError, ValueError):
+            continue
+        m = (sched["week"] == week) & (sched["away_team"] == nv.get(teams.get("away"), teams.get("away"))) \
+            & (sched["home_team"] == nv.get(teams.get("home"), teams.get("home")))
+        sched.loc[m, ["gameday", "weekday", "gametime"]] = [ko.strftime("%Y-%m-%d"), ko.strftime("%A"), ko.strftime("%H:%M")]
+    return sched
 
 
 def ages_key() -> tuple:
