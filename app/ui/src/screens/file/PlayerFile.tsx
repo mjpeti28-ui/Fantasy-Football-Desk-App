@@ -322,11 +322,15 @@ function BoxScore({ f }: { f: PF }) {
       : [{ k: "snap", h: "Snap %" }, { k: "rt", h: "Rec/Tgt" }, { k: "rec_yd", h: "Yds" }, { k: "rec_td", h: "TD" }, { k: "car", h: "Car" }, { k: "rush_yd", h: "Rush yds" }];
   const cell = (r: LogRow, k: string) => (!r.played ? "" : k === "ca" ? `${r.cmp}/${r.att}` : k === "rt" ? `${r.rec}/${r.tgt}` : (r as unknown as Record<string, number | null>)[k] ?? "–");
   const tot = (k: string) => rows.filter((r) => r.played).reduce((s, r) => s + (Number((r as unknown as Record<string, number | null>)[k]) || 0), 0);
+  // a run of unplayed weeks before his first game (rookie, preseason injury) is one row, not eight
+  const first = rows.findIndex((r) => r.played || r.upcoming);
+  const lead = first < 0 ? 0 : first;
   return (
     <table className="pf-box">
       <thead><tr><th>Wk</th><th>Opp</th>{cols.map((c) => <th key={c.h} className="r">{c.h}</th>)}<th className="r">Pts</th><th className="r">ESPN proj</th><th className="r">±</th></tr></thead>
       <tbody>
-        {rows.map((r) => {
+        {lead > 1 && <tr className="dnp"><td className="num">{rows[0].week}–{rows[lead - 1].week}</td><td colSpan={cols.length + 4}>Did not play (before his first game)</td></tr>}
+        {rows.slice(lead > 1 ? lead : 0).map((r) => {
           const pts = r.espn_pts ?? r.ppr; const d = pts != null && r.espn_proj != null ? pts - r.espn_proj : null;
           return <tr key={r.week} className={r.played ? "" : "dnp"}><td className="num">{r.week}</td><td>{r.played ? r.opp ?? "" : r.upcoming ? "Upcoming" : "Did not play"}</td>
             {cols.map((c) => <td key={c.h} className="r num">{cell(r, c.k as string)}</td>)}
@@ -493,7 +497,7 @@ function StyleMix({ f }: { f: PF }) {
       </div>
       <p className="pf-cap">
         {st.from_last_season ? "Based on last season until he has 2 games. " : ""}
-        {acc && G < 10 ? `Checked at ${G < 6 ? "3" : "6"} games (he has ${G}): labels like this matched the full-season call ${pct(acc.acc)} of the time (they claimed ${pct(acc.conf)}), so the bar is honest about its doubt. ` : ""}
+        {acc && G < 10 ? `Checked at ${G < 6 ? 3 : 6} games${G === (G < 6 ? 3 : 6) ? "" : `, the nearest checkpoint to his ${G}`}: labels like this matched the full-season call ${pct(acc.acc)} of the time (they claimed ${pct(acc.conf)}), so the bar is honest about its doubt. ` : ""}
         {tr ? `${st.name}s stay one the next year ${pct(tr[st.name])} of the time.` : ""}
       </p>
     </div>

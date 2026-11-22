@@ -8,9 +8,11 @@ import { pBeats } from "../../odds";
 import { type ColorMode, DEAD_PALETTE, type TeamColor, tilePalette } from "../../teamColor";
 import { STARTERS, type Plan, type Slot, canPlay, deadStarters, fixDead, move, planFrom, planPoints, rival, slotOf } from "./lineup";
 import { Carries, LineupCheck, SlotDuel } from "./Insights";
+import type { LiveBoard } from "../live/Live";
 import "./board.css";
 
 interface Props {
+  live?: LiveBoard | null;
   roles?: RolesBoard | null;
   tw: TeamWeek;
   plan: Plan;
@@ -75,7 +77,7 @@ function usePointerDrag(onDrop: (id: number, to: Target) => void, onClick: (id: 
   return { drag, start };
 }
 
-export function Board({ tw, plan, setPlan, selected, onSelect, ratioQ, colorMode, teamColors, roles, dropCost, freeAgents, onWaivers, onCopy }: Props) {
+export function Board({ tw, plan, setPlan, selected, onSelect, ratioQ, colorMode, teamColors, roles, dropCost, freeAgents, onWaivers, onCopy, live }: Props) {
   const { open: openFile, compare } = useFile();
   const dark = useDark();
   const by = useMemo(() => new Map(tw.players.map((p) => [p.id, p])), [tw]);
@@ -91,6 +93,8 @@ export function Board({ tw, plan, setPlan, selected, onSelect, ratioQ, colorMode
   const pWin = m ? phi((pts - m.opp_proj) / m.margin_sd) : null;
   // their lineup as set can carry 0-point starters (byes, outs); this is the chance if they fix them from their bench
   const pWinBest = m?.opp_best != null && m.opp_best - m.opp_proj >= 1 ? phi((pts - m.opp_best) / m.margin_sd) : null;
+  // once any game has started, the pre-game number above is stale: show Live's, which counts the scores so far
+  const pLive = live && [...live.me, ...live.opp].some((p) => p.state === "in" || p.state === "post") ? live.matchup.p_win : null;
   const dead = deadStarters(plan, by);
   const changed = STARTERS.filter((s) => plan[s] !== espnPlan[s]);
   const dragP = drag ? by.get(drag.id) ?? null : null;
@@ -179,7 +183,8 @@ export function Board({ tw, plan, setPlan, selected, onSelect, ratioQ, colorMode
           <span className="sub">{changed.length ? <>Plan differs from ESPN in {changed.length} slot{changed.length > 1 ? "s" : ""} · ESPN lineup {f1(tw.lineup.current_pts)} · <button type="button" className="linkbtn" onClick={() => setPlan(espnPlan)}>Reset</button></> : <>Matches your ESPN lineup</>}</span></div>
         <div className="mid">Week {tw.week}<br />vs</div>
         {m && <div className="them"><span className="t">{m.opp_name}</span><span className="v num">{f1(m.opp_proj)}</span><span className="sub">their lineup as set</span></div>}
-        {pWin != null && <div className="wp"><span className="v num">{pct(pWin)}</span><span className="sub">to win</span>
+        {pWin != null && <div className="wp"><span className="v num">{pct(pWin)}</span><span className="sub">{pLive != null ? "to win, before kickoff" : "to win"}</span>
+          {pLive != null && <span className="sub alt" title="Live's simulation of your ESPN lineup, with points already scored counted"><b className="num">{pct(pLive)}</b> now, with scores so far</span>}
           {pWinBest != null && <span className="sub alt" title={`Their best lineup from their own roster projects ${f1(m!.opp_best!)}${m!.opp_holes?.length ? `. Starters at 0 now: ${m!.opp_holes.join(", ")}` : ""}.`}><b className="num">{pct(pWinBest)}</b> if they fix their lineup</span>}</div>}
       </header>
 

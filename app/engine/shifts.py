@@ -55,6 +55,9 @@ def season_zone(ds, dh):
 ROUTE_T, SLOT_T = 15, 20  # role-mover thresholds, points of route share / slot rate (descriptive; not backtested as signals)
 
 
+MIN_SLOT_PP = 20  # pass snaps per side before a slot-rate change counts
+
+
 def role_moves(split: pd.DataFrame, weekly: pd.DataFrame) -> dict:
     """WR/TE route share (PFF routes / team dropbacks) and slot rate, last two weeks vs the weeks before,
     from roles_pff.recent_split. Needs a game in the recent weeks (one, while the newest week is under way) and 2+
@@ -71,10 +74,12 @@ def role_moves(split: pd.DataFrame, weekly: pd.DataFrame) -> dict:
         if n_r.get(g, 0) < 1 or n_e.get(g, 0) < 2 or not db_r.get(g) or not db_e.get(g) or not x["r_pass_plays"] or not x["e_pass_plays"]:
             continue
         fr, to = min(100.0, 100 * x["e_routes"] / db_e[g]), min(100.0, 100 * x["r_routes"] / db_r[g])
-        fs, ts = min(100.0, 100 * x["e_slot_snaps"] / x["e_pass_plays"]), min(100.0, 100 * x["r_slot_snaps"] / x["r_pass_plays"])
+        # slot rate on a handful of pass snaps swings 50 points on one alignment call: only read it with enough snaps on both sides
+        ok_slot = x["e_pass_plays"] >= MIN_SLOT_PP and x["r_pass_plays"] >= MIN_SLOT_PP
+        fs, ts = (min(100.0, 100 * x["e_slot_snaps"] / x["e_pass_plays"]), min(100.0, 100 * x["r_slot_snaps"] / x["r_pass_plays"])) if ok_slot else (None, None)
         out[g] = {"label": f"weeks {lo}–{hi} vs 1–{lo - 1}", "from_route": _f(fr, 0), "to_route": _f(to, 0), "d_route": _f(to - fr, 0),
-                  "from_slot": _f(fs, 0), "to_slot": _f(ts, 0), "d_slot": _f(ts - fs, 0),
-                  "games": int(n_r[g]), "move": bool(abs(to - fr) >= ROUTE_T or abs(ts - fs) >= SLOT_T)}
+                  "from_slot": _f(fs, 0), "to_slot": _f(ts, 0), "d_slot": _f(ts - fs, 0) if ok_slot else None,
+                  "games": int(n_r[g]), "move": bool(abs(to - fr) >= ROUTE_T or (ok_slot and abs(ts - fs) >= SLOT_T))}
     return out
 
 
