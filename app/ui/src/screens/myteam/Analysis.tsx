@@ -47,6 +47,28 @@ export function MyAnalysis({ tw, a, lg, err, selected, onSelect }: Props) {
           <Ev l="noise" tip="Didn't repeat in past seasons." />noise. Hover a chip for the numbers.</p>
       </header>
 
+      <section className="ins-panel">
+        <h5>Week by week <EvFor m={M} k="start" /><span>finish at his position each week</span></h5>
+        <TierLegend a={a} />
+        <table className="mta-wk">
+          <thead><tr><th /><th>Weeks 1–{a.through_week}</th><th title="Startable weeks">Start</th><th title="Smash weeks">Smash</th><th title="Dud weeks">Dud</th><th>Swing <EvFor m={M} k="cv" /></th></tr></thead>
+          <tbody>
+            {rows.map((p) => {
+              const sw = p.flags.find((f) => f.key === "volatile" || f.key === "steady");
+              return (
+                <tr key={p.id} className={selected === p.id ? "sel" : ""} onClick={() => pick(p.id)} onDoubleClick={() => dbl(p.id)}>
+                  <th className="nm">{lastName(p.name)}</th>
+                  <td><TierStrip w={p.weekly} pos={p.pos} /></td>
+                  <td className="num">{p.starts}/{p.games}</td><td className="num">{p.smashes || ""}</td><td className="num">{p.duds || ""}</td>
+                  <td className="sw"><span className="dim num" title="Coefficient of variation: weekly sd ÷ average">{p.cv != null ? p.cv.toFixed(2) : "–"}</span>{sw && <> <FlagChip f={sw} /></>}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <p className="mta-cap">Startable and smash rates repeat because they track how good a player is, which the model already knows. Swing (weekly spread ÷ average) repeats moderately but doesn't predict points; it matters only for how much risk you want in a given week.</p>
+      </section>
+
       <div className="mta-two">
         <section className="ins-panel">
           <h5>Scoring vs usage <EvFor m={M} k="fpoe" /><span>luck vs role</span></h5>
@@ -57,27 +79,7 @@ export function MyAnalysis({ tw, a, lg, err, selected, onSelect }: Props) {
             Expect most of that to {big.fpoe! > 0 ? "fade" : "come back"}; the model has him at {f1(big.est_ppg)} for the rest of the season.</p>}
         </section>
 
-        <section className="ins-panel">
-          <h5>Week by week <EvFor m={M} k="start" /><span>finish at his position each week</span></h5>
-          <TierLegend a={a} />
-          <table className="mta-wk">
-            <thead><tr><th /><th>Weeks 1–{a.through_week}</th><th title="Startable weeks">Start</th><th title="Smash weeks">Smash</th><th title="Dud weeks">Dud</th><th>Swing <EvFor m={M} k="cv" /></th></tr></thead>
-            <tbody>
-              {rows.map((p) => {
-                const sw = p.flags.find((f) => f.key === "volatile" || f.key === "steady");
-                return (
-                  <tr key={p.id} className={selected === p.id ? "sel" : ""} onClick={() => pick(p.id)} onDoubleClick={() => dbl(p.id)}>
-                    <th className="nm">{lastName(p.name)}</th>
-                    <td><TierStrip w={p.weekly} pos={p.pos} /></td>
-                    <td className="num">{p.starts}/{p.games}</td><td className="num">{p.smashes || ""}</td><td className="num">{p.duds || ""}</td>
-                    <td className="sw"><span className="dim num" title="Coefficient of variation: weekly sd ÷ average">{p.cv != null ? p.cv.toFixed(2) : "–"}</span>{sw && <> <FlagChip f={sw} /></>}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          <p className="mta-cap">Startable and smash rates repeat because they track how good a player is, which the model already knows. Swing (weekly spread ÷ average) repeats moderately but doesn't predict points; it matters only for how much risk you want in a given week.</p>
-        </section>
+        <section className="ins-panel"><ValueMoves rows={rows} a={a} pick={pick} sel={selected} /></section>
       </div>
 
       <section className="ins-panel">
@@ -109,10 +111,7 @@ export function MyAnalysis({ tw, a, lg, err, selected, onSelect }: Props) {
         <p className="mta-cap">Darker = higher, with no good or bad meaning (high swing is neither). These rank where he stands. Every column is already in the model unless it carries a chip saying otherwise.</p>
       </section>
 
-      <div className="mta-two">
-        <section className="ins-panel"><TeamWeeks tw={tw} lg={lg} /></section>
-        <section className="ins-panel"><ValueMoves rows={rows} a={a} pick={pick} sel={selected} /></section>
-      </div>
+      <section className="ins-panel mta-weeks"><TeamWeeks tw={tw} lg={lg} /></section>
       {missing.length > 0 && <p className="foot">No games yet this season: {missing.join(", ")}.</p>}
     </div>
   );

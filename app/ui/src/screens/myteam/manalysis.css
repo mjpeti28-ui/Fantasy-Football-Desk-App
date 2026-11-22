@@ -65,3 +65,5 @@
 .mta .mv:hover, .mta .mv.sel { background: var(--b-cell); }
 .mta .mv .d { text-align: right; font-weight: 650; } .mta .mv .d.up { color: var(--above); } .mta .mv .d.down { color: var(--below); }
 .mta .foot { margin: 0; font: 12px var(--sys); color: var(--b-ink2); }
+/* Your weeks sits alone on its row: keep the chart at its old size instead of stretching to the page */
+.mta .mta-weeks .mta-tw, .mta .mta-weeks > * { max-width: 680px; }
