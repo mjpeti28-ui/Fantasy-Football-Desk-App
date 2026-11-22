@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import type { ALeague, DraftRecap as DRec, LeagueLive, LiveOdds, OutItem, Power, PowerTeam, PowerView, WhatIfResult } from "../../types";
 import { Power as PowerPanel, powerMarkdown } from "./Power";
-import { SoFar } from "./SoFar";
 import { DraftRecap } from "./DraftRecap";
+import { DraftLanded, SoFar } from "./SoFar";
 import { f1, pct, signed } from "../../format";
 import { Analysis } from "./Analysis";
 import "./league.css";
@@ -128,7 +128,7 @@ export function League(p: Props) {
 
       <nav className="lg-jump" aria-label="League sections">
         {([...(p.pw?.teams.length ? [["lg-power", "Power"]] : []), ["lg-table", "Table"], ...(p.live?.analysis ? [["lg-analysis", "Analysis"]] : []), ...(p.alg ? [["lg-sofar", "Season so far"]] : []), ...(p.draft ? [["lg-draft", "Draft recap"]] : [])] as [string, string][]).map(([id, l]) =>
-          <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })}>{l}</button>)}
+          <button key={id} type="button" onClick={() => { const el = document.getElementById(id); if (el instanceof HTMLDetailsElement) el.open = true; el?.scrollIntoView({ behavior: "smooth", block: "start" }); }}>{l}</button>)}
       </nav>
 
       {p.pw?.teams.length ? <div id="lg-power" className="lg-sec"><PowerPanel pw={p.pw} myId={p.myId} oppId={p.oppId} onSelect={p.onSelect} /></div>
@@ -182,7 +182,7 @@ export function League(p: Props) {
       {p.live?.analysis && <div id="lg-analysis" className="lg-sec"><Analysis a={p.live.analysis} teams={teams} order={rows.map((t) => t.id)} myId={p.myId} oppId={p.oppId} onSelect={p.onSelect} onTrade={p.onTrade} /></div>}
       {!p.live?.analysis && p.engineUp && <p className="fig">Analysis appears once the live simulation finishes.</p>}
       {p.alg && <div id="lg-sofar" className="lg-sec"><SoFar lg={p.alg} myId={p.myId} oppId={p.oppId} onSelect={p.onSelect} /></div>}
-      {p.draft && <div id="lg-draft" className="lg-sec"><DraftRecap d={p.draft} myId={p.myId} oppId={p.oppId} onSelect={p.onSelect} /></div>}
+      {p.draft && <details id="lg-draft" className="lg-sec lg-more"><summary><h4>Draft recap</h4><span>how the draft has played out so far · background, not an in-season read</span></summary>{p.alg && <div className="analysis"><DraftLanded lg={p.alg} myId={p.myId} oppId={p.oppId} /></div>}<DraftRecap d={p.draft} myId={p.myId} oppId={p.oppId} onSelect={p.onSelect} /></details>}
     </div>
   );
 }

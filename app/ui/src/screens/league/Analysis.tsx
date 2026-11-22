@@ -183,7 +183,7 @@ function Race({ a, teams, order, myId, oppId, onSelect }: Props) {
   const rel = new Map([...raw].map(([t, ys]) => [t, ys.map((v, i) => v - avg[i])]));
   const all = [...rel.values()].flat();
   const ym = Math.max(20, ...all.map(Math.abs)) * 1.08;
-  const W = 900, H = 300, L = 44, R = 170, T = 14, B = 30;
+  const W = 900, H = 300, L = 44, R = 170, T = 30, B = 30; // top room for the leader's end label and "projected"
   const X = (w: number) => L + ((W - L - R) * (w - 1)) / (weeks.length - 1), Y = (v: number) => T + ((H - T - B) * (ym - v)) / (2 * ym);
   const path = (ys: number[], from: number, to: number) => ys.slice(from - 1, to).map((v, i) => `${i ? "L" : "M"}${X(from + i).toFixed(1)},${Y(v).toFixed(1)}`).join(" ");
   // end labels, nudged apart
@@ -199,7 +199,7 @@ function Race({ a, teams, order, myId, oppId, onSelect }: Props) {
       <header><h4>Points for</h4><p>Seeding is by record, and total points break ties. Points are also the best read of strength, since wins carry a lot of matchup luck: each team's season total against the league average, week by week. Solid = played; dashed = the simulation's average for the rest of the regular season.</p></header>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" className="rc" role="img" aria-label="Cumulative points above the league average by week, played and projected" onMouseLeave={() => setHover(null)}>
         <rect x={X(played)} y={T} width={X(weeks.length) - X(played)} height={H - T - B} className="future" />
-        <text x={X(played) + 6} y={T + 12} className="tk">projected →</text>
+        <text x={X(played) + 6} y={T - 14} className="tk">projected →</text>
         {ticks.map((v) => <g key={v}><line x1={L} x2={W - R} y1={Y(v)} y2={Y(v)} className={v === 0 ? "ax" : "grid"} /><text x={L - 6} y={Y(v) + 4} textAnchor="end" className="tk">{v > 0 ? `+${v}` : v}</text></g>)}
         <text x={L - 6} y={Y(0) - 6} textAnchor="end" className="tk">avg</text>
         {weeks.map((w) => <text key={w} x={X(w)} y={H - 10} textAnchor="middle" className="tk">{w}</text>)}

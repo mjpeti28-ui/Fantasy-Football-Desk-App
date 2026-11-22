@@ -94,7 +94,7 @@ function Sources({ lg, myId, oppId, onSelect }: Props) {
   );
 }
 
-function Draft({ lg, myId, oppId }: Omit<Props, "onSelect">) {
+export function DraftLanded({ lg, myId, oppId }: Omit<Props, "onSelect">) {
   const name = new Map(lg.teams.map((t: ALeagueTeam) => [t.id, t.name]));
   const scored = lg.draft.filter((p) => p.pos_rank_now != null && ["QB", "RB", "WR", "TE"].includes(p.pos));
   const hits = [...scored].sort((a, b) => (b.pos_pick - b.pos_rank_now!) - (a.pos_pick - a.pos_rank_now!)).slice(0, 8);
@@ -123,7 +123,6 @@ export function SoFar(p: Props) {
       <h3 className="an-h">Season so far <small>through week {p.lg.through_week} · what happened, labelled by whether it has repeated</small></h3>
       <Heat {...p} />
       <div className="an-row"><Bench {...p} /><Sources {...p} /></div>
-      <Draft {...p} />
     </div>
   );
 }

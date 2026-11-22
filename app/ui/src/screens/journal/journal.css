@@ -42,7 +42,7 @@
 .journal .entry .why { margin: 0; font-size: 15px; line-height: 1.55; color: var(--you); white-space: pre-wrap; }
 .journal .entry .why.none { color: var(--ink-3); font-style: italic; font-size: 13px; }
 .journal .entry.skipped h4, .journal .entry.skipped .why { opacity: .6; }
-.journal .entry.skipped h4 { text-decoration: line-through; text-decoration-thickness: 1px; }
+.journal .entry.skipped h4 { color: var(--ink-2); } /* "didn't" is a decision, not a deletion: muted, not struck */
 .journal .meta { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font: 12px/1.3 var(--sys); color: var(--ink-2); margin-top: 2px; }
 .journal .meta .sure b { color: var(--you); font-weight: 600; }
 .journal .meta .when { margin-left: auto; color: var(--ink-3); }

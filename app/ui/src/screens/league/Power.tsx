@@ -204,8 +204,9 @@ export function Power(p: Props) {
         </div>
       </div>
 
-      <div className="pw-card wide">
-        <h4>What's behind each roster</h4>
+      {/* context only (barely predictive): closed by default so the in-season panels sit higher */}
+      <details className="pw-card wide lg-more">
+        <summary><h4>What's behind each roster</h4><span>top-starter dependence and 3-week roster change · context only</span></summary>
         <div className="ctx">
           {pw.teams.map((t) => (
             <button key={t.id} type="button" className={`cx ${role(t.id, myId, oppId)}`} onClick={() => onSelect(t.id)}>
@@ -217,7 +218,7 @@ export function Power(p: Props) {
           ))}
         </div>
         <p className="pw-note">{n.fragility} {n.trajectory}</p>
-      </div>
+      </details>
     </section>
   );
 }

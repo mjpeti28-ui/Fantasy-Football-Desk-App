@@ -139,3 +139,6 @@ button { font: inherit; color: inherit; }
 :is(.tbl, .sh-list, .mta .ins-panel, .an-card)::-webkit-scrollbar { height: 8px; }
 :is(.tbl, .sh-list, .mta .ins-panel, .an-card)::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
 :is(.tbl, .sh-list, .mta .ins-panel, .an-card)::-webkit-scrollbar-track { background: transparent; }
+/* inspector: the weekly spark + scores get their own row, so they stop squeezing the label column
+   ("Projected for lineups used" wrapped one word per line) */
+.kv dd:has(> .wk) { grid-column: 1 / -1; justify-self: start; margin-top: -2px; }
