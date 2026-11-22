@@ -200,7 +200,9 @@ export function Waivers({ board, err, sel, onSel, players, roles, shifts, onKeep
   const [filter, setFilter] = useState<Pos | "ALL">("ALL");
   const [pick, setPick] = useState(false);
   const { open, compare } = useFile();
-  const byes = useMemo(() => new Map(players.map((p) => [p.id, p.bye ?? null])), [players]);
+  const wk = board?.week ?? 0;
+  // byes already played don't matter any more: show only the ones still ahead
+  const byes = useMemo(() => new Map(players.map((p) => [p.id, p.bye != null && p.bye >= wk ? p.bye : null])), [players, wk]);
   if (err) return <div className="waivers"><p className="wv-off">{err}</p></div>;
   if (!board) return <div className="waivers"><header className="wv-hd"><h2>Waivers</h2><p className="wv-sub">Simulating every top free agent with each possible drop… about 15 seconds the first time.</p></header></div>;
   const top = Math.max(20, ...Object.values(board.depth).flat().map((d) => d.est_ppg ?? 0), ...board.candidates.map((c) => c.est_ppg ?? 0)) + 1;
@@ -283,7 +285,7 @@ export function Waivers({ board, err, sel, onSel, players, roles, shifts, onKeep
             })}
           </tbody>
         </table>
-        {board.left_off.length > 0 && <p className="dim">Left off (out or on IR): {board.left_off.map((l) => `${l.name} ${l.pos}`).join(", ")}.</p>}
+        {board.left_off.length > 0 && <p className="dim">Left off (out or on IR): {board.left_off.map((l) => `${l.name} (${l.tag === "INJURY_RESERVE" ? "IR" : l.tag})`).join(", ")}.</p>}
         <p className="dim">Season gain is rest-of-season starting-lineup points (regular season and playoffs) after adding him and dropping the player shown, simulated against your current roster. The grey band is ±{board.noise}: moves inside it are coin flips.</p>
       </section>
     </div>
@@ -307,7 +309,7 @@ export function WaiverInspector({ r, board, onLog, onCopy, roles, onKeep }: { r:
         <dl className="kv cmp">
           <dt /><dd>{lastName(r.name)}</dd><dd>{drop ? lastName(drop.name) : "–"}</dd>
           <dt>ROS ppg when playing</dt><dd>{f1(r.est_ppg)}</dd><dd>{f1(drop?.est_ppg ?? null)}</dd>
-          <dt title="Chance his rest-of-season ppg reaches a weekly starter / a top-half starter at his position, from ROS ppg alone">Starter · top-half odds</dt><dd>{pct(r.p_start)} · {pct(r.p_boom)}</dd><dd>–</dd>
+          <dt title="Chance his rest-of-season ppg reaches a weekly starter / a top-half starter at his position, from ROS ppg alone">Starter · top-half odds</dt><dd>{r.p_start == null && r.p_boom == null ? "–" : `${pct(r.p_start)} · ${pct(r.p_boom)}`}</dd><dd>–</dd>
           <dt>Plays rest of season</dt><dd>{pct(r.avail)}</dd><dd>{pct(drop?.avail ?? null)}{drop?.ir ? " IR" : ""}</dd>
           <dt>ESPN this week</dt><dd>{f1(r.espn_wk)}</dd><dd>–</dd>
           <dt>Experts' rank</dt><dd>{r.ecr_rank ? `${r.pos}${Math.round(r.ecr_rank)}` : "–"}</dd><dd>–</dd>

@@ -23,7 +23,7 @@ export function GameDay({ tw, plan, onSelect, selected, live }: { tw: TeamWeek; 
     .map((p) => ({ id: p.id, name: p.name, pos: p.pos, team: p.team, proj: p.espn_week ?? 0, game: p.game!, slot: slotOf(plan, p.id) }));
   const theirs: Row[] = (tw.matchup?.opp_starters ?? []).filter((p) => p.game && !p.game.bye)
     .map((p) => ({ id: p.id, name: p.name, pos: p.pos, team: p.team, proj: p.espn_week ?? 0, game: p.game!, slot: p.slot }));
-  const reserves: Player[] = tw.players.filter((p) => !slotOf(plan, p.id) && !isDead(p) && p.game && !p.game.bye);
+  const reserves: Player[] = tw.players.filter((p) => !slotOf(plan, p.id) && p.slot !== "IR" && !isDead(p) && p.game && !p.game.bye); // IR slot needs an activation and a drop first
   const wins = [...new Set([...mine, ...theirs, ...reserves.map((p) => ({ game: p.game! }))].map((r) => key(r.game)))].sort();
   let cm = 0, ct = 0;
   const cum = wins.map((w) => {
@@ -55,8 +55,8 @@ export function GameDay({ tw, plan, onSelect, selected, live }: { tw: TeamWeek; 
     <button key={`${who}${r.id}`} type="button" className={`gl ${who} ${started ? l!.state : ""} ${selected === r.id ? "sel" : ""}`} onClick={() => who !== "them" && onSelect(r.id)} onDoubleClick={() => who !== "them" && openFile(r.id)} disabled={who === "them"}
       title={started ? `${l!.state === "post" ? "Final" : "So far"}: ${f1(l!.pts)} points. Projected ${f1(r.proj)} before kickoff.` : undefined}>
       <span className="nm">{lastName(r.name)}</span><span className="pt num">{f1(started ? l!.pts : r.proj)}</span>
-      <span className="gm">{started && <span className="pj">{l!.state === "post" ? "final" : "so far"} · proj {f1(r.proj)} · </span>}{who === "res" ? "bench · " : r.slot ? `${r.slot} · ` : ""}{r.team} {r.game.home ? "vs" : "@"} {r.game.opp}</span>
-      {r.game.implied_total != null && <span className="gm vegas" title={`Vegas: ${r.team} implied ${r.game.implied_total} of a ${r.game.game_total} total`}>team total {r.game.implied_total}</span>}
+      {(who !== "them" || started) && <span className="gm">{started && <span className="pj">{l!.state === "post" ? "final" : "so far"} · proj {f1(r.proj)} · </span>}{who === "res" ? "bench · " : r.slot ? `${r.slot} · ` : ""}{r.team} {r.game.home ? "vs" : "@"} {r.game.opp}</span>}
+      {who !== "them" && r.game.implied_total != null && <span className="gm vegas" title={`Vegas: ${r.team} implied ${r.game.implied_total} of a ${r.game.game_total} total`}>team total {r.game.implied_total}</span>}
     </button>
     );
   };

@@ -116,7 +116,7 @@ export function MatchupsScreen({ data, err, roles, copyRef, tw, ratioQ, an }: {
           <button type="button" aria-pressed={mode === "league"} onClick={() => setMode("league")}>All defenses</button>
           <button type="button" aria-pressed={mode === "ahead"} onClick={() => setMode("ahead")}>Schedule ahead</button>
         </div>
-        <span className="mx-src" title={data.attribution}>Free data only: play-by-play, FTN charting via nflverse. Coverage splits 2023–{lastOf(data.hist)}.</span>
+        <span className="mx-src" title={data.attribution}>Play-by-play and FTN charting via nflverse; PFF grades where marked. Coverage splits 2023–{lastOf(data.hist)}.</span>
       </div>
       {mode === "week" ? (
         <div className="mx-grid">

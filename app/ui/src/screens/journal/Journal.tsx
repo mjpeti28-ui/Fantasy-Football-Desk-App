@@ -43,11 +43,12 @@ function verdictText(j: JournalT): string {
   const avg = conf.length ? conf.reduce((s, e) => s + e.confidence!, 0) / conf.length : null;
   const mp = done.filter((e) => e.model_p != null);
   const mavg = mp.length ? mp.reduce((s, e) => s + e.model_p!, 0) / mp.length : null;
-  let t = `Right on ${hits} of ${done.length} scored calls (${pct(hits / done.length)}).`;
+  // a percent on a handful of calls reads like a measurement; under 10, just count
+  let t = `Right on ${hits} of ${done.length} scored call${done.length === 1 ? "" : "s"}${done.length >= 10 ? ` (${pct(hits / done.length)})` : ""}.`;
   if (avg != null) t += ` You said ${pct(avg)} on average`;
   if (mavg != null) t += `${avg != null ? "; the model said" : " The model said"} ${pct(mavg)}`;
   if (avg != null || mavg != null) t += ".";
-  t += done.length < 20 ? ` ${done.length} calls is too few to call anyone over- or underconfident; about 20 starts to mean something.`
+  t += done.length < 20 ? ` ${done.length} call${done.length === 1 ? " is" : "s are"} too few to call anyone over- or underconfident; about 20 starts to mean something.`
     : avg != null && avg - hits / done.length > 0.08 ? " You've been overconfident." : avg != null && hits / done.length - avg > 0.08 ? " You've been underconfident." : " That's well calibrated.";
   return t;
 }
@@ -156,10 +157,10 @@ export function Journal({ journal, err, engineUp, onAdd, onUpdate, onDelete, nam
           <div><b className="num">{s.hit_rate == null ? "–" : s.resolved < 10 ? `${Math.round(s.hit_rate * s.resolved)} of ${s.resolved}` : pct(s.hit_rate)}</b><span>right</span></div>
           <p>{verdictText(journal)}</p>
         </div>
-        <figure>
+        {s.resolved >= 10 ? <figure>
           <Calibration entries={journal.entries} />
           <figcaption><i className="k-you" /> you, by how sure you said you were <i className="k-model" /> the model · across: stated %, up: % right</figcaption>
-        </figure>
+        </figure> : <p className="dim">The calibration chart appears after 10 scored calls.</p>}
       </section>
       {prompts.length > 0 && onLog && (
         <section className="prompts" aria-label="Worth logging this week">

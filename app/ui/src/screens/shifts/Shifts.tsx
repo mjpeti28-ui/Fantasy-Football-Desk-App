@@ -254,7 +254,7 @@ export function ShiftsScreen({ data, err, myTeam, onCopy, inCompare, onCompare }
   const movers = (data?.rows ?? []).filter((r) => r.pff?.move && (pos === "ALL" || r.pos === pos)
     && !(who === "fa" && r.owner) && !(who === "mine" && r.owner?.team_id !== myTeam) && !(who === "others" && (!r.owner || r.owner.team_id === myTeam))
     && !(healthy && dead(r)) && !(q && !r.name.toLowerCase().includes(q.toLowerCase())))
-    .sort((a, b) => Math.abs(b.pff!.d_route) + 0.5 * Math.abs(b.pff!.d_slot) - Math.abs(a.pff!.d_route) - 0.5 * Math.abs(a.pff!.d_slot));
+    .sort((a, b) => Math.abs(b.pff!.d_route) + 0.5 * Math.abs(b.pff!.d_slot ?? 0) - Math.abs(a.pff!.d_route) - 0.5 * Math.abs(a.pff!.d_slot ?? 0));
 
   if (err) return <div className="shifts"><p className="sh-err">{err}</p></div>;
   if (!data) return <div className="shifts"><header className="sh-hd"><h2>Shifts</h2><p className="sub">Reading every team's usage…</p></header></div>;
@@ -372,7 +372,8 @@ export function ShiftsScreen({ data, err, myTeam, onCopy, inCompare, onCompare }
                       {r.team ?? ""} · <span className={`own ${r.owner ? (r.owner.team_id === myTeam ? "mine" : "") : "fa"}`}>{r.owner ? (r.owner.team_id === myTeam ? "yours" : r.owner.name) : "free agent"}</span></small></span>
                   </button></td>
                   <td title={`${m.from_route}% → ${m.to_route}% of dropbacks`}><Dumbbell a={m.from_route} b={m.to_route} max={100} tone={m.d_route >= 0 ? "up" : "down"} /></td>
-                  <td title={`${m.from_slot}% → ${m.to_slot}% of pass snaps in the slot`}><Dumbbell a={m.from_slot} b={m.to_slot} max={100} tone={m.d_slot >= 0 ? "up" : "down"} /></td>
+                  {m.from_slot != null && m.to_slot != null ? <td title={`${m.from_slot}% → ${m.to_slot}% of pass snaps in the slot`}><Dumbbell a={m.from_slot} b={m.to_slot} max={100} tone={(m.d_slot ?? 0) >= 0 ? "up" : "down"} /></td>
+                    : <td className="dim" title="Under 20 pass snaps on one side: too few to read a slot rate">too few snaps</td>}
                   <td className="r num">{f1(r.ledger?.est_ppg)}</td>
                   <td className="r num">{f1(r.espn_week)}</td>
                 </tr>); })}

@@ -24,6 +24,9 @@ export interface LivePlayer {
 }
 export interface LiveGame { event: string; kickoff: string; state: "pre" | "in" | "post"; detail: string; period: number; clock: string; elapsed: number;
   home: { abbr: string; score: number; name: string }; away: { abbr: string; score: number; name: string }; possession: string | null; down_dist: string | null; red_zone: boolean; last_play: string | null }
+// ESPN play text carries a trailing injury bulletin and a leading formation tag; keep the play itself
+const playText = (t: string) => t.replace(/\s*\*\*.*$/, "").replace(/^\((Shotgun|No Huddle[^)]*)\)\s*/, "");
+
 export interface LiveBoard {
   generated_at: number; week: number; me_name: string; opp_name: string; games: LiveGame[]; me: LivePlayer[]; opp: LivePlayer[];
   matchup: { p_win: number; p_win_pre: number; lev?: number; lev_pre?: number; me: { mean: number; p10: number; p90: number }; opp: { mean: number; p10: number; p90: number }; me_pts: number; opp_pts: number; me_left: number; opp_left: number };
@@ -293,7 +296,7 @@ function Swings({ data, onPick }: { data: LiveBoard; onPick: (id: number) => voi
   if (!top.length) return null;
   return (
     <section className="lv-swing" aria-label="What moved the win chance">
-      <h5>What moved it <span>the five plays that moved your win chance most · what happened, not a forecast</span></h5>
+      <h5>What moved it <span>{top.length === 1 ? "the play" : `the ${top.length} plays`} that moved your win chance most · what happened, not a forecast</span></h5>
       <div className={movers.length ? "sw-two" : ""}>
         <ol className="sw-top">
           {top.map((x, i) => {
@@ -306,7 +309,7 @@ function Swings({ data, onPick }: { data: LiveBoard; onPick: (id: number) => voi
                     : <>{x.text.startsWith("End of Q") ? "Quarter ended" : "Score change"} in {where(x.event)}</>}
                   {" · "}Q{x.period} {x.clock} · <span className="num">{pct(x.from)} → {pct(x.p_win)}</span>
                   {x.levFrom != null && <i className="lev" title="How much one fantasy point moved your win chance going into this play">1 pt = {levTxt(x.levFrom)}</i>}
-                  <small>{x.text}</small>
+                  <small>{playText(x.text)}</small>
                 </span>
               </li>
             );

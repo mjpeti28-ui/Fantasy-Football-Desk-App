@@ -281,7 +281,7 @@ function CallSheet({ me, teams, live, history, setDeal }: Props) {
   return (
     <section className="calls" aria-label="Who to call">
       <h3>Who to call <span>ordered by roster fit × how they've answered your offers (2021–25)</span></h3>
-      <div className="call-hd"><span>Team</span><span>They can spare → you need</span><span>You can spare → they need</span><span>Their spare part</span><span>History</span><span>Playoffs</span><span /></div>
+      <div className="call-hd"><span>Team</span><span>They can spare → you need</span><span>You can spare → they need</span><span>Their spare part</span><span>History</span><span title="Their own chance to make the playoffs">Their playoff odds</span><span /></div>
       {rows.map((r) => {
         const h = historyLabel(history[r.t]);
         return (

@@ -106,7 +106,7 @@ export function MyAnalysis({ tw, a, lg, err, selected, onSelect }: Props) {
             </tbody>
           </table>
         </div>
-        <p className="mta-cap">Darker = higher, with no good or bad meaning (high swing is neither). These rank where he stands. Every column is already in the model unless it carries a chip saying otherwise.</p>
+        <p className="mta-cap">Stronger fill = higher percentile, with no good or bad meaning (high swing is neither). These rank where he stands. Every column is already in the model unless it carries a chip saying otherwise.</p>
       </section>
 
       <div className="mta-two">
@@ -148,7 +148,7 @@ function SnapMini({ p, weeks, sel, onPick, onOpen }: { p: APlayer; weeks: number
         {segs.map((s, i) => <polyline key={i} className="ln" vectorEffect="non-scaling-stroke" points={s.map(([x, y]) => `${x},${y}`).join(" ")} />)}
         {pts.map((q, i) => q && <circle key={i} className="pt" cx={q[0]} cy={q[1]} r={3}><title>{`Week ${i + 1}: ${pctTxt(p.weekly[i]![3])} of snaps`}</title></circle>)}
       </svg>
-      <span className="sm-f">{fl ? <FlagChip f={fl} /> : <span className="dim">{p.snap_tr != null ? `${signed(100 * p.snap_tr).replace(".0", "")} pts vs season` : "–"}</span>}</span>
+      <span className="sm-f">{fl ? <FlagChip f={fl} /> : <span className="dim">{p.snap_tr != null ? `${signed(100 * p.snap_tr).replace(".0", "")} pp of snaps vs season` : "–"}</span>}</span>
     </button>
   );
 }
