@@ -7,7 +7,7 @@ import type { LiveBoard, LivePlayer } from "../live/Live";
 import { STARTERS, type Plan, slotOf } from "./lineup";
 import "./gameday.css";
 
-interface Row { id: number; name: string; pos: string; team: string | null; proj: number; game: Game; slot?: string }
+interface Row { id: number; name: string; pos: string; team: string | null; proj: number; game: Game; slot?: string; ir?: boolean }
 const key = (g: Game) => `${g.date} ${g.time}`;
 
 export function GameDay({ tw, plan, onSelect, selected, live }: { tw: TeamWeek; plan: Plan; onSelect: (id: number) => void; selected: number | null; live?: LiveBoard | null }) {
@@ -23,7 +23,7 @@ export function GameDay({ tw, plan, onSelect, selected, live }: { tw: TeamWeek; 
     .map((p) => ({ id: p.id, name: p.name, pos: p.pos, team: p.team, proj: p.espn_week ?? 0, game: p.game!, slot: slotOf(plan, p.id) }));
   const theirs: Row[] = (tw.matchup?.opp_starters ?? []).filter((p) => p.game && !p.game.bye)
     .map((p) => ({ id: p.id, name: p.name, pos: p.pos, team: p.team, proj: p.espn_week ?? 0, game: p.game!, slot: p.slot }));
-  const reserves: Player[] = tw.players.filter((p) => !slotOf(plan, p.id) && p.slot !== "IR" && !isDead(p) && p.game && !p.game.bye); // IR slot needs an activation and a drop first
+  const reserves: Player[] = tw.players.filter((p) => !slotOf(plan, p.id) && !isDead(p) && p.game && !p.game.bye);
   const wins = [...new Set([...mine, ...theirs, ...reserves.map((p) => ({ game: p.game! }))].map((r) => key(r.game)))].sort();
   let cm = 0, ct = 0;
   const cum = wins.map((w) => {
@@ -55,7 +55,7 @@ export function GameDay({ tw, plan, onSelect, selected, live }: { tw: TeamWeek; 
     <button key={`${who}${r.id}`} type="button" className={`gl ${who} ${started ? l!.state : ""} ${selected === r.id ? "sel" : ""}`} onClick={() => who !== "them" && onSelect(r.id)} onDoubleClick={() => who !== "them" && openFile(r.id)} disabled={who === "them"}
       title={started ? `${l!.state === "post" ? "Final" : "So far"}: ${f1(l!.pts)} points. Projected ${f1(r.proj)} before kickoff.` : undefined}>
       <span className="nm">{lastName(r.name)}</span><span className="pt num">{f1(started ? l!.pts : r.proj)}</span>
-      {(who !== "them" || started) && <span className="gm">{started && <span className="pj">{l!.state === "post" ? "final" : "so far"} · proj {f1(r.proj)} · </span>}{who === "res" ? "bench · " : r.slot ? `${r.slot} · ` : ""}{r.team} {r.game.home ? "vs" : "@"} {r.game.opp}</span>}
+      {(who !== "them" || started) && <span className="gm">{started && <span className="pj">{l!.state === "post" ? "final" : "so far"} · proj {f1(r.proj)} · </span>}{who === "res" ? (r.ir ? "IR, needs a spot · " : "bench · ") : r.slot ? `${r.slot} · ` : ""}{r.team} {r.game.home ? "vs" : "@"} {r.game.opp}</span>}
       {who !== "them" && r.game.implied_total != null && <span className="gm vegas" title={`Vegas: ${r.team} implied ${r.game.implied_total} of a ${r.game.game_total} total`}>team total {r.game.implied_total}</span>}
     </button>
     );
@@ -65,7 +65,7 @@ export function GameDay({ tw, plan, onSelect, selected, live }: { tw: TeamWeek; 
     <div className="gameday">
       <header className="gd-hd">
         <h2>Week {tw.week} kickoffs</h2>
-        <p>All times ET. Columns are kickoff windows; a player locks when his game starts. Late swaps are healthy bench players you can still move in up to their kickoff.</p>
+        <p>All times ET. Columns are kickoff windows; a player locks when his game starts. Late swaps are healthy bench players (and IR players who need a roster spot freed first) you can still move in up to their kickoff.</p>
       </header>
       {(shared.length > 0 || stacks.length > 0) && (
         <div className="gd-notes">
@@ -97,7 +97,7 @@ export function GameDay({ tw, plan, onSelect, selected, live }: { tw: TeamWeek; 
                 <span className="gs">{(() => { const gs = new Map<string, number | null>(); for (const r of [...m, ...t, ...res.map((p) => ({ team: p.team, game: p.game! }))]) { const nm = r.game.home ? `${r.game.opp}@${r.team}` : `${r.team}@${r.game.opp}`; gs.set(nm, r.game.game_total ?? null); } return [...gs].map(([nm, tot]) => <span key={nm}>{nm}{tot != null ? <em> {tot}</em> : null}</span>); })()}</span></div>
               {m.length > 0 && <><div className="lane">You · {f1(m.reduce((a, r) => a + r.proj, 0))}</div>{m.map((r) => line(r, "me"))}</>}
               {t.length > 0 && <><div className="lane">{teamShort(tw.matchup?.opp_name ?? "", [])} · {f1(t.reduce((a, r) => a + r.proj, 0))}</div>{t.map((r) => line(r, "them"))}</>}
-              {res.length > 0 && <><div className="lane">Late swap</div>{res.map((p) => <div key={p.id} className="swapbox">{line({ id: p.id, name: p.name, pos: p.pos, team: p.team, proj: p.espn_week ?? 0, game: p.game! }, "res")}</div>)}</>}
+              {res.length > 0 && <><div className="lane">Late swap</div>{res.map((p) => <div key={p.id} className="swapbox">{line({ id: p.id, name: p.name, pos: p.pos, team: p.team, proj: p.espn_week ?? 0, game: p.game!, ir: p.slot === "IR" }, "res")}</div>)}</>}
             </section>
           );
         })}
