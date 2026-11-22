@@ -437,3 +437,36 @@ keep what's interesting, say how predictive it is. Flags inline, depth in an Ana
   file). Presets: luck vs role, season vs model, snaps moving, volume vs swing, startable vs swing. Each
   axis carries its evidence chip; the line and r describe this season only. Copy for Claude exports the
   view and the outliers. Axis choice is remembered.
+
+## Polish pass (11/21): the rules every screen follows
+Written after the week-11 audit found drift: 25+ font sizes, mono numbers everywhere, two card-title styles,
+and wide tables that looked cut off. Per-screen Archivo widths (table above) stay; these rules sit on top.
+
+**Type**
+- Families: SF for chrome, Archivo for content, Literata for journal prose, Overpass Mono **only** for clocks,
+  live game state (the Live score bug and game strip) and console readouts (What if LCD, Lab readouts).
+  Every other number is Archivo; `body` sets `tabular-nums`, so columns still line up.
+- Scale (px): 10 (micro axis ticks), 11 (eyebrow, axis), 12 (table body, captions), 13 (body), 15 (card title),
+  18, 20 (section head), 24, 28 (page title), 34 (hero number); 40+ only for the score bug and Board totals.
+  No half pixels.
+- One card title: 15px Archivo 700, `wdth` 85, sentence case, ink colour, with an optional 12px SF subtitle
+  in a `span`. Uppercase tracked 11–12px is only for eyebrows above a sub-block ("Bench & IR", "Late swap",
+  deal-desk sides), never for a card's title.
+
+**Colour**
+- Base tokens in `styles/base.css`; per-screen palettes (`--b-*`, `--l-*`, `--t-*`, …) at the top of that
+  screen's CSS. No hex literals in rules: surfaces that are dark in both themes (Board score bar, What-if LCD)
+  get their own named tokens. `#fff` on a team-colour fill is the one exception.
+- Roles unchanged: cobalt you, plum them, green/red above/below a reference, alert hatch bye/out/IR,
+  dashed grey noise. Neutral magnitude (rank, share) uses one ink ramp, captioned "stronger fill = higher"
+  so it reads the same in both themes.
+
+**Tables and charts**
+- A table never runs past its card. Wide ones scroll inside it, and the scrollbar is styled so it stays
+  visible (macOS hides overlay scrollbars, which made scrollable tables look clipped).
+- Numbers right-aligned, headers 11px ink-2. Direct labels on charts; reference lines (average, zero,
+  replacement) dashed. Captions: how to read it, then how far to trust it.
+
+**Words**
+- Units always visible ("pts", "pp", "%", "ppg"); "pp" for a change in a percentage.
+- Strikethrough only for removed.

@@ -1,7 +1,7 @@
 /* Player file › Season analytics. Same card-back surface; small cards with hairlines, numbers tabular. */
 .pf-an { display: grid; gap: 14px; }
 .pf-an-flags { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.pf-an-flags li { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 8px; align-items: center; font: 12.5px/1.4 var(--sys); color: var(--ink-2); }
+.pf-an-flags li { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 8px; align-items: center; font: 13px/1.4 var(--sys); color: var(--ink-2); }
 .pf-an-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 @media (max-width: 1180px) { .pf-an-grid { grid-template-columns: minmax(0, 1fr); } }
 .pf-an-card { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 8px; align-content: start; min-width: 0; }
@@ -14,13 +14,13 @@
 .pf-an-big { display: grid; grid-template-columns: repeat(3, auto); justify-content: start; gap: 22px; }
 .pf-an-big span { display: grid; gap: 2px; }
 .pf-an-big b { font: 800 28px/1 var(--content); font-variation-settings: "wdth" 90; }
-.pf-an-big small { font: 11.5px var(--sys); color: var(--ink-2); }
+.pf-an-big small { font: 12px var(--sys); color: var(--ink-2); }
 .pf-an-big .up b { color: var(--ink); } .pf-an-big .down b { color: var(--ink); }
-.pf-an-ct { margin: 0; font: 12.5px var(--sys); }
-.pf-an .tstrip .tc { width: 26px; height: 20px; line-height: 20px; font-size: 10.5px; }
+.pf-an-ct { margin: 0; font: 13px var(--sys); }
+.pf-an .tstrip .tc { width: 26px; height: 20px; line-height: 20px; font-size: 11px; }
 .pf-an-sp svg { display: block; }
 .pf-an-sp .gl { stroke: var(--line); }
-.pf-an-sp text { font: 10px var(--mono); fill: var(--ink-2); }
+.pf-an-sp text { font: 10px var(--content); fill: var(--ink-2); }
 .pf-an-sp .band { fill: var(--field); }
 .pf-an-sp .avg { stroke: var(--ink); stroke-width: 2; stroke-linecap: round; }
 .pf-an-sp .d { stroke: var(--win); stroke-width: 2; fill: var(--ink-2); }
