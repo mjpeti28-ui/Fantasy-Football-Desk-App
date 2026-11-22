@@ -3,7 +3,7 @@
    a tick for the reference, the sample beside it; dashed = resting on too little. Cobalt = your player,
    plum = theirs, ink = everything the defense does. Green/red are not used: a defense's numbers are not
    good or bad, and a nudge below the game-to-game noise is grey. */
-.mx { --mx-s1: color-mix(in srgb, var(--ink) 78%, var(--win)); --mx-s2: color-mix(in srgb, var(--ink) 58%, var(--win)); --mx-s3: color-mix(in srgb, var(--ink) 40%, var(--win));
+div.mx { /* div only: League tables also use class "mx" */ --mx-s1: color-mix(in srgb, var(--ink) 78%, var(--win)); --mx-s2: color-mix(in srgb, var(--ink) 58%, var(--win)); --mx-s3: color-mix(in srgb, var(--ink) 40%, var(--win));
   --mx-s4: color-mix(in srgb, var(--ink) 24%, var(--win)); --mx-s5: color-mix(in srgb, var(--ink) 12%, var(--win));
   font-family: var(--content); font-variation-settings: "wdth" 88; height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-width: 0; }
 .mx .num { font-variant-numeric: tabular-nums; }
@@ -28,7 +28,7 @@
 .mx-row .nm { display: grid; min-width: 0; }
 .mx-row .nm b { font-weight: 650; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mx-row .nm small { color: var(--ink-2); font-size: 11px; }
-.mx-row.dead .nm b { color: var(--ink-3); text-decoration: line-through; text-decoration-thickness: 1px; }
+.mx-row.dead .nm b { color: var(--ink-3); } /* the line under the name already says Bye or Out */
 .mx-lean { position: relative; display: inline-block; width: 34px; height: 6px; background: var(--field); border-radius: 3px; vertical-align: middle; flex: none; }
 .mx-lean i { position: absolute; top: 0; bottom: 0; background: var(--ink-2); border-radius: 3px; }
 .mx-lean b { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--ink-3); }

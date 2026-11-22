@@ -108,17 +108,19 @@ export function PffSee({ x, name }: { x: MxPffPlayer; name: string }) {
 }
 
 /** PFF tab in a defense's "Their defenders". */
-export function PffDefenders({ p }: { p: MxPffDefense }) {
+export function PffDefenders({ p, seen }: { p: MxPffDefense; seen?: string }) {
+  // seen = the position shown in "Who he'll see" above for this same defense: skip the tables it already shows
+  const pass = seen === "WR" || seen === "TE";
   return (
     <>
-      <p className="mx-note t">PFF grades, {p.season} through week {p.through ?? "?"}. {BACKTEST}</p>
-      <div className="mx-tiles">
+      <p className="mx-note t">PFF grades, {p.season} through week {p.through ?? "?"}. {BACKTEST}{seen ? ` Unit grades and the ${seen === "QB" ? "pass rushers" : pass ? "corners and slot defenders" : "run defenders"} are under “Who he’ll see” above.` : ""}</p>
+      {!seen && <div className="mx-tiles">
         <Unit k="Coverage" u={p.units.coverage} /><Unit k="Pass rush" u={p.units.pass_rush} /><Unit k="Run defense" u={p.units.run_defense} />
-      </div>
-      <Cover rows={p.outside} title="Outside corners" />
-      <Cover rows={p.slot} title="Slot defenders" />
-      {p.rushers.length > 0 && <><h6>Pass rushers</h6><Rushers rows={p.rushers} /></>}
-      {p.run.length > 0 && <><h6>Run defenders</h6><RunD rows={p.run} /></>}
+      </div>}
+      {!pass && <Cover rows={p.outside} title="Outside corners" />}
+      {!pass && <Cover rows={p.slot} title="Slot defenders" />}
+      {seen !== "QB" && p.rushers.length > 0 && <><h6>Pass rushers</h6><Rushers rows={p.rushers} /></>}
+      {seen !== "RB" && p.run.length > 0 && <><h6>Run defenders</h6><RunD rows={p.run} /></>}
     </>
   );
 }

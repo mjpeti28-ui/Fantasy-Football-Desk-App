@@ -62,3 +62,10 @@
 .league .lg-jump button { all: unset; cursor: pointer; font: 600 12px var(--sys); color: var(--ink-2); padding: 4px 10px; border-radius: 6px; }
 .league .lg-jump button:hover { background: var(--hover); color: var(--ink); }
 .league #lg-table, .league .lg-sec { scroll-margin-top: 44px; }
+/* background sections (draft recap, roster context): closed by default, one line saying what's inside */
+.league details.lg-more > summary { cursor: pointer; list-style: none; display: flex; gap: 10px; align-items: baseline; padding: 10px 0; border-top: 1px solid var(--l-rule); }
+.league details.lg-more > summary::-webkit-details-marker { display: none; }
+.league details.lg-more > summary::before { content: "▸"; color: var(--ink-3); }
+.league details.lg-more[open] > summary::before { content: "▾"; }
+.league details.lg-more > summary h4 { margin: 0; font: 700 15px/1.2 var(--content); font-variation-settings: "wdth" 85; }
+.league details.lg-more > summary span { font: 500 12px var(--sys); color: var(--ink-2); }

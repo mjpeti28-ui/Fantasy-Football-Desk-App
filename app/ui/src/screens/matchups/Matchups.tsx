@@ -227,7 +227,7 @@ function Versus({ pl, row, data, dv, through, setThrough, busy }: {
       {pl.pff && <PffSee x={pl.pff} name={pl.name} />}
       <div className="mx-cols">
         <PlayerPanel pl={pl} tone={mine ? "you" : "them"} data={data} />
-        {d ? <DefensePanel v={d} data={data} /> : <div className="mx-sec"><p className="mx-empty">{pl.opp ? "Loading the defense…" : "Bye week: nothing to show on the defense side. Pick a team in “Look through”."}</p></div>}
+        {d ? <DefensePanel v={d} data={data} seen={pl.pff && pl.pff.opp === d.defense.abbr ? pl.pff.pos : undefined} /> : <div className="mx-sec"><p className="mx-empty">{pl.opp ? "Loading the defense…" : "Bye week: nothing to show on the defense side. Pick a team in “Look through”."}</p></div>}
       </div>
     </>
   );
@@ -344,7 +344,7 @@ function QbPanel({ pl, tone }: { pl: MxPlayer & { current: MxQbCurrent | null; h
 }
 
 /* ---------------- defense side ---------------- */
-function DefensePanel({ v, data, wide }: { v: MxDefenseView; data: MxBoard; wide?: boolean }) {
+function DefensePanel({ v, data, wide, seen }: { v: MxDefenseView; data: MxBoard; wide?: boolean; seen?: string }) {
   const d = v.defense, lg = d.league, base = lg.base, c = d.current, r = d.run;
   const last = lastOf(d.history);
   const [tab, setTab] = useState<"play" | "onoff" | "pff">(v.pff ? "pff" : "play");
@@ -415,7 +415,7 @@ function DefensePanel({ v, data, wide }: { v: MxDefenseView; data: MxBoard; wide
         )}
       </Sec>
       <Sec title="Their defenders" aside={<span className="seg sm" role="group" aria-label="Defender view"><button type="button" aria-pressed={tab === "play"} onClick={() => setTab("play")}>Playmakers</button><button type="button" aria-pressed={tab === "onoff"} onClick={() => setTab("onoff")}>On / off</button>{v.pff && <button type="button" aria-pressed={tab === "pff"} onClick={() => setTab("pff")}>PFF</button>}</span>}>
-        {tab === "pff" && v.pff ? <PffDefenders p={v.pff} /> : <>
+        {tab === "pff" && v.pff ? <PffDefenders p={v.pff} seen={seen} /> : <>
           <p className="mx-note t">The free data records who sacks, hits, tackles and breaks up passes, and who is on the field. It does <b>not</b> record who covered whom or whose receiver caught the ball{v.pff ? "; the PFF tab does" : ", so there is no per-defender coverage grade here"}.</p>
           {tab === "play" ? <Playmakers v={v} /> : <OnOff v={v} />}
         </>}
