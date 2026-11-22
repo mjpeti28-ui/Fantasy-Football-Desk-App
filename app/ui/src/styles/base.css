@@ -33,7 +33,7 @@
 
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
-body { background: var(--win); color: var(--ink); font: 13px/1.4 var(--sys); -webkit-font-smoothing: antialiased; overflow: hidden; }
+body { background: var(--win); color: var(--ink); font: 13px/1.4 var(--sys); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; overflow: hidden; }
 button { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--you); outline-offset: 2px; border-radius: 4px; }
 .num { font-variant-numeric: tabular-nums; }
@@ -89,18 +89,18 @@ button { font: inherit; color: inherit; }
 .status { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; white-space: nowrap; }
 .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .status.ok { color: var(--above); } .status.q { color: #c98a0c; } .status.out { color: var(--alert); } .status.ir, .status.bye { color: var(--ink-2); }
-.conf { display: inline-flex; padding: 2px 7px; border-radius: 4px; font-size: 11.5px; font-weight: 600; }
+.conf { display: inline-flex; padding: 2px 7px; border-radius: 4px; font-size: 12px; font-weight: 600; }
 .conf.noise { color: var(--noise); border: 1px dashed var(--noise); font-weight: 500; }
 .conf.thin { background: var(--field); color: var(--ink-2); }
 .conf.yes { background: var(--you-soft); color: var(--you); }
 
 .rng { position: relative; cursor: help; border-bottom: 1px dotted var(--ink-3); }
 .rng .tip { position: absolute; z-index: 20; bottom: calc(100% + 8px); right: -6px; transform: translate(0, 4px); background: var(--ink); color: var(--win);
-  font: 500 11.5px/1.35 var(--sys); padding: 7px 9px; border-radius: 6px; width: max-content; max-width: 270px; opacity: 0; pointer-events: none; transition: opacity .12s, transform .12s; text-align: left; }
+  font: 500 12px/1.35 var(--sys); padding: 7px 9px; border-radius: 6px; width: max-content; max-width: 270px; opacity: 0; pointer-events: none; transition: opacity .12s, transform .12s; text-align: left; }
 .rng:hover .tip, .rng:focus .tip { opacity: 1; transform: none; }
 .rng.flip .tip { right: auto; left: -6px; }
 .h2h { display: grid; gap: 4px; width: 240px; }
-.h2h b { font-weight: 600; font-size: 12.5px; }
+.h2h b { font-weight: 600; font-size: 13px; }
 .h2h .split { display: flex; height: 6px; border-radius: 3px; overflow: hidden; gap: 2px; }
 .h2h .split i { display: block; background: currentColor; }
 .h2h .split i + i { opacity: .3; }
@@ -117,7 +117,7 @@ button { font: inherit; color: inherit; }
 .ins { display: grid; gap: 16px; }
 .ins-hd { display: flex; gap: 12px; align-items: center; }
 .ins-hd .face { width: 72px; height: 54px; border-radius: 8px; }
-.ins-hd .nm { font-size: 17px; font-weight: 600; line-height: 1.2; }
+.ins-hd .nm { font-size: 18px; font-weight: 600; line-height: 1.2; }
 .ins h6 { margin: 0 0 6px; font: 600 11px/1 var(--sys); color: var(--ink-2); }
 .kv { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; margin: 0; font-variant-numeric: tabular-nums; }
 .kv dt { color: var(--ink-2); } .kv dd { margin: 0; text-align: right; }
@@ -132,3 +132,10 @@ button { font: inherit; color: inherit; }
 @keyframes busy { 50% { opacity: .1; } }
 @media (prefers-reduced-motion: reduce) { .sitem .busy { animation: none; } }
 .sitem .live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--alert); margin-left: 7px; vertical-align: 1px; animation: busy 1.6s ease-in-out infinite; }
+
+/* Wide tables scroll inside their card. macOS hides overlay scrollbars until you scroll, so a clipped
+   column looked cut off; a styled scrollbar stays visible and says "there's more to the right". */
+.tbl, .sh-list, .mta .ins-panel:has(> .mta-wk), .an-card:has(> .dr-rounds) { overflow-x: auto; min-width: 0; }
+:is(.tbl, .sh-list, .mta .ins-panel, .an-card)::-webkit-scrollbar { height: 8px; }
+:is(.tbl, .sh-list, .mta .ins-panel, .an-card)::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+:is(.tbl, .sh-list, .mta .ins-panel, .an-card)::-webkit-scrollbar-track { background: transparent; }

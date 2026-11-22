@@ -3,7 +3,7 @@
 .shifts { font-family: var(--content); font-variation-settings: "wdth" 90; padding: 22px 28px 40px; display: grid; gap: 16px; align-content: start; grid-template-columns: minmax(0, 1fr); }
 .shifts .sh-hd { display: grid; gap: 4px; max-width: 960px; }
 .shifts .eyebrow { font: 600 11px/1 var(--sys); color: var(--ink-2); }
-.shifts .sh-hd h2 { margin: 0; font: 750 23px/1.2 var(--content); font-variation-settings: "wdth" 90; }
+.shifts .sh-hd h2 { margin: 0; font: 750 24px/1.2 var(--content); font-variation-settings: "wdth" 90; }
 .shifts .sh-hd .sub { margin: 0; color: var(--ink-2); max-width: 820px; }
 .shifts .sh-err { color: var(--alert); }
 .shifts .sh-filters { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
@@ -14,7 +14,7 @@
 @media (max-width: 1150px) { .shifts .sh-top { grid-template-columns: minmax(0, 1fr); } }
 
 /* change map */
-.sh-map svg text { font: 10.5px var(--sys); fill: var(--ink-2); font-variant-numeric: tabular-nums; }
+.sh-map svg text { font: 11px var(--sys); fill: var(--ink-2); font-variant-numeric: tabular-nums; }
 .sh-map .axl { fill: var(--ink) !important; font-weight: 600; }
 .sh-map .tk { stroke: var(--ink-3); }
 .sh-map .axis0 { stroke: var(--ink-3); stroke-width: 1; }
@@ -24,7 +24,7 @@
 .sh-map .zone.noise rect { fill: var(--field); opacity: .8; }
 .sh-map .zone.on rect { stroke: var(--ink-2); stroke-width: 1.5; }
 .sh-map .zone.dim rect { opacity: .35; }
-.sh-map .zone .zl { font: 650 10.5px var(--sys) !important; fill: var(--ink-2) !important; pointer-events: none; }
+.sh-map .zone .zl { font: 650 11px var(--sys) !important; fill: var(--ink-2) !important; pointer-events: none; }
 .sh-map .dot { stroke: var(--win); stroke-width: 1.5; }
 .sh-map .dot.other { fill: var(--ink-3); opacity: .75; }
 .sh-map .dot.mine { fill: var(--you); }
@@ -36,7 +36,7 @@
 .sh-map .tip rect { fill: var(--ink); }
 .sh-map .tip text { fill: var(--win) !important; font-size: 11px !important; }
 .sh-map .tip .t1 { font-weight: 650; }
-.sh-key { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 4px 0 0; font: 11.5px var(--sys); color: var(--ink-2); }
+.sh-key { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 4px 0 0; font: 12px var(--sys); color: var(--ink-2); }
 .sh-key span { display: inline-flex; gap: 5px; align-items: center; }
 .sh-key .k { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 .sh-key .k.mine { background: var(--you); } .sh-key .k.other { background: var(--ink-3); } .sh-key .k.fa { border: 2px solid var(--ink-2); }
@@ -47,18 +47,18 @@
 .sh-guide .zg { all: unset; box-sizing: border-box; display: grid; gap: 4px; padding: 8px 10px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; }
 .sh-guide .zg:hover, .sh-guide .zg:focus-visible { background: var(--hover); }
 .sh-guide .zg.on { border-color: var(--ink-3); background: var(--zebra); }
-.sh-guide .zt { font: 650 12.5px var(--sys); display: flex; gap: 6px; align-items: center; }
+.sh-guide .zt { font: 650 13px var(--sys); display: flex; gap: 6px; align-items: center; }
 .sh-guide .zt i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; background: var(--ink-3); }
 .sh-guide .zg.up .zt i { background: var(--above); } .sh-guide .zg.down .zt i { background: var(--below); }
 .sh-guide .zt small { font-weight: 500; color: var(--ink-2); margin-left: auto; }
 .sh-guide .hb { height: 4px; background: var(--field); border-radius: 2px; overflow: hidden; }
 .sh-guide .hb i { display: block; height: 100%; background: var(--ink-2); }
-.sh-guide .zs { font-size: 11.5px; color: var(--ink-2); }
+.sh-guide .zs { font-size: 12px; color: var(--ink-2); }
 .sh-guide .note { font-size: 11px; color: var(--ink-3); margin: 4px 0 0; }
 
 /* list */
 .sh-list { display: grid; gap: 8px; }
-.sh-lhd { display: flex; gap: 10px; align-items: center; font-family: var(--sys); }
+.sh-lhd { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-family: var(--sys); position: sticky; left: 0; }
 .sh-lhd .sp { flex: 1; }
 .sh-lhd .lnk { border: 0; background: none; color: var(--you); cursor: pointer; font-size: 12px; }
 .sh-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
@@ -71,8 +71,8 @@
 .sh-table .who .face { width: 30px; height: 30px; }
 .sh-table .who b { display: block; font-weight: 650; }
 .sh-table .who:hover b { color: var(--you); }
-.sh-table .who small { color: var(--ink-2); font-size: 11.5px; display: flex; gap: 5px; align-items: center; }
-.sh-table .pchip { font: 700 9.5px/1 var(--content); font-style: normal; padding: 2px 4px; border-radius: 3px; }
+.sh-table .who small { color: var(--ink-2); font-size: 12px; display: flex; gap: 5px; align-items: center; }
+.sh-table .pchip { font: 700 10px/1 var(--content); font-style: normal; padding: 2px 4px; border-radius: 3px; }
 .sh-table .own.mine { color: var(--you); font-weight: 600; }
 .sh-table .own.fa { font-weight: 600; color: var(--ink); }
 .sh-table .inj { font-style: normal; color: var(--alert); text-transform: capitalize; }
@@ -84,13 +84,13 @@
 .dumb .from { position: absolute; top: 4px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; border: 1.5px solid var(--ink-2); background: var(--win); box-sizing: border-box; }
 .dumb .to { position: absolute; top: 3px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; box-shadow: 0 0 0 2px var(--win); }
 .dumb.up .to { background: var(--above); } .dumb.down .to { background: var(--below); }
-.dumb em { font-style: normal; font-size: 11.5px; color: var(--ink-2); min-width: 48px; }
+.dumb em { font-style: normal; font-size: 12px; color: var(--ink-2); min-width: 48px; }
 .dumb.none { color: var(--ink-3); }
-.zchip { font: 600 11.5px var(--sys); padding: 2px 8px; border-radius: 999px; background: var(--field); cursor: help; }
+.zchip { font: 600 12px var(--sys); padding: 2px 8px; border-radius: 999px; background: var(--field); cursor: help; }
 .zchip.up { background: color-mix(in srgb, var(--above) 16%, transparent); }
 .zchip.down { background: color-mix(in srgb, var(--below) 14%, transparent); }
 .cause { color: var(--ink-2); }
 .held.real { font-weight: 650; } .held.weak { color: var(--noise); }
-.sh-foot { font: 11.5px/1.45 var(--sys); color: var(--ink-2); max-width: 820px; margin: 4px 0 0; }
+.sh-foot { font: 12px/1.45 var(--sys); color: var(--ink-2); max-width: 820px; margin: 4px 0 0; }
 
 .shifts .sh-list { min-width: 0; overflow-x: auto; }

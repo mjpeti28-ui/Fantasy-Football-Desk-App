@@ -6,7 +6,7 @@
 .board .d-read b { color: var(--b-ink); font-weight: 650; }
 
 /* slot duel */
-.duel .d-leg { display: flex; gap: 14px; font: 11.5px var(--sys); color: var(--b-ink2); margin: -2px 0 8px; }
+.duel .d-leg { display: flex; gap: 14px; font: 12px var(--sys); color: var(--b-ink2); margin: -2px 0 8px; }
 .duel .d-leg span { display: inline-flex; align-items: center; gap: 5px; }
 .duel .k { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
 .duel .k.you { background: var(--you); } .duel .k.them { background: var(--them); }
@@ -21,8 +21,8 @@
 .duel .bar.l i { background: var(--you); border-radius: 4px 0 0 4px; }
 .duel .bar.r i { background: var(--them); border-radius: 0 4px 4px 0; }
 .duel .sl { display: grid; justify-items: center; line-height: 1; gap: 2px; }
-.duel .sl b { font: 700 10.5px/1 var(--content); font-variation-settings: "wdth" 72; letter-spacing: .08em; }
-.duel .sl em { font: 10.5px var(--sys); font-style: normal; color: var(--b-ink2); }
+.duel .sl b { font: 700 11px/1 var(--content); font-variation-settings: "wdth" 72; letter-spacing: .08em; }
+.duel .sl em { font: 11px var(--sys); font-style: normal; color: var(--b-ink2); }
 .duel .sl.up em { color: var(--above); font-weight: 650; } .duel .sl.down em { color: var(--below); font-weight: 650; }
 
 /* what each player carries */
@@ -30,8 +30,8 @@
 .carries .c-row { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 136px minmax(0, 1fr) 40px; gap: 8px; align-items: center; height: 22px; padding: 0 4px; border-radius: 5px; cursor: pointer; position: relative; z-index: 1; }
 .carries .c-row:hover, .carries .c-row:focus-visible { background: var(--b-cell); }
 .carries .nm { font: 700 12px/1 var(--content); font-variation-settings: "wdth" 72; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; gap: 6px; align-items: center; }
-.carries .nm em { font: 500 10.5px var(--sys); font-style: normal; text-transform: none; letter-spacing: 0; color: var(--b-ink2); }
-.carries .pchip { font: 700 9px/1 var(--content); font-style: normal; padding: 2px 3px; border-radius: 3px; width: 22px; text-align: center; flex: none; }
+.carries .nm em { font: 500 11px var(--sys); font-style: normal; text-transform: none; letter-spacing: 0; color: var(--b-ink2); }
+.carries .pchip { font: 700 10px/1 var(--content); font-style: normal; padding: 2px 3px; border-radius: 3px; width: 22px; text-align: center; flex: none; }
 .carries .trk { height: 10px; position: relative; }
 .carries .trk i { display: block; height: 100%; border-radius: 0 4px 4px 0; }
 .carries .v { font: 600 12px var(--sys); text-align: right; }
@@ -45,4 +45,4 @@
 .board .lu-t { font: 13px/1.4 var(--sys); }
 .board .lu-t b { font-weight: 650; }
 .board .lu-t .mv { display: inline-flex; gap: 4px; align-items: baseline; margin-right: 14px; white-space: nowrap; }
-.board .lu-t .mv em { font: 700 10.5px var(--content); font-style: normal; letter-spacing: .06em; color: var(--you); }
+.board .lu-t .mv em { font: 700 11px var(--content); font-style: normal; letter-spacing: .06em; color: var(--you); }

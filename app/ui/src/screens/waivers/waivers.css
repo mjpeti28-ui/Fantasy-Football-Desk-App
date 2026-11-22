@@ -3,7 +3,7 @@
 .waivers { font-family: var(--content); font-variation-settings: "wdth" 92; padding: 22px 28px 40px; display: grid; gap: 18px; align-content: start; grid-template-columns: minmax(0, 1fr); }
 .waivers .wv-hd { display: grid; gap: 4px; max-width: 900px; }
 .waivers .eyebrow { font: 600 11px/1 var(--sys); color: var(--ink-2); letter-spacing: .02em; }
-.waivers .wv-hd h2 { margin: 0; font: 700 23px/1.2 var(--content); font-variation-settings: "wdth" 92; }
+.waivers .wv-hd h2 { margin: 0; font: 700 24px/1.2 var(--content); font-variation-settings: "wdth" 92; }
 .waivers .wv-sub { margin: 0; color: var(--ink-2); max-width: 760px; }
 .waivers .wv-off { color: var(--alert); }
 
@@ -17,7 +17,7 @@
 .waivers .spine { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--pc); opacity: .35; border-radius: 1px; }
 .waivers .repl { position: absolute; left: 8%; right: 8%; border-top: 1.5px dashed var(--ink-3); }
 .waivers .lane .dot { position: absolute; left: 50%; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border-radius: 50%; }
-.waivers .lane .lab { position: absolute; transform: translateY(-50%); font-size: 11.5px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(50% - 9px);
+.waivers .lane .lab { position: absolute; transform: translateY(-50%); font-size: 12px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(50% - 9px);
   background: var(--win); padding: 0 2px; border-radius: 2px; z-index: 1; } /* sits over the dashed replacement line */
 .waivers .lab em { font-style: normal; font-variant-numeric: tabular-nums; color: var(--ink-2); }
 .waivers .mine .dot { background: var(--you); box-shadow: 0 0 0 2px var(--win); z-index: 2; }
@@ -31,7 +31,7 @@
 .waivers .fa.on .dot { background: var(--pc); box-shadow: 0 0 0 3px var(--win), 0 0 0 4.5px var(--pc); }
 .waivers .fa.on .lab { color: var(--ink); font-weight: 600; }
 .waivers .ladder .foot { font-size: 11px; color: var(--ink-2); padding: 0 4px; min-height: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.waivers .wv-key { margin: -8px 0 0; font-size: 11.5px; color: var(--ink-2); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.waivers .wv-key { margin: -8px 0 0; font-size: 12px; color: var(--ink-2); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .waivers .wv-key span { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-left: 6px; }
 .waivers .wv-key span:first-child { margin-left: 0; }
 .waivers .k-mine { background: var(--you); }
@@ -50,7 +50,7 @@
 .waivers .who { display: flex; align-items: center; gap: 8px; }
 .waivers .who .face { width: 34px; height: 26px; }
 .waivers .who b { font-weight: 600; display: block; }
-.waivers .who small { color: var(--ink-2); font-size: 11.5px; }
+.waivers .who small { color: var(--ink-2); font-size: 12px; }
 .waivers .who .tag { font-style: normal; color: #c98a0c; }
 .waivers .pchip { font: 700 10px/1 var(--content); font-style: normal; padding: 3px 0; width: 30px; text-align: center; border-radius: 3px; flex: none; }
 .waivers .use { display: inline-flex; align-items: flex-end; gap: 8px; }
@@ -96,7 +96,7 @@
 
 /* usage jumps on the wire */
 .waivers .risers { display: grid; gap: 8px; }
-.waivers .risers h3 { margin: 0; font: 700 14px/1.2 var(--content); font-variation-settings: "wdth" 92; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.waivers .risers h3 { margin: 0; font: 700 15px/1.2 var(--content); font-variation-settings: "wdth" 92; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
 .waivers .risers h3 span { font: 500 12px var(--sys); color: var(--ink-2); }
 .waivers .rs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
 .waivers .rs { all: unset; box-sizing: border-box; display: grid; gap: 3px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); border-left: 3px solid var(--above); cursor: pointer; font: 12px var(--sys); }
@@ -104,7 +104,7 @@
 .waivers .rs-top { display: flex; gap: 6px; align-items: center; min-width: 0; }
 .waivers .rs-top b { font: 650 13px var(--sys); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .waivers .rs-top small { color: var(--ink-2); }
-.waivers .rs .pchip { font: 700 9.5px/1 var(--content); font-style: normal; padding: 2px 4px; border-radius: 3px; }
+.waivers .rs .pchip { font: 700 10px/1 var(--content); font-style: normal; padding: 2px 4px; border-radius: 3px; }
 .waivers .rs-mid { color: var(--ink); }
 .waivers .rs-bot { display: flex; gap: 8px; flex-wrap: wrap; color: var(--ink-2); }
 .waivers .rs-bot em { font-style: normal; color: var(--above); font-weight: 600; }
@@ -113,7 +113,7 @@
 .waivers .wv-list { min-width: 0; overflow-x: auto; }
 
 /* who you'd let go */
-.waivers .wv-keep { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; }
+.waivers .wv-keep { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
 .waivers .wv-keep .lbl { font: 600 11px/1 var(--sys); color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; }
 .waivers .wv-keep .chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border: 1px solid var(--you); border-radius: 999px; background: var(--you-soft); color: var(--ink); font: inherit; cursor: pointer; }
 .waivers .wv-keep .chip i { font-style: normal; color: var(--ink-2); }

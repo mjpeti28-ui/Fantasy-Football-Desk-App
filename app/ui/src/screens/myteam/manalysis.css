@@ -1,9 +1,9 @@
 /* My Team › Analysis. Lives on the board's pegboard (.board tokens) and uses its cards (.ins-panel). */
 .mta { --panel-bg: var(--b-tile); }
-.mta .mta-empty { margin: 40px auto; color: var(--b-ink2); font-size: 14px; }
-.mta .mta-hd h4 { margin: 0; font: 800 26px/1 var(--content); font-variation-settings: "wdth" 66; text-transform: uppercase; letter-spacing: .01em; }
+.mta .mta-empty { margin: 40px auto; color: var(--b-ink2); font-size: 15px; }
+.mta .mta-hd h4 { margin: 0; font: 800 28px/1 var(--content); font-variation-settings: "wdth" 66; text-transform: uppercase; letter-spacing: .01em; }
 .mta .mta-hd h4 span { font: 500 13px var(--sys); text-transform: none; color: var(--b-ink2); margin-left: 8px; letter-spacing: 0; }
-.mta .mta-hd p { margin: 6px 0 0; font: 12.5px/1.6 var(--sys); color: var(--b-ink2); }
+.mta .mta-hd p { margin: 6px 0 0; font: 13px/1.6 var(--sys); color: var(--b-ink2); }
 .mta .mta-hd .ev { margin: 0 4px 0 8px; }
 .mta .mta-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 14px; align-items: start; }
 .mta .ins-panel { display: grid; gap: 8px; align-content: start; }
@@ -14,10 +14,10 @@
 .mta .dim { color: var(--b-ink2); }
 .mta .num { font-variant-numeric: tabular-nums; }
 .mta .nm { font: 700 12px/1 var(--content); font-variation-settings: "wdth" 72; letter-spacing: .04em; text-transform: uppercase; text-align: left; white-space: nowrap; }
-.mta .nm em { font: 500 10.5px var(--sys); font-style: normal; color: var(--b-ink2); text-transform: none; letter-spacing: 0; margin-left: 3px; }
+.mta .nm em { font: 500 11px var(--sys); font-style: normal; color: var(--b-ink2); text-transform: none; letter-spacing: 0; margin-left: 3px; }
 
 .mta table { border-collapse: separate; border-spacing: 0 2px; width: 100%; font: 12px var(--sys); }
-.mta thead th { font: 600 10.5px/1.3 var(--sys); color: var(--b-ink2); text-align: left; padding: 0 6px 4px; white-space: nowrap; position: static; background: none; border: 0; }
+.mta thead th { font: 600 11px/1.3 var(--sys); color: var(--b-ink2); text-align: left; padding: 0 6px 4px; white-space: nowrap; position: static; background: none; border: 0; }
 .mta tbody tr { cursor: pointer; }
 .mta tbody tr > * { padding: 3px 6px; }
 .mta tbody tr:hover > *, .mta tbody tr.sel > * { background: var(--b-cell); }
@@ -43,7 +43,7 @@
 .mta .sm .avg { stroke: var(--b-ink2); stroke-width: 1; opacity: .6; }
 .mta .sm .ln { fill: none; stroke: var(--b-ink); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .mta .sm .pt { fill: var(--b-ink); stroke: var(--b-cell); stroke-width: 2; }
-.mta .sm-f { font: 11.5px var(--sys); min-height: 19px; display: flex; align-items: center; }
+.mta .sm-f { font: 12px var(--sys); min-height: 19px; display: flex; align-items: center; }
 
 /* your weeks */
 .mta .mta-tw { display: block; }
@@ -51,9 +51,9 @@
 .mta .mta-tw .got { fill: var(--you); }
 .mta .mta-tw .opt { fill: color-mix(in srgb, var(--you) 22%, transparent); }
 .mta .mta-tw .proj { stroke: var(--b-ink); stroke-width: 2; stroke-linecap: round; }
-.mta .mta-tw .wk { fill: var(--b-ink2); font: 500 10px var(--mono); }
-.mta .mta-tw .rk { fill: var(--b-ink2); font: 600 9.5px var(--mono); }
-.mta .mta-leg { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font: 11.5px var(--sys); color: var(--b-ink2); }
+.mta .mta-tw .wk { fill: var(--b-ink2); font: 500 10px var(--content); }
+.mta .mta-tw .rk { fill: var(--b-ink2); font: 600 10px var(--content); }
+.mta .mta-leg { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font: 12px var(--sys); color: var(--b-ink2); }
 .mta .mta-leg .k { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
 .mta .mta-leg .k.got { background: var(--you); } .mta .mta-leg .k.opt { background: color-mix(in srgb, var(--you) 22%, transparent); }
 .mta .mta-leg .k.proj { height: 2px; width: 12px; background: var(--b-ink); vertical-align: 3px; }
@@ -65,3 +65,5 @@
 .mta .mv:hover, .mta .mv.sel { background: var(--b-cell); }
 .mta .mv .d { text-align: right; font-weight: 650; } .mta .mv .d.up { color: var(--above); } .mta .mv .d.down { color: var(--below); }
 .mta .foot { margin: 0; font: 12px var(--sys); color: var(--b-ink2); }
+/* Your weeks sits alone on its row: keep the chart at its old size instead of stretching to the page */
+.mta .mta-weeks .mta-tw, .mta .mta-weeks > * { max-width: 680px; }

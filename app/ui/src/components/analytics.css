@@ -17,29 +17,29 @@
 .aflag.l-noise, .aflag.l-tilt { color: var(--ink-2); border-style: dashed; border-color: var(--noise); }
 
 .tstrip { display: inline-flex; gap: 2px; vertical-align: middle; }
-.tc { display: inline-block; width: 20px; height: 16px; border-radius: 3px; font: 600 9.5px/16px var(--mono); text-align: center; font-style: normal;
+.tc { display: inline-block; width: 20px; height: 16px; border-radius: 3px; font: 600 10px/16px var(--content); text-align: center; font-style: normal;
   background: var(--field); color: var(--ink-2); cursor: default; }
 .tc.smash { background: var(--above); color: var(--win); }
 .tc.start { background: color-mix(in srgb, var(--above) 28%, transparent); color: var(--ink); }
 .tc.dud { background: color-mix(in srgb, var(--below) 26%, transparent); color: var(--ink); }
 .tc.none { background: none; box-shadow: inset 0 0 0 1px var(--line); }
-.tlegend { display: flex; flex-wrap: wrap; gap: 6px 14px; font: 11.5px/1.3 var(--sys); color: var(--ink-2); }
+.tlegend { display: flex; flex-wrap: wrap; gap: 6px 14px; font: 12px/1.3 var(--sys); color: var(--ink-2); }
 .tlegend .tc { width: 12px; height: 10px; margin-right: 5px; vertical-align: -1px; }
 
 .dumb-w { width: 100%; min-width: 0; }
 .dumb { display: block; color: var(--ink); }
 .dumb .grid { stroke: var(--line); stroke-width: 1; }
-.dumb .tk { fill: var(--ink-2); font: 500 10px var(--mono); }
+.dumb .tk { fill: var(--ink-2); font: 500 10px var(--content); }
 .dumb .nm { fill: currentColor; font: 700 12px var(--content); font-variation-settings: "wdth" 72; letter-spacing: .04em; text-transform: uppercase; }
 .dumb .link { stroke-width: 2; stroke-linecap: round; }
 .dumb .link.up { stroke: var(--above); } .dumb .link.down { stroke: var(--below); } .dumb .link.even { stroke: var(--noise); }
 .dumb .xfp { fill: var(--panel-bg, var(--win)); stroke: var(--ink-2); stroke-width: 2; }
 .dumb .act { fill: currentColor; stroke: var(--panel-bg, var(--win)); stroke-width: 2; }
-.dumb .gap { font: 600 11.5px var(--mono); fill: var(--ink-2); }
+.dumb .gap { font: 600 12px var(--content); fill: var(--ink-2); }
 .dumb .row { cursor: pointer; } .dumb .hit { fill: transparent; }
 .dumb .row:hover .hit, .dumb .row.sel .hit { fill: var(--hover); }
 
-.pc { font: 600 11px/1 var(--mono); text-align: center; padding: 6px 4px; border-radius: 4px; color: var(--ink);
+.pc { font: 600 11px/1 var(--content); text-align: center; padding: 6px 4px; border-radius: 4px; color: var(--ink);
   background: color-mix(in srgb, var(--ink) calc(var(--a) * 62%), transparent); }
 .pc.hi { color: var(--win); }
 .pc.none { background: none; color: var(--ink-3); }
