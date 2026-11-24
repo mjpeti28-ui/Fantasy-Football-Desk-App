@@ -250,12 +250,21 @@ export interface Comps {
   me: { ppg: number; age: number | null; exp: number | null; prev_ppg: number | null };
   bt: { mae: number; mae_sofar: number; mae_lin: number; cov80: number; cov50: number; rho: number; n: number } | null; starter_ppg: number | null;
 }
+export interface RosWeek { week: number; est: number | null; pe: number | null; po: number | null; pf: number | null; pp?: number | null; tprr?: number | null; ew: number | null; ou: number | null; n: number | null; r: number | null }
+export interface RosWindow { games: number; plays: number; share: number; xpo: number; fin: number; ppg: number; xppg: number }
+export interface RosParts {
+  history: RosWeek[];
+  build: { season: RosWindow | null; recent: RosWindow | null; moved: "plays" | "share" | "xpo" | "fin" | null; log?: Record<string, number>; log_total?: number } | null;
+}
+
 export interface PlayerFile {
   id: number; name: string; pos: Pos; team: string | null; pro_team?: string | null; headshot?: string | null; season: number; through_week: number; week: number;
   age: number | null; draft: { year: number; round: number | null; pick: number | null } | null;
   owner: { team_id: number; name: string; injury?: string | null } | null;
   ledger: { est_ppg: number | null; avail_now: number | null; avail_ros: number | null; ecr_rank: number | null; status: string | null; bye: number | null } | null;
   espn_week: number | null; game?: Game | null;
+  /** what our rest-of-season number is made of: blend parts by ledger week, and the box-score build (season vs last 3) */
+  ros?: RosParts | null;
   /** returning from games his team played without him: which game back this is, and how many he missed */
   back?: { game: 1 | 2; missed: number } | null;
   season_line: { games: number; ppr_g: number; snap: number; espn_g: number | null; rank: number | null; of: number } | null;

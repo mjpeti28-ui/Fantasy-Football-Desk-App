@@ -52,6 +52,12 @@ WK1_TO_SEASON = 0.93
 # moves that aren't a reaction to the last game revert ~30% the next week (2021-26); 0.4 is
 # where the ESPN part's change stops predicting the ROS error (metrics/espn-smoothing).
 ESPN_SMOOTH = 0.4
+# WR targets per route run from PFF (season to date, the w01-<week-1> receiving window Refresh
+# caches under .cache/pff): est += coef x clipped z. LOSO 2021-25 MAE -0.016..-0.021, better all
+# 5 seasons, shuffled placebo 0, free target share doesn't reproduce it; 2026 wk4-9 -0.028
+# (metrics/fp-pff-tuning). TE/RB PFF features were all worse. No PFF window -> no nudge.
+PFF_TPRR = {"mean": 0.2129, "sd": 0.0565, "coef": 0.247, "clip": 2.5}
+PFF_CACHE = ROOT / ".cache" / "pff" / "receiving_summary"
 FANTASY_LAST_WEEK = 17
 
 OUT_STATUSES = {"OUT", "INJURY_RESERVE", "SUSPENSION", "IR", "PUP"}
@@ -317,6 +323,11 @@ def player_table(s: Season, week: int, params: ForecastParams, *, live_injuries:
         if ecr is not None:
             df = blend_ecr(df, ecr, params.ecr_weight)
     df["c_fp"] = df["est_ppg"] - df["c_espn"] - df["c_ours"]
+    t = wr_tprr(s.season, week, df.loc[df["position"] == "WR", "espn_id"], s.name)
+    df["tprr"] = df["espn_id"].map(t)
+    z = ((df["tprr"] - PFF_TPRR["mean"]) / PFF_TPRR["sd"]).clip(-PFF_TPRR["clip"], PFF_TPRR["clip"])
+    df["c_pff"] = np.where((df["position"] == "WR") & (df["est_ppg"] > 0), (PFF_TPRR["coef"] * z).fillna(0.0), 0.0)
+    df["est_ppg"] = df["est_ppg"] + df["c_pff"]
     roster = s.roster_at(week)
     slot = dict(zip(roster["espn_id"], roster["lineup_slot"])) if "lineup_slot" in roster else {}
     last = s.weekly[s.weekly["week"] == week - 1]
@@ -386,6 +397,42 @@ def _level_sd(s: "Season", week: int, df: pd.DataFrame, table: Dict) -> np.ndarr
         t = t.get(role, t.get("-", {})) if isinstance(t, dict) else {}
         out.append(float(t.get(half, 0.0)) if isinstance(t, dict) else 0.0)
     return np.asarray(out)
+
+
+def _norm_name(x) -> str:
+    import re
+    x = re.sub(r"[^a-z0-9]+", " ", str(x).lower().replace(".", "").replace("'", "").replace("\u2019", ""))
+    return re.sub(r"\s+", " ", re.sub(r" (jr|sr|ii|iii|iv|v)$", "", x.strip())).strip()
+
+
+@lru_cache(maxsize=32)
+def _pff_window(path: str, mtime: float) -> pd.DataFrame:
+    d = pd.DataFrame(next(iter(json.loads(Path(path).read_text()).values())))
+    d = d[d["position"] == "WR"].copy()
+    d[["routes", "targets"]] = d[["routes", "targets"]].apply(pd.to_numeric, errors="coerce")
+    d = d[d["routes"] > 0]
+    return pd.DataFrame({"nn": d["player"].map(_norm_name), "tprr": d["targets"] / d["routes"]})
+
+
+def wr_tprr(season: int, week: int, wr_ids: Iterable[int], names: Dict[int, str]) -> pd.Series:
+    """espn_id -> PFF targets per route run, season to date before ``week`` (the widest cached
+    w01-hi window with hi <= week-1). Matched by normalized name among WRs; names shared by two
+    players on either side are dropped. Empty if no window is cached."""
+    try:
+        best = None
+        for f in (PFF_CACHE / str(season)).glob("w01-*.json"):
+            hi = int(f.stem.split("-")[1])
+            if hi <= week - 1 and (best is None or hi > best[0]):
+                best = (hi, f)
+        if best is None:
+            return pd.Series(dtype=float)
+        p = _pff_window(str(best[1]), best[1].stat().st_mtime)
+        p = p[~p["nn"].duplicated(keep=False)].set_index("nn")["tprr"]
+        e = pd.Series({int(i): _norm_name(names.get(int(i), "")) for i in wr_ids})
+        e = e[(e != "") & ~e.duplicated(keep=False)]
+        return e.map(p).dropna()
+    except Exception:  # noqa: BLE001 -- optional input; a bad cache file means no nudge
+        return pd.Series(dtype=float)
 
 
 def blend_ecr(df: pd.DataFrame, ecr: pd.Series, weights: Dict[str, float]) -> pd.DataFrame:

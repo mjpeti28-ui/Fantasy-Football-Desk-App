@@ -21,7 +21,7 @@ import valuation as v
 ROOT = Path(__file__).resolve().parent
 LEDGER = ROOT / "history" / "ledger"
 COLS = ["name", "position", "est_ppg", "avail_now", "avail", "bye", "status", "espn_now", "ecr_rank",
-        "espn_smooth", "ours_ppg", "n", "c_espn", "c_ours", "c_fp"]
+        "espn_smooth", "ours_ppg", "n", "c_espn", "c_ours", "c_fp", "c_pff", "tprr"]
 
 
 def _dir(season: int) -> Path:
