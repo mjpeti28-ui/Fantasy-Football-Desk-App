@@ -203,7 +203,7 @@ export function useWarm(enabled: boolean, kick: unknown) {
 /** True once a warm-up step has finished. */
 export const warmed = (w: Warm | null, step: string) => !!w && (w.state === "done" || w.steps[step]?.state === "ready" || w.steps[step]?.state === "failed");
 
-export interface ChangeItem { kind: "mine" | "opp" | "move"; id: number; name: string | null; pos: string | null; team: number | null; text: string; tone: "up" | "down" | "" }
+export interface ChangeItem { kind: "mine" | "opp" | "move"; id: number; name: string | null; pos: string | null; team: number | null; text: string; tone: "up" | "down" | ""; why?: string }
 export interface Changes { from: number | null; to: number | null; at_from?: number | null; at_to?: number | null; from_source?: string; week?: number; opp?: number | null; opp_name?: string | null; items: ChangeItem[]; note?: string }
 export const changesApi = { get: (since?: number | null) => getJSON<Changes>(`${ENGINE}/api/changes${since ? `?since=${since}` : ""}`) };
 

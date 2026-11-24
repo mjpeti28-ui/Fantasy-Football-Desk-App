@@ -39,6 +39,68 @@ def _f(x) -> Optional[float]:
         return None
 
 
+def _parts(lp: pd.DataFrame, pid: int) -> dict:
+    """The pieces of our rest-of-season number (they add up to it): ESPN's half (pe, from the smoothed
+    weekly projection ew), our own average's half (po, from ours_ppg over n games) and the FantasyPros
+    pull (pf, FantasyPros rank r). Older ledgers don't have them."""
+    if pid not in lp.index or "c_espn" not in lp.columns:
+        return {}
+    r = lp.loc[pid]
+    return {"pe": _f(r.get("c_espn")), "po": _f(r.get("c_ours")), "pf": _f(r.get("c_fp")), "ew": _f(r.get("espn_smooth")),
+            "ou": _f(r.get("ours_ppg")), "n": _f(r.get("n")), "r": _f(r.get("ecr_rank"))}
+
+
+def _role(season: int) -> Dict[int, str]:
+    """espn_id -> one line on his role and finishing from nflverse: opportunity share (targets + carries,
+    QB: dropbacks + carries, over team plays) in his last game vs his season so far, and last game's
+    points vs expected points. Share settles in about a game; finishing (points vs expected) is mostly
+    luck within a season (metrics/own-projection). Empty if the files aren't there."""
+    try:
+        o = pd.read_csv(d.NFLVERSE / str(season) / "opportunity.csv")
+        ids = pd.read_csv(d.NFLVERSE / "ids.csv").dropna(subset=["gsis_id", "espn_id"]).drop_duplicates("gsis_id")
+    except (OSError, ValueError):
+        return {}
+    o = o[o["position"].isin(["QB", "RB", "WR", "TE"])].copy()
+    o["opps"] = (o["pass_attempt"].where(o["position"] == "QB", o["rec_attempt"]) + o["rush_attempt"]).fillna(0)
+    t = o.groupby(["posteam", "week"])[["pass_attempt", "rush_attempt"]].sum().sum(axis=1).rename("plays")
+    o = o.join(t, on=["posteam", "week"])
+    o["espn_id"] = o["player_id"].map(dict(zip(ids["gsis_id"], ids["espn_id"].astype(int))))
+    out: Dict[int, str] = {}
+    for pid, g in o.dropna(subset=["espn_id"]).sort_values("week").groupby("espn_id"):
+        last = g.iloc[-1]
+        if len(g) < 2 or not g["plays"].sum() or not last["plays"]:
+            continue
+        sh, sh0 = last["opps"] / last["plays"], g["opps"].sum() / g["plays"].sum()
+        move = "steady" if abs(sh - sh0) < max(0.03, 0.15 * sh0) else ("up" if sh > sh0 else "down")
+        line = f"role {move} (share {sh:.0%} last game, {sh0:.0%} season)"
+        if last["total_fantasy_points_exp"] > 0:
+            line += f"; scored {last['total_fantasy_points']:.1f} on {last['total_fantasy_points_exp']:.1f} expected"
+        out[int(pid)] = line
+    return out
+
+
+def _why(b: dict, c: dict, role: Optional[str]) -> Optional[str]:
+    """Split a change in our number into its pieces, biggest first."""
+    if not all(x.get(k) is not None for x in (b, c) for k in ("pe", "po", "pf")):
+        return role
+    bits = []
+    for k, label in (("pe", "ESPN"), ("po", "our average"), ("pf", "FantasyPros")):
+        dv = c[k] - b[k]
+        if abs(dv) < 0.05:
+            continue
+        if k == "pe" and b.get("ew") is not None and c.get("ew") is not None:
+            label += f" ({b['ew']:.1f}→{c['ew']:.1f} smoothed weekly proj)"
+        elif k == "po" and b.get("ou") is not None and c.get("ou") is not None:
+            label += f" ({b['ou']:.1f}→{c['ou']:.1f}" + (f", {c['n']:.0f} games" if c.get("n") is not None else "") + ")"
+        elif k == "pf" and b.get("r") is not None and c.get("r") is not None and b["r"] != c["r"]:
+            label += f" (rank {b['r']:.0f}→{c['r']:.0f})"
+        bits.append((abs(dv), f"{label} {dv:+.2f}"))
+    parts = [t for _, t in sorted(bits, reverse=True)]
+    if role:
+        parts.append(role)
+    return " · ".join(parts) or None
+
+
 def _state_now() -> dict:
     inp = d.load()
     wk = int(inp.rosters["week"].max())
@@ -50,13 +112,13 @@ def _state_now() -> dict:
         pid = int(r.espn_id)
         players[str(pid)] = {"n": str(r.name), "p": str(r.position).replace("D/ST", "DST"), "o": int(r.team_id),
                              "s": _norm(getattr(r, "injury_status", "")), "w": _f(proj.get(pid)),
-                             "e": _f(lp.at[pid, "est_ppg"]) if pid in lp.index else None}
+                             "e": _f(lp.at[pid, "est_ppg"]) if pid in lp.index else None, **_parts(lp, pid)}
     # free agents worth tracking: anyone our model has at 6+ ppg, so adds/drops and their tags show
     for pid, r in lp.iterrows():
         if str(int(pid)) in players or (_f(r.get("est_ppg")) or 0) < 6:
             continue
         players[str(int(pid))] = {"n": str(r.get("name")), "p": str(r.get("position")), "o": None, "s": _norm(r.get("status")),
-                                  "w": _f(proj.get(int(pid))), "e": _f(r.get("est_ppg"))}
+                                  "w": _f(proj.get(int(pid))), "e": _f(r.get("est_ppg")), **_parts(lp, int(pid))}
     t = max(v for v in inp.ages.values() if v)
     return {"id": int(t), "at": t, "week": inp.week, "source": "Desk refresh", "players": players,
             "teams": {str(k): inp.team_name(int(k)) for k in sorted(ro["team_id"].unique())}}
@@ -122,10 +184,12 @@ def digest(since: Optional[int] = None) -> dict:
     opp = _opponent(inp, ME, inp.week)
     items: List[dict] = []
     B, C = base["players"], cur["players"]
+    role = _role(inp.season)
 
-    def add(kind, pid, text, tone="", team=None, rank=0):
+    def add(kind, pid, text, tone="", team=None, rank=0, why=None):
         p = C.get(pid) or B.get(pid) or {}
-        items.append({"kind": kind, "id": int(pid), "name": p.get("n"), "pos": p.get("p"), "team": team, "text": text, "tone": tone, "rank": rank})
+        items.append({"kind": kind, "id": int(pid), "name": p.get("n"), "pos": p.get("p"), "team": team, "text": text, "tone": tone, "rank": rank,
+                      **({"why": why} if why else {})})
 
     for pid, c in C.items():
         b = B.get(pid)
@@ -153,7 +217,8 @@ def digest(since: Optional[int] = None) -> dict:
             add(who, pid, f"ESPN this week {b['w']:.1f} → {c['w']:.1f}", "up" if up == mine else "down", c.get("o"), 6 if mine else 4)
         # our rest-of-season number
         if mine and b.get("e") is not None and c.get("e") is not None and abs(c["e"] - b["e"]) >= 0.75:
-            add("mine", pid, f"our rest-of-season number {b['e']:.1f} → {c['e']:.1f} ppg", "up" if c["e"] > b["e"] else "down", c.get("o"), 5)
+            add("mine", pid, f"our rest-of-season number {b['e']:.1f} → {c['e']:.1f} ppg", "up" if c["e"] > b["e"] else "down", c.get("o"), 5,
+                _why(b, c, role.get(int(pid))))
     for pid, b in B.items():  # rostered before, now a free agent we don't track (model under 6 ppg)
         if pid not in C and b.get("o") is not None:
             p = b
