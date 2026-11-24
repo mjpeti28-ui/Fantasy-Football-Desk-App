@@ -254,7 +254,7 @@ export interface RosWeek { week: number; est: number | null; pe: number | null; 
 export interface RosWindow { games: number; plays: number; share: number; xpo: number; fin: number; ppg: number; xppg: number }
 export interface RosParts {
   history: RosWeek[];
-  build: { season: RosWindow | null; recent: RosWindow | null; moved: "plays" | "share" | "xpo" | "fin" | null; log?: Record<string, number>; log_total?: number } | null;
+  build: { season: RosWindow | null; recent: RosWindow | null; moved: "plays" | "share" | "xpo" | "fin" | null; basis?: "plays" | "passes"; log?: Record<string, number>; log_total?: number } | null;
 }
 
 export interface PlayerFile {
