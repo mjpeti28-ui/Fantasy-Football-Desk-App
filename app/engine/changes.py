@@ -42,11 +42,11 @@ def _f(x) -> Optional[float]:
 def _parts(lp: pd.DataFrame, pid: int) -> dict:
     """The pieces of our rest-of-season number (they add up to it): ESPN's half (pe, from the smoothed
     weekly projection ew), our own average's half (po, from ours_ppg over n games) and the FantasyPros
-    pull (pf, FantasyPros rank r). Older ledgers don't have them."""
+    pull (pf, FantasyPros rank r), plus the PFF targets-per-route nudge for WRs (pp). Older ledgers don't have them."""
     if pid not in lp.index or "c_espn" not in lp.columns:
         return {}
     r = lp.loc[pid]
-    return {"pe": _f(r.get("c_espn")), "po": _f(r.get("c_ours")), "pf": _f(r.get("c_fp")), "ew": _f(r.get("espn_smooth")),
+    return {"pe": _f(r.get("c_espn")), "po": _f(r.get("c_ours")), "pf": _f(r.get("c_fp")), "pp": _f(r.get("c_pff")), "ew": _f(r.get("espn_smooth")),
             "ou": _f(r.get("ours_ppg")), "n": _f(r.get("n")), "r": _f(r.get("ecr_rank"))}
 
 
@@ -84,8 +84,10 @@ def _why(b: dict, c: dict, role: Optional[str]) -> Optional[str]:
     if not all(x.get(k) is not None for x in (b, c) for k in ("pe", "po", "pf")):
         return role
     bits = []
-    for k, label in (("pe", "ESPN"), ("po", "our average"), ("pf", "FantasyPros")):
-        dv = c[k] - b[k]
+    for k, label in (("pe", "ESPN"), ("po", "our average"), ("pf", "FantasyPros"), ("pp", "PFF targets/route")):
+        if c.get(k) is None:
+            continue
+        dv = c[k] - (b.get(k) or 0.0)  # snapshots from before the PFF part had no nudge
         if abs(dv) < 0.05:
             continue
         if k == "pe" and b.get("ew") is not None and c.get("ew") is not None:

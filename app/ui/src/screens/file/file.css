@@ -192,3 +192,19 @@
 .pf-box td.up { color: var(--above); } .pf-box td.down { color: var(--below); }
 .pf-box tr.tot td { font-weight: 600; border-top: 1.5px solid var(--ink-3); border-bottom: 0; }
 .pf-foot { font: 12px/1.5 var(--sys); color: var(--ink-3); max-width: 820px; border-top: 1px solid var(--line); padding-top: 12px; }
+
+/* our number */
+.pf-ros { display: grid; gap: 12px; max-width: 980px; }
+.ros-eq { display: flex; flex-wrap: wrap; gap: 8px; }
+.ros-eq > div { display: grid; gap: 2px; padding: 8px 12px; border-radius: 8px; background: var(--hover); min-width: 120px; }
+.ros-eq span { font: 600 11px var(--sys); color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; }
+.ros-eq b { font: 700 18px var(--content); }
+.ros-eq small { font: 11px var(--sys); color: var(--ink-3); }
+.ros-eq .tot { background: none; border: 1px solid var(--line, var(--hover)); }
+.ros-tbl { border-collapse: collapse; font: 12px var(--sys); width: 100%; max-width: 820px; }
+.ros-tbl th { font-weight: 600; color: var(--ink-2); text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--hover); }
+.ros-tbl td { padding: 4px 8px; border-bottom: 1px solid var(--hover); }
+.ros-tbl .r { text-align: right; }
+.ros-tbl td.drv { font-weight: 700; color: var(--ink); }
+.ros-build h3 { margin: 4px 0 8px; font: 650 14px var(--content); display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.ros-build h3 small { font: 500 12px var(--sys); color: var(--ink-2); }

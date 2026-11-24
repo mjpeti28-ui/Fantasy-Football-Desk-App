@@ -421,7 +421,7 @@ export function PlayerFileView({ file, err, loading, nameHint, myTeam, colors, d
           </div>}
         </header>
         {f && <nav className="pf-tabs" aria-label="Sections">
-          {[["read", "The read"], ["an", "Season analytics"], ["map", "Role map"], ["fingerprint", "Fingerprint"], ["usage", "By week"], ["comps", "Similar players"], ["box", "Box score"]].map(([id, l]) =>
+          {[["read", "The read"], ["ros", "Our number"], ["an", "Season analytics"], ["map", "Role map"], ["fingerprint", "Fingerprint"], ["usage", "By week"], ["comps", "Similar players"], ["box", "Box score"]].map(([id, l]) =>
             <button key={id} type="button" onClick={() => go(id)}>{l}</button>)}
           <span className="sp" />
           <button type="button" className="act" onClick={() => openCompare(f.id)}>Compare with…</button>
@@ -444,6 +444,10 @@ export function PlayerFileView({ file, err, loading, nameHint, myTeam, colors, d
             </ul>
             {f.role.traits.length > 0 && <div className="pf-traits">{f.role.traits.map((t) => <span key={t.label} className="chip" title={t.text}>{t.label}</span>)}</div>}
           </section>
+          {f.ros && <section id="pf-ros">
+            <h2>Our number <small>what the rest-of-season estimate is made of, and how it moved</small></h2>
+            <RosView f={f} />
+          </section>}
           <section id="pf-an">
             <h2>Season analytics <small>{an ? `through week ${an.through_week} · each stat with how much 2021–25 trusts it` : ""}</small></h2>
             <FileAnalytics ar={ar} a={an} />
@@ -478,6 +482,64 @@ export function PlayerFileView({ file, err, loading, nameHint, myTeam, colors, d
           </footer>
         </div>}
       </div>
+    </div>
+  );
+}
+
+/* ---------------- our number: blend parts by week + box-score build ---------------- */
+const PARTS: { k: "pe" | "po" | "pf" | "pp"; label: string }[] = [
+  { k: "pe", label: "ESPN" }, { k: "po", label: "Our average" }, { k: "pf", label: "FantasyPros" }, { k: "pp", label: "PFF routes" }];
+const FACTORS: { k: "plays" | "share" | "xpo" | "fin"; label: string; fmt: (v: number) => string; hint: string }[] = [
+  { k: "plays", label: "Team plays/g", fmt: (v) => v.toFixed(1), hint: "his team's pass attempts + runs per game" },
+  { k: "share", label: "His share", fmt: (v) => `${(v * 100).toFixed(0)}%`, hint: "targets + carries (QB: dropbacks + carries) over team plays" },
+  { k: "xpo", label: "Expected pts/opp", fmt: (v) => v.toFixed(2), hint: "nflverse expected PPR points per target or carry (depth, field position)" },
+  { k: "fin", label: "Finishing", fmt: (v) => `${(v * 100).toFixed(0)}%`, hint: "actual over expected points; mostly luck within a season" }];
+
+function RosView({ f }: { f: PF }) {
+  const h = f.ros?.history ?? [];
+  const cur = h.length ? h[h.length - 1] : null;
+  const b = f.ros?.build ?? null;
+  const shown = PARTS.filter((p) => h.some((r) => r[p.k] != null && Math.abs(r[p.k] as number) >= 0.005));
+  const inputOf = (k: string, r: (typeof h)[number]) => k === "pe" ? (r.ew != null ? `½ × ${f1(r.ew)} smoothed weekly proj` : "")
+    : k === "po" ? (r.ou != null ? `½ × ${f1(r.ou)} over ${r.n ?? 0} games` : "")
+    : k === "pf" ? (r.r != null ? `pull toward ${f.pos}${r.r} value` : "") : k === "pp" ? (r.tprr != null ? `${(r.tprr * 100).toFixed(0)}% targets per route` : "") : "";
+  const rows = h.slice(-8);
+  return (
+    <div className="pf-ros">
+      {cur && cur.pe != null && <div className="ros-eq">
+        {shown.map((p, i) => <div key={p.k}><span>{i ? "+ " : ""}{p.label}</span><b className="num">{f1(cur[p.k])}</b><small>{inputOf(p.k, cur)}</small></div>)}
+        <div className="tot"><span>= rest of season</span><b className="num">{f1(cur.est)}</b><small>per game, week {cur.week} snapshot</small></div>
+      </div>}
+      {cur && cur.pe == null && <p className="pf-cap">Snapshots before the parts were stored show only the total; the split starts with the next refresh.</p>}
+      {rows.length > 1 && <table className="ros-tbl">
+        <thead><tr><th>Week</th><th className="r">Our number</th><th className="r">Change</th>{shown.map((p) => <th key={p.k} className="r">{p.label}</th>)}</tr></thead>
+        <tbody>{rows.map((r, i) => {
+          const prev = i ? rows[i - 1] : h[h.length - rows.length - 1];
+          const dv = (k: keyof typeof r) => (prev && r[k] != null && prev[k] != null ? (r[k] as number) - (prev[k] as number) : null);
+          const big = prev ? shown.map((p) => ({ k: p.k, v: dv(p.k) })).filter((x) => x.v != null).sort((a, c) => Math.abs(c.v!) - Math.abs(a.v!))[0] : undefined;
+          return <tr key={r.week}>
+            <td>{r.week}</td><td className="r num"><b>{f1(r.est)}</b></td>
+            <td className="r num">{dv("est") == null ? "–" : signed(dv("est")!)}</td>
+            {shown.map((p) => { const v = dv(p.k); return <td key={p.k} className={`r num ${big && big.k === p.k && v != null && Math.abs(v) >= 0.1 ? "drv" : ""}`}>{r[p.k] == null ? "–" : `${f1(r[p.k])}${v == null ? "" : ` (${signed(v)})`}`}</td>; })}
+          </tr>; })}</tbody>
+      </table>}
+      {b?.season && <div className="ros-build">
+        <h3>Box-score build <small>points per game = team plays × share × expected points per opportunity × finishing (nflverse PPR)</small></h3>
+        <table className="ros-tbl">
+          <thead><tr><th /> {FACTORS.map((x) => <th key={x.k} className="r" title={x.hint}>{x.label}</th>)}<th className="r">PPR/g</th></tr></thead>
+          <tbody>
+            <tr><td>Season ({b.season.games} g)</td>{FACTORS.map((x) => <td key={x.k} className="r num">{x.fmt(b.season![x.k])}</td>)}<td className="r num"><b>{f1(b.season.ppg)}</b></td></tr>
+            {b.recent && <tr><td>Last {b.recent.games}</td>{FACTORS.map((x) => <td key={x.k} className={`r num ${b.moved === x.k ? "drv" : ""}`}>{x.fmt(b.recent![x.k])}</td>)}<td className="r num"><b>{f1(b.recent.ppg)}</b></td></tr>}
+          </tbody>
+        </table>
+        {b.recent && b.recent.games > 0 && b.moved && <p className="pf-cap">{(() => {
+          const x = FACTORS.find((q) => q.k === b.moved)!; const lg = b.log?.[b.moved] ?? 0, up = lg > 0;
+          if (Math.abs(lg) < 0.05) return <>No factor moved more than 5% over his last {b.recent.games}: same role, same luck.</>;
+          const kind = b.moved === "fin" ? "That is mostly luck: finishing doesn't carry over within a season." : b.moved === "share" ? "Share settles in about a game, so a change here is usually real." : b.moved === "plays" ? "Team volume swings with game script week to week." : "Usage quality (where his touches come) is fairly stable.";
+          return <>Biggest change over his last {b.recent.games}: <b>{x.label.toLowerCase()} {up ? "up" : "down"}</b> ({x.fmt(b.season![b.moved])} → {x.fmt(b.recent![b.moved])}). {kind}</>;
+        })()}</p>}
+      </div>}
+      <p className="pf-cap">The number is half ESPN's weekly projection (a decaying average, this week ~60%) and half his own average shrunk toward his preseason level, then pulled a third of the way toward the value at his FantasyPros rank{f.pos === "WR" ? ", plus a small PFF nudge for targets per route run" : ""}. Bold cells drove that week's change.</p>
     </div>
   );
 }

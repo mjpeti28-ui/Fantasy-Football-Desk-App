@@ -305,4 +305,9 @@ def engine_build(espn_id: int) -> dict | None:
         out["headshot"] = views.headshot(int(espn_id), out["pos"], ab)
         out["pro_team"] = ab
         out["game"] = views._nfl_game(inp, ab, inp.week)
+        try:
+            from . import ros_parts
+            out["ros"] = ros_parts.build(season, int(espn_id))
+        except Exception:  # noqa: BLE001 -- optional breakdown; the file works without it
+            out["ros"] = None
     return out
