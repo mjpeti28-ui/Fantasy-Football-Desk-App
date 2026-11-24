@@ -13,6 +13,7 @@ import time
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import numpy as np
 import pandas as pd
 
 from . import data as d, store
@@ -42,12 +43,12 @@ def _f(x) -> Optional[float]:
 def _parts(lp: pd.DataFrame, pid: int) -> dict:
     """The pieces of our rest-of-season number (they add up to it): ESPN's half (pe, from the smoothed
     weekly projection ew), our own average's half (po, from ours_ppg over n games) and the FantasyPros
-    pull (pf, FantasyPros rank r), plus the PFF targets-per-route nudge for WRs (pp). Older ledgers don't have them."""
+    pull (pf, FantasyPros rank r); games played is ng, since n is the player's name in a state, plus the PFF targets-per-route nudge for WRs (pp). Older ledgers don't have them."""
     if pid not in lp.index or "c_espn" not in lp.columns:
         return {}
     r = lp.loc[pid]
     return {"pe": _f(r.get("c_espn")), "po": _f(r.get("c_ours")), "pf": _f(r.get("c_fp")), "pp": _f(r.get("c_pff")), "ew": _f(r.get("espn_smooth")),
-            "ou": _f(r.get("ours_ppg")), "n": _f(r.get("n")), "r": _f(r.get("ecr_rank"))}
+            "ou": _f(r.get("ours_ppg")), "ng": _f(r.get("n")), "r": _f(r.get("ecr_rank"))}
 
 
 def _role(season: int) -> Dict[int, str]:
@@ -61,9 +62,12 @@ def _role(season: int) -> Dict[int, str]:
     except (OSError, ValueError):
         return {}
     o = o[o["position"].isin(["QB", "RB", "WR", "TE"])].copy()
-    o["opps"] = (o["pass_attempt"].where(o["position"] == "QB", o["rec_attempt"]) + o["rush_attempt"]).fillna(0)
-    t = o.groupby(["posteam", "week"])[["pass_attempt", "rush_attempt"]].sum().sum(axis=1).rename("plays")
-    o = o.join(t, on=["posteam", "week"])
+    # WR/TE: targets over team passes (reads like target share), as in the player file's build
+    pc = o["position"].isin(["WR", "TE"])
+    o["opps"] = pd.Series(np.where(pc, o["rec_attempt"], o["pass_attempt"].where(o["position"] == "QB", o["rec_attempt"]) + o["rush_attempt"]), index=o.index).fillna(0)
+    t = o.groupby(["posteam", "week"])[["pass_attempt", "rush_attempt"]].sum()
+    o = o.join(t.sum(axis=1).rename("all_plays"), on=["posteam", "week"]).join(t["pass_attempt"].rename("passes"), on=["posteam", "week"])
+    o["plays"] = np.where(pc, o["passes"], o["all_plays"])
     o["espn_id"] = o["player_id"].map(dict(zip(ids["gsis_id"], ids["espn_id"].astype(int))))
     out: Dict[int, str] = {}
     for pid, g in o.dropna(subset=["espn_id"]).sort_values("week").groupby("espn_id"):
@@ -72,7 +76,7 @@ def _role(season: int) -> Dict[int, str]:
             continue
         sh, sh0 = last["opps"] / last["plays"], g["opps"].sum() / g["plays"].sum()
         move = "steady" if abs(sh - sh0) < max(0.03, 0.15 * sh0) else ("up" if sh > sh0 else "down")
-        line = f"role {move} (share {sh:.0%} last game, {sh0:.0%} season)"
+        line = f"role {move} ({'target share' if last['position'] in ('WR', 'TE') else 'share'} {sh:.0%} last game, {sh0:.0%} season)"
         if last["total_fantasy_points_exp"] > 0:
             line += f"; scored {last['total_fantasy_points']:.1f} on {last['total_fantasy_points_exp']:.1f} expected"
         out[int(pid)] = line
@@ -93,7 +97,7 @@ def _why(b: dict, c: dict, role: Optional[str]) -> Optional[str]:
         if k == "pe" and b.get("ew") is not None and c.get("ew") is not None:
             label += f" ({b['ew']:.1f}→{c['ew']:.1f} smoothed weekly proj)"
         elif k == "po" and b.get("ou") is not None and c.get("ou") is not None:
-            label += f" ({b['ou']:.1f}→{c['ou']:.1f}" + (f", {c['n']:.0f} games" if c.get("n") is not None else "") + ")"
+            label += f" ({b['ou']:.1f}→{c['ou']:.1f}" + (f", {c['ng']:.0f} games" if c.get("ng") is not None else "") + ")"
         elif k == "pf" and b.get("r") is not None and c.get("r") is not None and b["r"] != c["r"]:
             label += f" (rank {b['r']:.0f}→{c['r']:.0f})"
         bits.append((abs(dv), f"{label} {dv:+.2f}"))
@@ -188,9 +192,21 @@ def digest(since: Optional[int] = None) -> dict:
     B, C = base["players"], cur["players"]
     role = _role(inp.season)
 
+    known = {int(i): n for i, n in zip(inp.rosters["espn_id"], inp.rosters["name"])}
+    if "name" in inp.ledger_players:
+        known.update({int(i): n for i, n in zip(inp.ledger_players["espn_id"], inp.ledger_players["name"]) if isinstance(n, str)})
+
+    def nm(pid) -> Optional[str]:
+        # states saved 2026-11-24 (between PRs #46 and this fix) had the name overwritten by games played
+        for x in (C.get(pid), B.get(pid)):
+            if x and isinstance(x.get("n"), str):
+                return x["n"]
+        v = known.get(int(pid))
+        return str(v) if isinstance(v, str) else None
+
     def add(kind, pid, text, tone="", team=None, rank=0, why=None):
         p = C.get(pid) or B.get(pid) or {}
-        items.append({"kind": kind, "id": int(pid), "name": p.get("n"), "pos": p.get("p"), "team": team, "text": text, "tone": tone, "rank": rank,
+        items.append({"kind": kind, "id": int(pid), "name": nm(pid), "pos": p.get("p"), "team": team, "text": text, "tone": tone, "rank": rank,
                       **({"why": why} if why else {})})
 
     for pid, c in C.items():
@@ -224,7 +240,7 @@ def digest(since: Optional[int] = None) -> dict:
     for pid, b in B.items():  # rostered before, now a free agent we don't track (model under 6 ppg)
         if pid not in C and b.get("o") is not None:
             p = b
-            items.append({"kind": "move", "id": int(pid), "name": p.get("n"), "pos": p.get("p"), "team": b["o"],
+            items.append({"kind": "move", "id": int(pid), "name": nm(pid), "pos": p.get("p"), "team": b["o"],
                           "text": f"{names.get(str(b['o']), 'Team')} dropped him", "tone": "", "rank": 3})
     items.sort(key=lambda x: -x["rank"])
     return {"from": base["id"], "to": cur["id"], "at_from": base["at"], "at_to": cur["at"], "from_source": base.get("source"),
