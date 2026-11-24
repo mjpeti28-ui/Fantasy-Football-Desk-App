@@ -23,6 +23,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -96,6 +97,22 @@ def build_weekly_projections(season: int, weeks) -> Path:
         old = pd.read_csv(path)
         new = pd.concat([old[~old["week"].isin(new["week"].unique())], new], ignore_index=True)
     new.sort_values(["week", "espn_id"]).to_csv(path, index=False)
+    return path
+
+
+def archive_ahead_projections(season: int, week: int, last: int = 18) -> Path:
+    """Append ESPN's projections for every week after ``week`` (as published now) to
+    espn_ahead_proj.csv, stamped with the week and time they were seen. Never overwritten:
+    it is the history needed to test a matchup-averaged ROS input later."""
+    path = out_dir(season) / "espn_ahead_proj.csv"
+    if path.exists():  # refreshes run every few hours; one capture per day is plenty
+        seen = pd.read_csv(path, usecols=["captured_utc"])["captured_utc"]
+        if len(seen) and pd.Timestamp.now(tz="UTC") - pd.to_datetime(seen.iloc[-1], utc=True) < pd.Timedelta(hours=20):
+            return path
+    new = fetch_weekly_projections(season, range(week + 1, last + 1))
+    new.insert(0, "captured_utc", datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ"))
+    new.insert(0, "asof_week", week)
+    new.to_csv(path, mode="a", header=not path.exists(), index=False)
     return path
 
 
@@ -188,6 +205,8 @@ if __name__ == "__main__":
         t0 = time.time()
         build_weekly_projections(yr, range(lo, hi + 1))
         print(f"{yr} weekly projections {lo}-{hi}: done in {time.time() - t0:.0f}s")
+    elif args and args[0] == "ahead":  # python espn_history.py ahead 2026 12 -> archive weeks 13..18
+        print(archive_ahead_projections(int(args[1]), int(args[2])))
     elif args and args[0] == "matchups":  # python espn_history.py matchups 2021 2022 ...
         for yr in [int(a) for a in args[1:]]:
             fetch_matchups(yr).to_csv(out_dir(yr) / "matchups.csv", index=False)

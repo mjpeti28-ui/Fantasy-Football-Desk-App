@@ -202,6 +202,8 @@ def _run_refresh(season: int, week: int, quick: bool = False, full: bool = False
     ]
     if full:  # the whole Tuesday routine (it pulls ESPN itself): every source, snapshot, health, ledger, season odds
         steps = [("Weekly run: all sources, ledger, season odds", [sys.executable, "tools/weekly_run.py"])]
+    # archive ESPN's later-week projections (history only; nothing reads it yet)
+    steps.append(("ESPN projections, later weeks (archive)", [sys.executable, "espn_history.py", "ahead", str(season), str(week)]))
     if not quick:  # the button always rebuilds usage from nflverse
         steps.append(("nflverse play-by-play (roles)", [sys.executable, "-m", "app.engine.roles_data", str(season)]))
     else:  # the automatic refreshes rebuild it only when nflverse has published new snap/charting data (HEAD checks, no download)
