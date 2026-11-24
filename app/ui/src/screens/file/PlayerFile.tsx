@@ -499,6 +499,15 @@ function RosView({ f }: { f: PF }) {
   const h = f.ros?.history ?? [];
   const cur = h.length ? h[h.length - 1] : null;
   const b = f.ros?.build ?? null;
+  const pass = b?.basis === "passes";
+  const facs = FACTORS.map((x) => x.k === "plays" && pass ? { ...x, label: "Team passes/g", hint: "his team's pass attempts per game" }
+    : x.k === "share" && pass ? { ...x, label: "Target share", hint: "his targets over team pass attempts" }
+    : x.k === "xpo" && pass ? { ...x, label: "Expected pts/target", hint: "nflverse expected PPR points per target (depth, field position); his runs count in the points" } : x);
+  // one factor drove it, or small moves across the board?
+  const lg = b?.log ?? {}, mags = Object.values(lg).map(Math.abs), tot = mags.reduce((a, c) => a + c, 0);
+  const top = b?.moved ? Math.abs(lg[b.moved] ?? 0) : 0;
+  const spread = top >= 0.05 && tot > 0 && top / tot < 0.45;
+  const drv = (k: string) => !!b && b.moved === k && top >= 0.05 && !spread;
   const shown = PARTS.filter((p) => h.some((r) => r[p.k] != null && Math.abs(r[p.k] as number) >= 0.005));
   const inputOf = (k: string, r: (typeof h)[number]) => k === "pe" ? (r.ew != null ? `½ × ${f1(r.ew)} smoothed weekly proj` : "")
     : k === "po" ? (r.ou != null ? `½ × ${f1(r.ou)} over ${r.n ?? 0} games` : "")
@@ -526,15 +535,19 @@ function RosView({ f }: { f: PF }) {
       {b?.season && <div className="ros-build">
         <h3>Box-score build <small>points per game = team plays × share × expected points per opportunity × finishing (nflverse PPR)</small></h3>
         <table className="ros-tbl">
-          <thead><tr><th /> {FACTORS.map((x) => <th key={x.k} className="r" title={x.hint}>{x.label}</th>)}<th className="r">PPR/g</th></tr></thead>
+          <thead><tr><th /> {facs.map((x) => <th key={x.k} className="r" title={x.hint}>{x.label}</th>)}<th className="r">PPR/g</th></tr></thead>
           <tbody>
-            <tr><td>Season ({b.season.games} g)</td>{FACTORS.map((x) => <td key={x.k} className="r num">{x.fmt(b.season![x.k])}</td>)}<td className="r num"><b>{f1(b.season.ppg)}</b></td></tr>
-            {b.recent && <tr><td>Last {b.recent.games}</td>{FACTORS.map((x) => <td key={x.k} className={`r num ${b.moved === x.k ? "drv" : ""}`}>{x.fmt(b.recent![x.k])}</td>)}<td className="r num"><b>{f1(b.recent.ppg)}</b></td></tr>}
+            <tr><td>Season ({b.season.games} g)</td>{facs.map((x) => <td key={x.k} className="r num">{x.fmt(b.season![x.k])}</td>)}<td className="r num"><b>{f1(b.season.ppg)}</b></td></tr>
+            {b.recent && <tr><td>Last {b.recent.games}</td>{facs.map((x) => <td key={x.k} className={`r num ${drv(x.k) ? "drv" : ""}`}>{x.fmt(b.recent![x.k])}</td>)}<td className="r num"><b>{f1(b.recent.ppg)}</b></td></tr>}
           </tbody>
         </table>
         {b.recent && b.recent.games > 0 && b.moved && <p className="pf-cap">{(() => {
-          const x = FACTORS.find((q) => q.k === b.moved)!; const lg = b.log?.[b.moved] ?? 0, up = lg > 0;
-          if (Math.abs(lg) < 0.05) return <>No factor moved more than 5% over his last {b.recent.games}: same role, same luck.</>;
+          const x = facs.find((q) => q.k === b.moved)!; const lm = lg[b.moved] ?? 0, up = lm > 0;
+          if (Math.abs(lm) < 0.05) return <>No factor moved more than 5% over his last {b.recent.games}: same role, same luck.</>;
+          if (spread) {
+            const ch = facs.filter((q) => Math.abs(lg[q.k] ?? 0) >= 0.03).map((q) => `${q.label.toLowerCase()} ${(lg[q.k] ?? 0) > 0 ? "up" : "down"} ${Math.round(Math.abs(Math.expm1(lg[q.k] ?? 0)) * 100)}%`);
+            return <>Small moves across the board over his last {b.recent.games} ({ch.join(", ")}), none of them dominant. Points per game {(b.log_total ?? 0) > 0 ? "up" : "down"} {Math.round(Math.abs(Math.expm1(b.log_total ?? 0)) * 100)}% in all; expect the parts that aren't share to drift back.</>;
+          }
           const kind = b.moved === "fin" ? "That is mostly luck: finishing doesn't carry over within a season." : b.moved === "share" ? "Share settles in about a game, so a change here is usually real." : b.moved === "plays" ? "Team volume swings with game script week to week." : "Usage quality (where his touches come) is fairly stable.";
           return <>Biggest change over his last {b.recent.games}: <b>{x.label.toLowerCase()} {up ? "up" : "down"}</b> ({x.fmt(b.season![b.moved])} → {x.fmt(b.recent![b.moved])}). {kind}</>;
         })()}</p>}

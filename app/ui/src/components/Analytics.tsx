@@ -124,7 +124,7 @@ export function Signals({ a, p, note }: { a: Analytics | null; p: { id: number; 
       {r.flags.length > 0 && <ul className="sig-l">{r.flags.map((f) => <li key={f.key}><FlagChip f={f} /> <Ev l={f.label} tip={evTip(m[f.metric])} /><span>{f.text}</span></li>)}</ul>}
       <dl className="kv">
         <dt>Scored / usage says <EvFor m={m} k="fpoe" /></dt><dd>{f1(r.ppg)} / {f1(r.xfp)} <span className="dim">({signed(r.fpoe)})</span></dd>
-        <dt>Finishes <EvFor m={m} k="start" /></dt><dd><TierStrip w={r.weekly} pos={r.pos} /></dd>
+        <dt>Finishes <EvFor m={m} k="start" /></dt><dd className="full"><TierStrip w={r.weekly} pos={r.pos} /></dd>
         <dt>Startable weeks</dt><dd>{r.starts} of {r.games}{r.duds ? ` · ${r.duds} dud${r.duds > 1 ? "s" : ""}` : ""}</dd>
         {r.pos !== "QB" && <><dt>Snap share, last 3 <EvFor m={m} k="snap_tr" /></dt><dd>{pctTxt(r.snap != null && r.snap_tr != null ? r.snap + r.snap_tr : null)} <span className="dim">vs {pctTxt(r.snap)}</span></dd></>}
       </dl>

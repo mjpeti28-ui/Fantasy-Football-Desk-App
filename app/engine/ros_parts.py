@@ -4,7 +4,7 @@ Two views, both descriptive:
 - the blend: ESPN's half (smoothed weekly projection), our own average's half, the FantasyPros
   pull and (WRs) the PFF targets-per-route nudge, week by week from the ledger snapshots (they add up to est_ppg; snapshots written before the
   parts were stored show the total only);
-- the box-score build: fantasy points per game = team plays x his share x expected points per
+- the box-score build: fantasy points per game = team plays (WR/TE: team passes) x his share x expected points per
   opportunity x finishing (points / expected), season vs his last 3 games, from nflverse. Share settles
   in about a game; finishing is mostly luck within a season (metrics/own-projection), so the factor
   that moved tells you whether a hot or cold stretch is role or luck.
@@ -61,9 +61,14 @@ def _opps(season: int, mtime: float) -> pd.DataFrame:
     o = pd.read_csv(d.NFLVERSE / str(season) / "opportunity.csv")
     ids = pd.read_csv(d.NFLVERSE / "ids.csv").dropna(subset=["gsis_id", "espn_id"]).drop_duplicates("gsis_id")
     o = o[o["position"].isin(["QB", "RB", "WR", "TE"])].copy()
-    o["opps"] = (o["pass_attempt"].where(o["position"] == "QB", o["rec_attempt"]) + o["rush_attempt"]).fillna(0)
-    t = o.groupby(["posteam", "week"])[["pass_attempt", "rush_attempt"]].sum().sum(axis=1).rename("plays")
-    o = o.join(t, on=["posteam", "week"])
+    # QB/RB: (dropbacks or targets) + carries over all team plays; WR/TE: targets over team passes,
+    # so the share reads like a target share
+    pc = o["position"].isin(["WR", "TE"])
+    o["opps"] = np.where(pc, o["rec_attempt"], o["pass_attempt"].where(o["position"] == "QB", o["rec_attempt"]) + o["rush_attempt"])
+    o["opps"] = o["opps"].fillna(0)
+    t = o.groupby(["posteam", "week"])[["pass_attempt", "rush_attempt"]].sum()
+    o = o.join(t.sum(axis=1).rename("all_plays"), on=["posteam", "week"]).join(t["pass_attempt"].rename("passes"), on=["posteam", "week"])
+    o["plays"] = np.where(pc, o["passes"], o["all_plays"])
     o["espn_id"] = o["player_id"].map(dict(zip(ids["gsis_id"], ids["espn_id"].astype(int))))
     return o.dropna(subset=["espn_id"])
 
@@ -88,11 +93,11 @@ def build_up(season: int, espn_id: int, last: int = 3) -> Optional[dict]:
     g = g[g["plays"] > 0]
     s, r = _window(g), _window(g.tail(last))
     if s is None or r is None or len(g) < last + 1:
-        return {"season": s, "recent": None, "moved": None} if s else None
+        return {"season": s, "recent": None, "moved": None, "basis": "passes" if g["position"].iloc[-1] in ("WR", "TE") else "plays"} if s else None
     moves = {k: float(np.log(r[k] / s[k])) for k in ("plays", "share", "xpo", "fin") if s[k] > 0 and r[k] > 0}
     total = sum(moves.values())
     moved = max(moves, key=lambda k: abs(moves[k])) if moves else None
-    return {"season": s, "recent": r, "moved": moved, "log": {k: round(v, 3) for k, v in moves.items()}, "log_total": round(total, 3)}
+    return {"season": s, "recent": r, "moved": moved, "basis": "passes" if g["position"].iloc[-1] in ("WR", "TE") else "plays", "log": {k: round(v, 3) for k, v in moves.items()}, "log_total": round(total, 3)}
 
 
 def build(season: int, espn_id: int) -> dict:

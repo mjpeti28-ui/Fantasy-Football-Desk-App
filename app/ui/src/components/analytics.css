@@ -50,3 +50,6 @@
 .sig-l li > span:last-child { flex-basis: 100%; font-size: 12px; line-height: 1.4; color: var(--ink-2); }
 .sig .kv dt .ev { margin-left: 4px; }
 .sig .kv dd .dim { color: var(--ink-2); }
+/* the week strip is wider than the side panel's value column: give it its own row so labels don't get squeezed */
+.sig .kv dd.full { grid-column: 1 / -1; justify-self: start; text-align: left; margin-top: -2px; }
+.sig .kv dd.full .tstrip { flex-wrap: wrap; }
