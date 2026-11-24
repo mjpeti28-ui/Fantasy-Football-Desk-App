@@ -47,6 +47,11 @@ SLOT_ELIGIBILITY = {
 GAMES_PER_SEASON = 17
 # live-season prior: ESPN's week-1 weekly projection x this = season total / 17 (2021-25 sum ratio 0.89-0.96)
 WK1_TO_SEASON = 0.93
+# The ESPN half of est_ppg uses a decaying average of ESPN's published weekly projections
+# (each older week x0.4; this week ~60%) instead of this week's number alone. ESPN's weekly
+# moves that aren't a reaction to the last game revert ~30% the next week (2021-26); 0.4 is
+# where the ESPN part's change stops predicting the ROS error (metrics/espn-smoothing).
+ESPN_SMOOTH = 0.4
 FANTASY_LAST_WEEK = 17
 
 OUT_STATUSES = {"OUT", "INJURY_RESERVE", "SUSPENSION", "IR", "PUP"}
@@ -289,7 +294,14 @@ def player_table(s: Season, week: int, params: ForecastParams, *, live_injuries:
         df["espn_now"] = [prev.get(i, np.nan) if b == week else e.get(i, np.nan) for i, b in zip(df["espn_id"], df["bye"])]
     w_espn = df["position"].map(lambda p: params.espn_weight.get(p, 0.0))
     use = df["espn_now"] > 0
-    df["est_ppg"] = np.where(use, w_espn * df["espn_now"] + (1 - w_espn) * df["ours_ppg"], df["ours_ppg"])
+    df["espn_smooth"] = df["espn_now"]
+    if s.espn_weekly is not None:
+        pub = s.espn_weekly[(s.espn_weekly["week"] <= week) & (s.espn_weekly["espn_proj"] > 0)]
+        last = pub.groupby("espn_id")["week"].transform("max")
+        wt = ESPN_SMOOTH ** (last - pub["week"])
+        sm = (pub["espn_proj"] * wt).groupby(pub["espn_id"]).sum() / wt.groupby(pub["espn_id"]).sum()
+        df["espn_smooth"] = df["espn_id"].map(sm).fillna(df["espn_now"])
+    df["est_ppg"] = np.where(use, w_espn * df["espn_smooth"] + (1 - w_espn) * df["ours_ppg"], df["ours_ppg"])
     df["ecr_rank"] = np.nan
     if params.ecr_weight:
         if ecr is None:
