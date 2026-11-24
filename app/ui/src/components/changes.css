@@ -18,5 +18,6 @@
 .chg-panel .nm { all: unset; cursor: pointer; font-weight: 600; white-space: nowrap; }
 .chg-panel .nm:hover { color: var(--you); text-decoration: underline; }
 .chg-panel .tx { color: var(--ink-2); min-width: 0; }
+.chg-panel .why { grid-column: 4; font-size: 11px; line-height: 1.35; color: var(--ink-3); }
 .chg-panel .empty { margin: 0; color: var(--ink-2); }
 .chg-panel footer { font-size: 11px; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 8px; }

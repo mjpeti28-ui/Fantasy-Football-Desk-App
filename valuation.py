@@ -302,6 +302,10 @@ def player_table(s: Season, week: int, params: ForecastParams, *, live_injuries:
         sm = (pub["espn_proj"] * wt).groupby(pub["espn_id"]).sum() / wt.groupby(pub["espn_id"]).sum()
         df["espn_smooth"] = df["espn_id"].map(sm).fillna(df["espn_now"])
     df["est_ppg"] = np.where(use, w_espn * df["espn_smooth"] + (1 - w_espn) * df["ours_ppg"], df["ours_ppg"])
+    # parts that add up to est_ppg, so a change can be split by source (What's new):
+    # ESPN's half, our own average's half, and the FantasyPros pull added by blend_ecr
+    df["c_espn"] = np.where(use, w_espn * df["espn_smooth"], 0.0)
+    df["c_ours"] = df["est_ppg"] - df["c_espn"]
     df["ecr_rank"] = np.nan
     if params.ecr_weight:
         if ecr is None:
@@ -312,6 +316,7 @@ def player_table(s: Season, week: int, params: ForecastParams, *, live_injuries:
                 ecr = None
         if ecr is not None:
             df = blend_ecr(df, ecr, params.ecr_weight)
+    df["c_fp"] = df["est_ppg"] - df["c_espn"] - df["c_ours"]
     roster = s.roster_at(week)
     slot = dict(zip(roster["espn_id"], roster["lineup_slot"])) if "lineup_slot" in roster else {}
     last = s.weekly[s.weekly["week"] == week - 1]

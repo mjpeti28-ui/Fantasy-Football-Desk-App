@@ -28,6 +28,7 @@ export function ChangesPanel({ data, teamName, onOpen, onClose }: {
       {it.pos && <i className="pchip" style={{ background: POS_VAR[it.pos as keyof typeof POS_VAR] ?? "var(--field)", color: it.pos === "WR" ? "var(--wr-ink)" : "var(--pos-ink)" }}>{it.pos}</i>}
       <button type="button" className="nm" onClick={() => onOpen(it.id)} title="Open player file">{it.name}</button>
       <span className="tx">{it.kind === "move" && it.text.startsWith(teamName(it.team)) ? it.text.slice(teamName(it.team).length).trim() : it.text}</span>
+      {it.why && <span className="why">{it.why}</span>}
     </li>
   );
   return (
