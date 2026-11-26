@@ -76,9 +76,9 @@ def _role(season: int) -> Dict[int, str]:
             continue
         sh, sh0 = last["opps"] / last["plays"], g["opps"].sum() / g["plays"].sum()
         move = "steady" if abs(sh - sh0) < max(0.03, 0.15 * sh0) else ("up" if sh > sh0 else "down")
-        line = f"role {move} ({'target share' if last['position'] in ('WR', 'TE') else 'share'} {sh:.0%} last game, {sh0:.0%} season)"
+        line = f"role {move} ({'target share' if last['position'] in ('WR', 'TE') else 'share'} {sh:.0%} wk {int(last['week'])}, {sh0:.0%} season)"
         if last["total_fantasy_points_exp"] > 0:
-            line += f"; scored {last['total_fantasy_points']:.1f} on {last['total_fantasy_points_exp']:.1f} expected"
+            line += f"; wk {int(last['week'])} scored {last['total_fantasy_points']:.1f} on {last['total_fantasy_points_exp']:.1f} expected"
         out[int(pid)] = line
     return out
 
